@@ -16,6 +16,9 @@ from gui.pages.ocr_page import OcrPage
 from gui.pages.doc_manager import DocManagerPage
 from gui.pages.scale_page import ScalePage
 from gui.pages.checker import CheckerPage
+from gui.pages.ai_writer_page import AIWriterPage
+from gui.pages.img_proc_page import ImgProcPage
+from gui.pages.settings_page import SettingsPage
 from gui.pages.placeholder import PlaceholderPage
 
 # Nav definition: (group_label, [(icon, label, page_key), ...])
@@ -211,6 +214,12 @@ class MainWindow(QMainWindow):
             page = DocManagerPage()
         elif key == "ocr":
             page = OcrPage()
+        elif key == "ai_writer":
+            page = AIWriterPage()
+        elif key == "img_proc":
+            page = ImgProcPage()
+        elif key == "settings":
+            page = SettingsPage()
         else:
             page = PlaceholderPage(PAGE_TITLES.get(key, key))
 
