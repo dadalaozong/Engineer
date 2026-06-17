@@ -1,34 +1,28 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from database.models import list_projects, get_fee, upsert_fee
+from flask import Blueprint, render_template
+from database.db import get_conn
 
 bp = Blueprint("fees", __name__, url_prefix="/fees")
 
 @bp.route("/")
 def report_page():
-    projects = list_projects()
-    fee_data = []
-    total_sum = paid_sum = 0
-    for p in projects:
-        fee = get_fee(p["id"]) or {}
-        total = fee.get("total", 0) or 0
-        paid  = fee.get("paid",  0) or 0
-        total_sum += total
-        paid_sum  += paid
-        status = "已结清" if total and paid >= total else ("部分" if paid else ("未付" if total else "未设"))
-        fee_data.append({**p, "fee": fee, "status": status})
-    return render_template("fees/report.html", fee_data=fee_data,
-                           total_sum=total_sum, paid_sum=paid_sum,
-                           pending_sum=total_sum - paid_sum)
+    conn = get_conn()
+    rows = conn.execute("""
+        SELECT p.*, a.name as applicant_name,
+               f.total, f.deposit, f.paid, f.paid_date, f.note as fee_note
+        FROM projects p
+        LEFT JOIN applicants a ON a.id = p.applicant_id
+        LEFT JOIN fees f ON f.project_id = p.id
+        ORDER BY p.created_at DESC
+    """).fetchall()
+    conn.close()
 
-@bp.route("/upsert", methods=["POST"])
-def upsert():
-    d = request.get_json()
-    upsert_fee(
-        project_id=d["project_id"],
-        total=float(d.get("total") or 0),
-        deposit=float(d.get("deposit") or 0),
-        paid=float(d.get("paid") or 0),
-        paid_date=d.get("paid_date", ""),
-        note=d.get("note", ""),
-    )
-    return jsonify({"ok": True})
+    fees_data = [dict(r) for r in rows]
+    total_amount = sum(float(r["total"] or 0) for r in fees_data)
+    total_paid = sum(float(r["paid"] or 0) for r in fees_data)
+    total_pending = total_amount - total_paid
+    summary = {
+        "total_amount": round(total_amount, 2),
+        "total_paid": round(total_paid, 2),
+        "total_pending": round(total_pending, 2),
+    }
+    return render_template("fees/report.html", fees_data=fees_data, summary=summary)

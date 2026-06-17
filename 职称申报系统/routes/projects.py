@@ -1,104 +1,124 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from database.models import (list_projects, get_project, insert_project,
-                              update_project, delete_project, list_applicants, list_batches)
-from core.scale_engine import SPECIALTY_NAMES, judge
-from core.folder_builder import get_material_list, scan_folder
+from database.models import list_projects, get_project, insert_project, update_project, delete_project, list_applicants, list_batches
 
 bp = Blueprint("projects", __name__, url_prefix="/projects")
 
-P_FIELDS = ["applicant_id","batch_id","industry","committee","apply_level",
-            "scale","folder_path","note"]
+SPECIALTY_NAMES = ["房屋建筑工程", "市政公用工程", "装饰装修工程", "机电安装工程", "公路工程"]
 
 def _form_data():
-    return {f: request.form.get(f, "").strip() for f in P_FIELDS}
+    return dict(
+        applicant_id=request.form.get("applicant_id", ""),
+        batch_id=request.form.get("batch_id", ""),
+        industry=request.form.get("industry", ""),
+        committee=request.form.get("committee", ""),
+        level=request.form.get("level", ""),
+        project_name=request.form.get("project_name", ""),
+        project_type=request.form.get("project_type", ""),
+        scale=request.form.get("scale", ""),
+        role=request.form.get("role", ""),
+        status=request.form.get("status", ""),
+        notes=request.form.get("notes", ""),
+    )
 
 @bp.route("/")
 def list_page():
-    aid = request.args.get("applicant_id", type=int)
-    rows = list_projects(applicant_id=aid)
-    applicants = list_applicants()
-    return render_template("projects/list.html", rows=rows,
-                           applicants=applicants, filter_aid=aid)
+    applicant_id = request.args.get("applicant_id")
+    projects = list_projects(applicant_id=applicant_id)
+    return render_template("projects/list.html", projects=projects)
 
 @bp.route("/new", methods=["GET"])
 def new_page():
-    applicants = list_applicants()
-    batches    = list_batches()
-    return render_template("projects/form.html", project=None,
-                           applicants=applicants, batches=batches)
+    return render_template("projects/form.html", project=None, applicants=list_applicants(), batches=list_batches())
 
 @bp.route("/new", methods=["POST"])
 def create():
-    data = _form_data()
-    if not data["applicant_id"]:
-        flash("请选择申报人", "danger")
-        return render_template("projects/form.html", project=data,
-                               applicants=list_applicants(), batches=list_batches())
-    insert_project(**data)
-    flash("已新增项目", "success")
+    insert_project(**_form_data())
+    flash("项目已添加", "success")
     return redirect(url_for("projects.list_page"))
 
 @bp.route("/<int:pid>/edit", methods=["GET"])
 def edit_page(pid):
-    p = get_project(pid)
-    if not p:
-        flash("项目不存在", "danger")
-        return redirect(url_for("projects.list_page"))
-    return render_template("projects/form.html", project=p,
-                           applicants=list_applicants(), batches=list_batches())
+    project = get_project(pid)
+    return render_template("projects/form.html", project=project, applicants=list_applicants(), batches=list_batches())
 
 @bp.route("/<int:pid>/edit", methods=["POST"])
 def update(pid):
-    data = _form_data()
-    update_project(pid, **data)
-    flash("已保存", "success")
+    update_project(pid, **_form_data())
+    flash("项目已更新", "success")
     return redirect(url_for("projects.list_page"))
 
 @bp.route("/<int:pid>/delete", methods=["POST"])
 def delete(pid):
     delete_project(pid)
-    flash("已删除", "success")
+    flash("项目已删除", "success")
     return redirect(url_for("projects.list_page"))
 
-@bp.route("/scale")
+@bp.route("/scale", methods=["GET"])
 def scale_page():
-    return render_template("projects/scale.html", specialties=SPECIALTY_NAMES)
+    return render_template("projects/scale.html", SPECIALTY_NAMES=SPECIALTY_NAMES)
 
-@bp.route("/scale/judge", methods=["POST"])
+def judge(specialty, indicators):
+    cost = float(indicators.get("cost") or 0)
+    area = float(indicators.get("area") or 0)
+    height = float(indicators.get("height") or 0)
+    floors = float(indicators.get("floors") or 0)
+    road_len = float(indicators.get("road_len") or 0)
+    pipe_dia = float(indicators.get("pipe_dia") or 0)
+    bridge_span = float(indicators.get("bridge_span") or 0)
+    deco_area = float(indicators.get("deco_area") or 0)
+    transformer = float(indicators.get("transformer") or 0)
+    chiller = float(indicators.get("chiller") or 0)
+    speed = float(indicators.get("speed") or 0)
+
+    scale = "小型"
+    color = "#6b7280"
+    detail = ""
+
+    if specialty == "房屋建筑工程":
+        if cost >= 10000 or area >= 10 or height >= 100 or floors >= 3:
+            scale, color = "大型", "#dc2626"
+            detail = f"造价{cost}万元/面积{area}万㎡/高度{height}m/地下{floors}层"
+        elif cost >= 3000 or area >= 3 or height >= 50 or floors >= 2:
+            scale, color = "中型", "#d97706"
+            detail = f"造价{cost}万元/面积{area}万㎡/高度{height}m/地下{floors}层"
+        else:
+            detail = f"造价{cost}万元/面积{area}万㎡"
+    elif specialty == "市政公用工程":
+        if cost >= 5000 or road_len >= 10 or pipe_dia >= 1000 or bridge_span >= 150:
+            scale, color = "大型", "#dc2626"
+        elif cost >= 1000 or road_len >= 3 or pipe_dia >= 500 or bridge_span >= 50:
+            scale, color = "中型", "#d97706"
+        detail = f"造价{cost}万元/道路{road_len}km"
+    elif specialty == "装饰装修工程":
+        if cost >= 2000 or deco_area >= 20000:
+            scale, color = "大型", "#dc2626"
+        elif cost >= 500 or deco_area >= 5000:
+            scale, color = "中型", "#d97706"
+        detail = f"造价{cost}万元/面积{deco_area}㎡"
+    elif specialty == "机电安装工程":
+        if cost >= 3000 or transformer >= 10000 or chiller >= 1000:
+            scale, color = "大型", "#dc2626"
+        elif cost >= 1000 or transformer >= 3000 or chiller >= 300:
+            scale, color = "中型", "#d97706"
+        detail = f"造价{cost}万元/变压器{transformer}kVA"
+    elif specialty == "公路工程":
+        if cost >= 5000 or road_len >= 20 or speed >= 120:
+            scale, color = "大型", "#dc2626"
+        elif cost >= 1000 or road_len >= 5 or speed >= 80:
+            scale, color = "中型", "#d97706"
+        detail = f"造价{cost}万元/长度{road_len}km/速度{speed}km/h"
+
+    return scale, color, detail
+
+@bp.route("/scale", methods=["POST"])
 def scale_judge():
-    data = request.get_json()
+    data = request.json or {}
     specialty = data.get("specialty", "")
     indicators = data.get("indicators", {})
-    parsed = {}
-    for k, v in indicators.items():
-        try:
-            parsed[k] = float(v)
-        except (ValueError, TypeError):
-            pass
-    result = judge(specialty, parsed)
-    if result:
-        return jsonify({"level": result.level, "color": result.color,
-                        "matched": result.matched_indicator,
-                        "message": result.message})
-    return jsonify({"level": "无法判断", "color": "#64748b",
-                    "matched": "", "message": "专业不存在或指标不足"})
+    scale, color, detail = judge(specialty, indicators)
+    return jsonify({"scale": scale, "color": color, "detail": detail})
 
 @bp.route("/checker")
 def checker_page():
     projects = list_projects()
     return render_template("projects/checker.html", projects=projects)
-
-@bp.route("/checker/scan", methods=["POST"])
-def checker_scan():
-    data = request.get_json()
-    pid = data.get("project_id")
-    p   = get_project(pid) if pid else None
-    if not p:
-        return jsonify({"error": "项目不存在"}), 404
-    level  = p.get("apply_level", "")
-    folder = p.get("folder_path", "")
-    materials = get_material_list(level)
-    if folder:
-        scan = scan_folder(folder, level)
-        return jsonify({"materials": materials, "scan": scan, "folder": folder})
-    return jsonify({"materials": materials, "scan": {}, "folder": ""})

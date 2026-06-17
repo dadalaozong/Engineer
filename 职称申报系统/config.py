@@ -1,52 +1,33 @@
-from pathlib import Path
-import json
+import json, os
 
-APP_NAME = "职称申报系统"
-APP_VERSION = "1.0.0"
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config.json")
 
-DATA_DIR = Path.home() / ".zcsbxt"
-DATA_DIR.mkdir(exist_ok=True)
-
-DB_PATH = DATA_DIR / "data.db"
-KEY_PATH = DATA_DIR / "secret.key"
-CONFIG_PATH = DATA_DIR / "config.json"
-
-_DEFAULT_CONFIG = {
-    "ai": {
-        "deepseek_api_key": "",
-        "model": "deepseek-chat"
-    },
-    "img_apis": {
-        "remove_bg_key": "",
-        "clipdrop_key": "",
-        "aliyun_key": "",
-        "tencent_key": ""
-    },
-    "website": {
-        "url": "https://www.gxrczc.com",
-        "username": "",
-        "password_cipher": ""
-    }
+_defaults = {
+    "website_url": "",
+    "username": "",
+    "password": "",
+    "ai_api_key": "",
+    "ai_model": "deepseek-chat",
+    "ai_base_url": "https://api.deepseek.com",
+    "image_api_key": "",
+    "image_api_url": "",
+    "docs_folder": "",
 }
 
+def _load():
+    if os.path.exists(CONFIG_PATH):
+        try:
+            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                merged = dict(_defaults)
+                merged.update(data)
+                return merged
+        except Exception:
+            pass
+    return dict(_defaults)
 
-def load_config() -> dict:
-    if not CONFIG_PATH.exists():
-        save_config(_DEFAULT_CONFIG)
-        return _DEFAULT_CONFIG
-    with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    # merge missing keys from defaults
-    for k, v in _DEFAULT_CONFIG.items():
-        if k not in data:
-            data[k] = v
-        elif isinstance(v, dict):
-            for kk, vv in v.items():
-                if kk not in data[k]:
-                    data[k][kk] = vv
-    return data
+CONFIG = _load()
 
-
-def save_config(cfg: dict) -> None:
+def save_config(cfg):
     with open(CONFIG_PATH, "w", encoding="utf-8") as f:
         json.dump(cfg, f, ensure_ascii=False, indent=2)

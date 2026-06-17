@@ -1,174 +1,150 @@
-"""Simple DAO helpers — each function returns dicts (sqlite3.Row)."""
-import sqlite3
 from database.db import get_conn
 
+# ---- Applicants ----
 
-# ── Batches ──────────────────────────────────────────────
-def list_batches() -> list:
+def list_applicants(q=""):
     conn = get_conn()
-    rows = conn.execute(
-        "SELECT * FROM batches ORDER BY year DESC, deadline ASC"
-    ).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
-
-
-def insert_batch(year, industry, committee, level, deadline="", note="") -> int:
-    conn = get_conn()
-    cur = conn.execute(
-        "INSERT INTO batches(year,industry,committee,level,deadline,note) VALUES(?,?,?,?,?,?)",
-        (year, industry, committee, level, deadline, note)
-    )
-    conn.commit(); conn.close()
-    return cur.lastrowid
-
-
-def update_batch(bid, **kwargs) -> None:
-    fields = ", ".join(f"{k}=?" for k in kwargs)
-    conn = get_conn()
-    conn.execute(f"UPDATE batches SET {fields} WHERE id=?", (*kwargs.values(), bid))
-    conn.commit(); conn.close()
-
-
-def delete_batch(bid) -> None:
-    conn = get_conn()
-    conn.execute("DELETE FROM batches WHERE id=?", (bid,))
-    conn.commit(); conn.close()
-
-
-# ── Applicants ───────────────────────────────────────────
-def list_applicants(search="") -> list:
-    conn = get_conn()
-    if search:
+    if q:
         rows = conn.execute(
-            "SELECT * FROM applicants WHERE name LIKE ? OR id_card LIKE ? OR phone LIKE ? ORDER BY created_at DESC",
-            (f"%{search}%", f"%{search}%", f"%{search}%")
+            "SELECT * FROM applicants WHERE name LIKE ? OR id_card LIKE ? OR work_unit LIKE ? ORDER BY id DESC",
+            (f"%{q}%", f"%{q}%", f"%{q}%")
         ).fetchall()
     else:
-        rows = conn.execute("SELECT * FROM applicants ORDER BY created_at DESC").fetchall()
+        rows = conn.execute("SELECT * FROM applicants ORDER BY id DESC").fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
-
-def get_applicant(aid) -> dict | None:
+def get_applicant(aid):
     conn = get_conn()
     row = conn.execute("SELECT * FROM applicants WHERE id=?", (aid,)).fetchone()
     conn.close()
     return dict(row) if row else None
 
-
-def insert_applicant(**kwargs) -> int:
-    cols = ", ".join(kwargs.keys())
-    placeholders = ", ".join("?" * len(kwargs))
+def insert_applicant(**kw):
     conn = get_conn()
-    cur = conn.execute(f"INSERT INTO applicants({cols}) VALUES({placeholders})", list(kwargs.values()))
-    conn.commit(); conn.close()
-    return cur.lastrowid
+    conn.execute(
+        "INSERT INTO applicants (name,id_card,phone,email,education,major,work_unit,title_level,title_year,notes) VALUES (?,?,?,?,?,?,?,?,?,?)",
+        (kw.get("name"), kw.get("id_card"), kw.get("phone"), kw.get("email"),
+         kw.get("education"), kw.get("major"), kw.get("work_unit"),
+         kw.get("title_level"), kw.get("title_year"), kw.get("notes"))
+    )
+    conn.commit()
+    conn.close()
 
-
-def update_applicant(aid, **kwargs) -> None:
-    fields = ", ".join(f"{k}=?" for k in kwargs)
+def update_applicant(aid, **kw):
     conn = get_conn()
-    conn.execute(f"UPDATE applicants SET {fields} WHERE id=?", (*kwargs.values(), aid))
-    conn.commit(); conn.close()
+    conn.execute(
+        "UPDATE applicants SET name=?,id_card=?,phone=?,email=?,education=?,major=?,work_unit=?,title_level=?,title_year=?,notes=? WHERE id=?",
+        (kw.get("name"), kw.get("id_card"), kw.get("phone"), kw.get("email"),
+         kw.get("education"), kw.get("major"), kw.get("work_unit"),
+         kw.get("title_level"), kw.get("title_year"), kw.get("notes"), aid)
+    )
+    conn.commit()
+    conn.close()
 
-
-def delete_applicant(aid) -> None:
+def delete_applicant(aid):
     conn = get_conn()
     conn.execute("DELETE FROM applicants WHERE id=?", (aid,))
-    conn.commit(); conn.close()
+    conn.commit()
+    conn.close()
 
+# ---- Batches ----
 
-# ── Projects ─────────────────────────────────────────────
-def list_projects(applicant_id=None, batch_id=None) -> list:
+def list_batches():
     conn = get_conn()
-    sql = """
-        SELECT p.*, a.name as applicant_name,
-               b.year as batch_year, b.deadline as batch_deadline
-        FROM projects p
-        LEFT JOIN applicants a ON a.id = p.applicant_id
-        LEFT JOIN batches b ON b.id = p.batch_id
-    """
-    params = []
-    wheres = []
-    if applicant_id:
-        wheres.append("p.applicant_id=?"); params.append(applicant_id)
-    if batch_id:
-        wheres.append("p.batch_id=?"); params.append(batch_id)
-    if wheres:
-        sql += " WHERE " + " AND ".join(wheres)
-    sql += " ORDER BY p.created_at DESC"
-    rows = conn.execute(sql, params).fetchall()
+    rows = conn.execute("SELECT * FROM batches ORDER BY year DESC, id DESC").fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
+def insert_batch(**kw):
+    conn = get_conn()
+    conn.execute(
+        "INSERT INTO batches (year,industry,committee,level,deadline,note) VALUES (?,?,?,?,?,?)",
+        (kw.get("year"), kw.get("industry"), kw.get("committee"), kw.get("level"), kw.get("deadline"), kw.get("note"))
+    )
+    conn.commit()
+    conn.close()
 
-def get_project(pid) -> dict | None:
+def update_batch(bid, **kw):
+    conn = get_conn()
+    conn.execute(
+        "UPDATE batches SET year=?,industry=?,committee=?,level=?,deadline=?,note=? WHERE id=?",
+        (kw.get("year"), kw.get("industry"), kw.get("committee"), kw.get("level"), kw.get("deadline"), kw.get("note"), bid)
+    )
+    conn.commit()
+    conn.close()
+
+def delete_batch(bid):
+    conn = get_conn()
+    conn.execute("DELETE FROM batches WHERE id=?", (bid,))
+    conn.commit()
+    conn.close()
+
+# ---- Projects ----
+
+def list_projects(applicant_id=None):
+    conn = get_conn()
+    if applicant_id:
+        rows = conn.execute(
+            "SELECT p.*, a.name as applicant_name FROM projects p LEFT JOIN applicants a ON a.id=p.applicant_id WHERE p.applicant_id=? ORDER BY p.id DESC",
+            (applicant_id,)
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            "SELECT p.*, a.name as applicant_name FROM projects p LEFT JOIN applicants a ON a.id=p.applicant_id ORDER BY p.id DESC"
+        ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def get_project(pid):
     conn = get_conn()
     row = conn.execute("SELECT * FROM projects WHERE id=?", (pid,)).fetchone()
     conn.close()
     return dict(row) if row else None
 
-
-def insert_project(**kwargs) -> int:
-    cols = ", ".join(kwargs.keys())
-    placeholders = ", ".join("?" * len(kwargs))
+def insert_project(**kw):
     conn = get_conn()
-    cur = conn.execute(f"INSERT INTO projects({cols}) VALUES({placeholders})", list(kwargs.values()))
-    conn.commit(); conn.close()
-    return cur.lastrowid
+    conn.execute(
+        "INSERT INTO projects (applicant_id,batch_id,industry,committee,level,project_name,project_type,scale,role,status,notes) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+        (kw.get("applicant_id") or None, kw.get("batch_id") or None,
+         kw.get("industry"), kw.get("committee"), kw.get("level"),
+         kw.get("project_name"), kw.get("project_type"), kw.get("scale"),
+         kw.get("role"), kw.get("status") or "准备中", kw.get("notes"))
+    )
+    conn.commit()
+    conn.close()
 
-
-def update_project(pid, **kwargs) -> None:
-    fields = ", ".join(f"{k}=?" for k in kwargs)
+def update_project(pid, **kw):
     conn = get_conn()
-    conn.execute(f"UPDATE projects SET {fields} WHERE id=?", (*kwargs.values(), pid))
-    conn.commit(); conn.close()
+    conn.execute(
+        "UPDATE projects SET applicant_id=?,batch_id=?,industry=?,committee=?,level=?,project_name=?,project_type=?,scale=?,role=?,status=?,notes=? WHERE id=?",
+        (kw.get("applicant_id") or None, kw.get("batch_id") or None,
+         kw.get("industry"), kw.get("committee"), kw.get("level"),
+         kw.get("project_name"), kw.get("project_type"), kw.get("scale"),
+         kw.get("role"), kw.get("status") or "准备中", kw.get("notes"), pid)
+    )
+    conn.commit()
+    conn.close()
 
-
-def delete_project(pid) -> None:
+def delete_project(pid):
     conn = get_conn()
     conn.execute("DELETE FROM projects WHERE id=?", (pid,))
-    conn.commit(); conn.close()
-
-
-# ── Fees ─────────────────────────────────────────────────
-def get_fee(project_id) -> dict | None:
-    conn = get_conn()
-    row = conn.execute("SELECT * FROM fees WHERE project_id=?", (project_id,)).fetchone()
+    conn.commit()
     conn.close()
-    return dict(row) if row else None
 
+# ---- Dashboard Stats ----
 
-def upsert_fee(project_id, total=0, deposit=0, paid=0, paid_date="", note="") -> None:
-    conn = get_conn()
-    existing = conn.execute("SELECT id FROM fees WHERE project_id=?", (project_id,)).fetchone()
-    if existing:
-        conn.execute(
-            "UPDATE fees SET total=?,deposit=?,paid=?,paid_date=?,note=? WHERE project_id=?",
-            (total, deposit, paid, paid_date, note, project_id)
-        )
-    else:
-        conn.execute(
-            "INSERT INTO fees(project_id,total,deposit,paid,paid_date,note) VALUES(?,?,?,?,?,?)",
-            (project_id, total, deposit, paid, paid_date, note)
-        )
-    conn.commit(); conn.close()
-
-
-# ── Dashboard stats ───────────────────────────────────────
-def dashboard_stats() -> dict:
+def dashboard_stats():
     conn = get_conn()
     total_applicants = conn.execute("SELECT COUNT(*) FROM applicants").fetchone()[0]
-    total_projects   = conn.execute("SELECT COUNT(*) FROM projects").fetchone()[0]
-    total_fees       = conn.execute("SELECT COALESCE(SUM(paid),0) FROM fees").fetchone()[0]
-    pending_fees     = conn.execute(
-        "SELECT COALESCE(SUM(total-paid),0) FROM fees WHERE total>paid"
-    ).fetchone()[0]
+    total_projects = conn.execute("SELECT COUNT(*) FROM projects").fetchone()[0]
+    total_fees = conn.execute("SELECT COALESCE(SUM(paid),0) FROM fees").fetchone()[0]
+    total_amount = conn.execute("SELECT COALESCE(SUM(total),0) FROM fees").fetchone()[0]
+    pending_fees = total_amount - total_fees
     conn.close()
     return {
         "total_applicants": total_applicants,
         "total_projects": total_projects,
-        "total_fees": total_fees,
-        "pending_fees": pending_fees,
+        "total_fees": round(float(total_fees), 2),
+        "pending_fees": round(float(pending_fees), 2),
     }

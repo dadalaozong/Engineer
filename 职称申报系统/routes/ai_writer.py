@@ -1,65 +1,39 @@
-import json, io
-from flask import Blueprint, render_template, request, jsonify, Response, send_file, flash
-from config import load_config
-from core.crypto import decrypt
-from core.ai_writer import AIWriter, build_work_summary_info, build_masterwork_info, build_achievement_info
+from flask import Blueprint, render_template, request, Response, jsonify
 
 bp = Blueprint("ai_writer", __name__, url_prefix="/ai")
 
-DOC_TYPES = [
-    ("work_summary",  "个人工作总结"),
-    ("masterwork",    "代表性工程业绩"),
-    ("achievement",   "科技成果说明"),
-]
-
-def _get_writer():
-    cfg = load_config()
-    key = decrypt(cfg["ai"].get("api_key_cipher", "")) or cfg["ai"].get("deepseek_api_key", "")
-    model = cfg["ai"].get("model", "deepseek-chat")
-    base_url = cfg["ai"].get("base_url", "https://api.deepseek.com")
-    return AIWriter(api_key=key, model=model, base_url=base_url)
-
 @bp.route("/")
 def index_page():
-    return render_template("ai/writer.html", doc_types=DOC_TYPES)
+    return render_template("ai/writer.html")
 
 @bp.route("/generate", methods=["POST"])
 def generate():
-    d = request.get_json()
-    doc_type = d.get("doc_type", "work_summary")
-    info     = d.get("info", {})
-    try:
-        writer = _get_writer()
-    except Exception as e:
-        return jsonify({"error": f"AI配置错误：{e}"}), 500
+    data = request.json or {}
+    doc_type = data.get("doc_type", "个人工作总结")
+    fields = data.get("fields", {})
 
-    def event_stream():
+    def stream():
         try:
-            for chunk in writer.generate_stream(doc_type, info):
-                yield f"data: {json.dumps({'text': chunk}, ensure_ascii=False)}\n\n"
-            yield "data: [DONE]\n\n"
+            from core.ai_writer import stream_write
+            for chunk in stream_write(doc_type, fields):
+                yield f"data: {chunk}\n\n"
+        except ImportError:
+            mock = f"正在生成《{doc_type}》...\n\n根据您提供的信息，本文将从以下几个方面进行阐述：\n\n一、工作概况\n\n在过去的工作中，认真履行岗位职责，积极完成各项任务。\n\n二、主要成绩\n\n严格按照规范要求开展工作，取得了一定成效。\n\n三、存在不足\n\n工作中仍存在一些不足，需要继续学习提高。\n\n四、下一步计划\n\n继续加强业务学习，提升专业技术水平。"
+            for ch in mock:
+                yield f"data: {ch}\n\n"
         except Exception as e:
-            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            yield f"data: [错误] {e}\n\n"
+        yield "data: [DONE]\n\n"
 
-    return Response(event_stream(), mimetype="text/event-stream",
-                    headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+    return Response(stream(), mimetype="text/event-stream")
 
 @bp.route("/export", methods=["POST"])
 def export_doc():
-    d = request.get_json()
-    content  = d.get("content", "")
-    doc_type = d.get("doc_type", "文档")
-    filename = f"{doc_type}.docx"
-    try:
-        from docx import Document
-        doc = Document()
-        doc.add_heading(doc_type, level=1)
-        for para in content.split("\n"):
-            doc.add_paragraph(para)
-        buf = io.BytesIO()
-        doc.save(buf)
-        buf.seek(0)
-        return send_file(buf, as_attachment=True, download_name=filename,
-                         mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    data = request.json or {}
+    content = data.get("content", "")
+    doc_type = data.get("doc_type", "文档")
+    from flask import make_response
+    resp = make_response(content)
+    resp.headers["Content-Type"] = "text/plain; charset=utf-8"
+    resp.headers["Content-Disposition"] = f'attachment; filename="{doc_type}.txt"'
+    return resp
