@@ -12,6 +12,9 @@ _defaults = {
     "image_api_key": "",
     "image_api_url": "",
     "docs_folder": "",
+    "tencent_secret_id": "",
+    "tencent_secret_key": "",
+    "tencent_ocr_region": "ap-guangzhou",
 }
 
 def _load():

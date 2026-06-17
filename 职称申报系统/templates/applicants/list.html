@@ -5,29 +5,37 @@
 
 <div class="toolbar">
   <form method="get" style="display:flex;gap:8px;align-items:center">
-    <input class="search-input" name="q" placeholder="搜索姓名/身份证/电话" value="{{ q }}">
+    <input class="search-input" name="q" placeholder="搜索姓名/身份证/电话"
+           value="{{ request.args.get('q','') }}">
     <button class="btn btn-outline" type="submit">搜索</button>
-    {% if q %}<a href="{{ url_for('applicants.list_page') }}" class="btn btn-outline">清除</a>{% endif %}
+    {% if request.args.get('q') %}
+    <a href="{{ url_for('applicants.list_page') }}" class="btn btn-outline">清除</a>
+    {% endif %}
   </form>
   <div class="toolbar-right">
-    <a href="{{ url_for('applicants.new_page') }}" class="btn btn-primary">➕ 新增申报人</a>
+    <button class="btn btn-primary" onclick="openModal('ocr-modal')">
+      📷 扫描证件新增
+    </button>
+    <a href="{{ url_for('applicants.new_page') }}" class="btn btn-outline">✏️ 手动新增</a>
   </div>
 </div>
 
 <div class="table-card">
   <div class="table-header">
-    <span class="table-header-title">申报人列表（共 {{ rows|length }} 人）</span>
+    <span class="table-header-title">
+      申报人列表（共 <span id="row-count">{{ applicants|length }}</span> 人）
+    </span>
   </div>
-  <table>
+  <table id="applicant-table">
     <thead>
       <tr>
         <th>姓名</th><th>身份证</th><th>电话</th><th>工作单位</th>
         <th>学历</th><th>现职称</th><th>操作</th>
       </tr>
     </thead>
-    <tbody>
-      {% for a in rows %}
-      <tr>
+    <tbody id="applicant-tbody">
+      {% for a in applicants %}
+      <tr data-id="{{ a.id }}">
         <td><strong>{{ a.name }}</strong></td>
         <td class="text-muted">{{ a.id_card or '—' }}</td>
         <td>{{ a.phone or '—' }}</td>
@@ -35,17 +43,344 @@
         <td>{{ a.education or '—' }}</td>
         <td>{{ a.title_level or '—' }}</td>
         <td>
-          <a href="{{ url_for('applicants.edit_page', aid=a.id) }}" class="btn btn-sm btn-outline">编辑</a>
-          <a href="{{ url_for('projects.list_page', applicant_id=a.id) }}" class="btn btn-sm btn-outline">查看项目</a>
+          <a href="{{ url_for('applicants.edit_page', aid=a.id) }}"
+             class="btn btn-sm btn-outline">编辑</a>
+          <a href="{{ url_for('projects.list_page', applicant_id=a.id) }}"
+             class="btn btn-sm btn-outline">项目</a>
           <button class="btn btn-sm btn-danger"
-                  onclick="confirmDelete('{{ url_for('applicants.delete', aid=a.id) }}', '{{ a.name }}')">删除</button>
+            onclick="confirmDelete('{{ url_for('applicants.delete', aid=a.id) }}',
+                     '{{ a.name }}')">删除</button>
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="7" class="text-muted" style="text-align:center;padding:24px">暂无数据</td></tr>
+      <tr id="empty-row">
+        <td colspan="7" class="text-muted" style="text-align:center;padding:24px">
+          暂无申报人，点击「扫描证件新增」快速录入
+        </td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 
+<!-- ══════════ OCR 新增弹窗 ══════════ -->
+<div id="ocr-modal" class="modal-overlay hidden">
+  <div class="modal-box" style="width:760px;max-width:96vw">
+    <div class="modal-title">📷 扫描证件 — 快速新增申报人</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+      <!-- 左：上传区 -->
+      <div>
+        <!-- 身份证上传 -->
+        <div style="margin-bottom:14px">
+          <div style="font-size:13px;font-weight:600;color:#1e293b;margin-bottom:6px">
+            🪪 身份证正面
+          </div>
+          <div class="drop-zone" id="drop-id" onclick="document.getElementById('file-id').click()">
+            <div id="drop-id-inner">
+              <div style="font-size:24px;margin-bottom:4px">📁</div>
+              <div style="font-size:12px;color:#64748b">点击或拖放身份证正面图片</div>
+            </div>
+          </div>
+          <input type="file" id="file-id" accept="image/*" style="display:none"
+                 onchange="handleFile(this,'id-card','FRONT')">
+          <div id="status-id" style="font-size:12px;margin-top:4px"></div>
+        </div>
+
+        <!-- 学历证上传 -->
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#1e293b;margin-bottom:6px">
+            🎓 学历证书（可选）
+          </div>
+          <div class="drop-zone" id="drop-deg" onclick="document.getElementById('file-deg').click()">
+            <div id="drop-deg-inner">
+              <div style="font-size:24px;margin-bottom:4px">📁</div>
+              <div style="font-size:12px;color:#64748b">点击或拖放学历证书图片</div>
+            </div>
+          </div>
+          <input type="file" id="file-deg" accept="image/*" style="display:none"
+                 onchange="handleFile(this,'degree',null)">
+          <div id="status-deg" style="font-size:12px;margin-top:4px"></div>
+        </div>
+      </div>
+
+      <!-- 右：表单 -->
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">姓名 <span style="color:#dc2626">*</span></label>
+          <input class="form-control" id="f-name" placeholder="自动填入或手动输入">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">身份证号</label>
+          <input class="form-control" id="f-id-card">
+        </div>
+        <div class="form-row" style="gap:8px">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">性别</label>
+            <select class="form-control" id="f-gender">
+              <option value="">—</option>
+              <option value="男">男</option>
+              <option value="女">女</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">出生日期</label>
+            <input class="form-control" id="f-birth" placeholder="1990-01-01">
+          </div>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">工作单位</label>
+          <input class="form-control" id="f-work-unit">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">电话</label>
+          <input class="form-control" id="f-phone">
+        </div>
+        <div class="form-row" style="gap:8px">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">学历</label>
+            <select class="form-control" id="f-education">
+              <option value="">—</option>
+              <option>大专</option><option>本科</option>
+              <option>硕士</option><option>博士</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">专业</label>
+            <input class="form-control" id="f-major">
+          </div>
+        </div>
+        <div class="form-row" style="gap:8px">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">现职称</label>
+            <select class="form-control" id="f-title-level">
+              <option value="">—</option>
+              <option>助理工程师</option><option>工程师</option>
+              <option>高级工程师</option><option>正高级工程师</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label class="form-label">取得年份</label>
+            <input class="form-control" id="f-title-year">
+          </div>
+        </div>
+        <div id="ocr-err" style="color:#dc2626;font-size:12px;min-height:16px"></div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="resetOcrModal();closeModal('ocr-modal')">取消</button>
+      <button class="btn btn-primary" id="btn-save-ocr" onclick="saveApplicant()">
+        ✓ 添加到列表
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<style>
+.drop-zone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  min-height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+.drop-zone img {
+  max-width: 100%;
+  max-height: 80px;
+  border-radius: 4px;
+  display: block;
+  margin: 0 auto;
+}
+</style>
+<script>
+// ── Drag & Drop ───────────────────────────────────────────────
+["drop-id","drop-deg"].forEach(id => {
+  const zone = document.getElementById(id);
+  zone.addEventListener("dragover", e => { e.preventDefault(); zone.classList.add("drag-over"); });
+  zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
+  zone.addEventListener("drop", e => {
+    e.preventDefault();
+    zone.classList.remove("drag-over");
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    if (id === "drop-id") processFile(file, "id-card", "FRONT");
+    else processFile(file, "degree", null);
+  });
+});
+
+function handleFile(input, type, side) {
+  const file = input.files[0];
+  if (file) processFile(file, type, side);
+}
+
+function processFile(file, type, side) {
+  const isId  = type === "id-card";
+  const zone  = document.getElementById(isId ? "drop-id" : "drop-deg");
+  const inner = document.getElementById(isId ? "drop-id-inner" : "drop-deg-inner");
+  const stat  = document.getElementById(isId ? "status-id" : "status-deg");
+
+  // Preview
+  const reader = new FileReader();
+  reader.onload = e => {
+    inner.innerHTML = `<img src="${e.target.result}">`;
+  };
+  reader.readAsDataURL(file);
+
+  // Upload & OCR
+  stat.innerHTML = '<span style="color:#2563eb">识别中...</span>';
+  document.getElementById("ocr-err").textContent = "";
+  const fd  = new FormData();
+  fd.append("file", file);
+  if (side) fd.append("side", side);
+  const url = isId ? "/ocr/id-card" : "/ocr/degree";
+
+  fetch(url, {method:"POST", body:fd})
+    .then(r => r.json()).then(d => {
+      if (!d.success) {
+        stat.innerHTML = `<span style="color:#dc2626">❌ ${d.error}</span>`;
+        return;
+      }
+      stat.innerHTML = '<span style="color:#16a34a">✅ 识别成功</span>';
+      fillFields(d.fields);
+    }).catch(e => {
+      stat.innerHTML = `<span style="color:#dc2626">❌ ${e.message}</span>`;
+    });
+}
+
+function fillFields(fields) {
+  const map = {
+    name:       "f-name",
+    id_card:    "f-id-card",
+    birth_date: "f-birth",
+    education:  "f-education",
+    major:      "f-major",
+    title_level:"f-title-level",
+    title_year: "f-title-year",
+    work_unit:  "f-work-unit",
+  };
+  Object.entries(fields).forEach(([k, v]) => {
+    if (!v) return;
+    const el = document.getElementById(map[k]);
+    if (!el) return;
+    if (el.tagName === "SELECT") {
+      // find matching option
+      for (const opt of el.options) {
+        if (opt.value === v || opt.textContent === v) { el.value = opt.value; break; }
+      }
+    } else {
+      if (!el.value) el.value = v;  // don't overwrite if user already typed
+    }
+  });
+  // gender (select by value)
+  if (fields.gender) {
+    const sel = document.getElementById("f-gender");
+    sel.value = fields.gender;
+  }
+}
+
+// ── Save applicant via AJAX ────────────────────────────────────
+function saveApplicant() {
+  const name = document.getElementById("f-name").value.trim();
+  if (!name) {
+    document.getElementById("ocr-err").textContent = "姓名不能为空";
+    return;
+  }
+  const btn = document.getElementById("btn-save-ocr");
+  btn.disabled = true;
+  btn.textContent = "保存中...";
+
+  const data = {
+    name:        name,
+    id_card:     document.getElementById("f-id-card").value.trim(),
+    phone:       document.getElementById("f-phone").value.trim(),
+    email:       "",
+    education:   document.getElementById("f-education").value,
+    major:       document.getElementById("f-major").value.trim(),
+    work_unit:   document.getElementById("f-work-unit").value.trim(),
+    title_level: document.getElementById("f-title-level").value,
+    title_year:  document.getElementById("f-title-year").value.trim(),
+    notes:       `出生：${document.getElementById("f-birth").value}  性别：${document.getElementById("f-gender").value}`,
+  };
+
+  fetch("/applicants/new-json", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(data),
+  }).then(r => r.json()).then(d => {
+    if (!d.success) {
+      document.getElementById("ocr-err").textContent = d.error || "保存失败";
+      btn.disabled = false;
+      btn.textContent = "✓ 添加到列表";
+      return;
+    }
+    // Remove empty-row if present
+    const emptyRow = document.getElementById("empty-row");
+    if (emptyRow) emptyRow.remove();
+    // Append new row to table
+    const tbody = document.getElementById("applicant-tbody");
+    const tr = document.createElement("tr");
+    tr.dataset.id = d.id;
+    tr.innerHTML = `
+      <td><strong>${esc(data.name)}</strong></td>
+      <td class="text-muted">${esc(data.id_card||"—")}</td>
+      <td>${esc(data.phone||"—")}</td>
+      <td>${esc(data.work_unit||"—")}</td>
+      <td>${esc(data.education||"—")}</td>
+      <td>${esc(data.title_level||"—")}</td>
+      <td>
+        <a href="/applicants/${d.id}/edit" class="btn btn-sm btn-outline">编辑</a>
+        <a href="/projects/?applicant_id=${d.id}" class="btn btn-sm btn-outline">项目</a>
+        <button class="btn btn-sm btn-danger"
+          onclick="confirmDelete('/applicants/${d.id}/delete','${esc(data.name)}')">删除</button>
+      </td>`;
+    tbody.appendChild(tr);
+    // Update count
+    document.getElementById("row-count").textContent =
+      tbody.querySelectorAll("tr[data-id]").length;
+    // Flash row
+    tr.style.background = "#f0fdf4";
+    setTimeout(() => tr.style.background = "", 1500);
+
+    resetOcrModal();
+    closeModal("ocr-modal");
+  }).catch(e => {
+    document.getElementById("ocr-err").textContent = e.message;
+    btn.disabled = false;
+    btn.textContent = "✓ 添加到列表";
+  });
+}
+
+function resetOcrModal() {
+  ["f-name","f-id-card","f-birth","f-phone","f-work-unit","f-major","f-title-year"]
+    .forEach(id => { const el=document.getElementById(id); if(el) el.value=""; });
+  ["f-gender","f-education","f-title-level"]
+    .forEach(id => { const el=document.getElementById(id); if(el) el.value=""; });
+  document.getElementById("drop-id-inner").innerHTML =
+    '<div style="font-size:24px;margin-bottom:4px">📁</div><div style="font-size:12px;color:#64748b">点击或拖放身份证正面图片</div>';
+  document.getElementById("drop-deg-inner").innerHTML =
+    '<div style="font-size:24px;margin-bottom:4px">📁</div><div style="font-size:12px;color:#64748b">点击或拖放学历证书图片</div>';
+  ["status-id","status-deg","ocr-err"].forEach(id => {
+    document.getElementById(id).textContent = "";
+  });
+  const btn = document.getElementById("btn-save-ocr");
+  btn.disabled = false; btn.textContent = "✓ 添加到列表";
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+</script>
 {% endblock %}
