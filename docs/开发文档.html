@@ -218,6 +218,21 @@
     .status-table td.todo   { color: var(--orange); font-weight: 600; }
     .status-table td.later  { color: var(--gray);   font-weight: 600; }
 
+    /* 提示框 */
+    .info-box, .warn-box {
+      border-left: 4px solid var(--blue);
+      background: var(--blue-light);
+      padding: 14px 18px;
+      border-radius: 6px;
+      margin: 16px 0;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .warn-box {
+      border-left-color: var(--orange);
+      background: var(--orange-light);
+    }
+
     @media (max-width: 768px) {
       nav { display: none; }
       main { margin-left: 0; padding: 24px 20px; }
@@ -258,6 +273,10 @@
     <li><a href="#login">登录流程</a></li>
     <li><a href="#form-map">表单字段映射</a></li>
     <li><a href="#fill-flow">填报流程</a></li>
+
+    <li class="section">AI 辅助写作</li>
+    <li><a href="#ai-write">DeepSeek 接入设计</a></li>
+    <li><a href="#ai-prompts">Prompt 模板</a></li>
 
     <li class="section">交付</li>
     <li><a href="#roadmap">开发计划</a></li>
@@ -1018,6 +1037,225 @@ def check_achievements_high(achievements: list[dict]) -> dict:
     • 设计/施工/监理/项目管理：中级需 2中型以上；高级需 2大型 或 1大+2中 或 4中<br/>
     • 咨询/检测/质量监督：中级需 5大中型(含1大型)；高级需 10大中型(含5大型)<br/>
     • 工程造价/招投标：中级需 4中型以上 或 6小型；高级需 6大中型(含2大型) 或 10小型
+  </div>
+
+  <hr />
+
+  <!-- ══════════════ DeepSeek AI 辅助写作 ══════════════ -->
+  <h2 id="ai-write">AI 辅助写作 · DeepSeek 接入设计</h2>
+
+  <p style="color:var(--text-sub);margin-bottom:20px;">
+    在职称申报中，<strong>代表作说明书、工程业绩描述、专业技术工作总结</strong>是文字量最大、最耗时的环节。
+    系统接入 DeepSeek API，根据已录入的结构化数据自动起草，供人工审核后使用。
+  </p>
+
+  <div class="info-box" style="border-left-color:var(--blue);background:var(--blue-light);">
+    <strong>接口兼容性：</strong>DeepSeek API 完全兼容 OpenAI 格式，只需替换 <code>base_url</code> 和 <code>api_key</code>，
+    无需额外 SDK，使用 <code>openai</code> Python 包即可调用。
+    推荐模型：<code>deepseek-chat</code>（价格低、中文效果好）。
+  </div>
+
+  <h3>适用场景一览</h3>
+
+  <table class="status-table">
+    <tr><th>功能</th><th>触发时机</th><th>输入数据</th><th>输出</th></tr>
+    <tr>
+      <td>📄 代表作说明书</td>
+      <td>业绩录入完成后，点击「AI起草」</td>
+      <td>工程名称、规模、本人职务、工作内容、获奖情况</td>
+      <td>~800字说明书正文，Word格式</td>
+    </tr>
+    <tr>
+      <td>📝 工程业绩描述</td>
+      <td>单条业绩录入后，点击「AI补全描述」</td>
+      <td>项目基本信息 + 合同额 + 本人职责</td>
+      <td>100~150字业绩简述，用于填报表格</td>
+    </tr>
+    <tr>
+      <td>📋 专业技术工作总结</td>
+      <td>完整性检查通过后，点击「AI生成总结」</td>
+      <td>全部业绩列表 + 获奖 + 论文 + 工作年限</td>
+      <td>~1500字个人技术工作总结</td>
+    </tr>
+    <tr>
+      <td>🏆 获奖描述补全</td>
+      <td>获奖信息录入后，可选触发</td>
+      <td>获奖名称、级别、颁奖机构、年份、本人角色</td>
+      <td>50字获奖贡献说明</td>
+    </tr>
+  </table>
+
+  <h3>模块设计</h3>
+
+  <div class="code-block">
+<span style="color:#6ee7b7"># ai_writer.py</span>
+from openai import OpenAI
+from pathlib import Path
+import json
+
+class AIWriter:
+    def __init__(self, api_key: str):
+        self.client = OpenAI(
+            api_key=api_key,
+            base_url="https://api.deepseek.com"
+        )
+        self.model = "deepseek-chat"
+
+    def _call(self, prompt: str) -> str:
+        resp = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": "你是一名专业的建筑工程职称申报材料撰写专家，熟悉广西住建行业职称评审条件。"},
+                {"role": "user",   "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=2000,
+        )
+        return resp.choices[0].message.content
+
+    def gen_representative_work(self, project: dict) -> str:
+        """生成代表作说明书"""
+        prompt = PROMPT_REPRESENTATIVE.format(**project)
+        return self._call(prompt)
+
+    def gen_achievement_desc(self, achievement: dict) -> str:
+        """生成单条业绩描述（用于网上填报）"""
+        prompt = PROMPT_ACHIEVEMENT.format(**achievement)
+        return self._call(prompt)
+
+    def gen_work_summary(self, applicant: dict, achievements: list,
+                         awards: list, papers: list) -> str:
+        """生成专业技术工作总结"""
+        prompt = PROMPT_SUMMARY.format(
+            name=applicant["name"],
+            title_level=applicant["title_level"],
+            years=applicant["work_years"],
+            achievements=json.dumps(achievements, ensure_ascii=False, indent=2),
+            awards=json.dumps(awards, ensure_ascii=False, indent=2),
+            papers=json.dumps(papers, ensure_ascii=False, indent=2),
+        )
+        return self._call(prompt)
+
+    def save_to_docx(self, content: str, output_path: Path):
+        """将AI输出写入Word文档（需要python-docx）"""
+        from docx import Document
+        doc = Document()
+        for line in content.split("\n"):
+            doc.add_paragraph(line)
+        doc.save(output_path)</div>
+
+  <h3>配置存储</h3>
+  <p>API Key 保存在本地配置文件，不上传任何数据到外部（仅发送 Prompt 文本）：</p>
+
+  <div class="code-block">
+<span style="color:#6ee7b7"># config.py</span>
+import json, os
+from pathlib import Path
+
+CONFIG_PATH = Path.home() / ".zcsbxt" / "config.json"
+
+def load_config() -> dict:
+    if CONFIG_PATH.exists():
+        return json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    return {}
+
+def save_config(cfg: dict):
+    CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    CONFIG_PATH.write_text(json.dumps(cfg, ensure_ascii=False, indent=2), encoding="utf-8")
+
+<span style="color:#6ee7b7"># 使用示例</span>
+cfg = load_config()
+writer = AIWriter(api_key=cfg.get("deepseek_api_key", ""))
+  </div>
+
+  <h3>UI 集成要点</h3>
+  <ul style="line-height:2;padding-left:20px;">
+    <li>在「业绩录入」页，每条记录末尾加 <strong>「AI写描述」</strong> 按钮（返回后填入描述框，可人工修改）</li>
+    <li>在「代表作」页，加 <strong>「AI起草说明书」</strong> 按钮，生成后弹出富文本编辑框供修改，确认后保存为 <code>.docx</code></li>
+    <li>在「完整性检查通过」后，加 <strong>「AI生成工作总结」</strong> 按钮</li>
+    <li>系统设置页新增 <strong>DeepSeek API Key 填写入口</strong>（密码框，本地加密存储）</li>
+    <li>AI 生成中显示 loading 动画，生成失败时提示「API Key 无效」或「网络超时」</li>
+  </ul>
+
+  <hr />
+
+  <!-- ══════════════ Prompt 模板 ══════════════ -->
+  <h2 id="ai-prompts">AI Prompt 模板</h2>
+
+  <h3>① 代表作说明书</h3>
+  <div class="code-block">
+PROMPT_REPRESENTATIVE = """
+请根据以下工程项目信息，撰写一份职称评审代表作说明书，字数约800字。
+
+【项目基本信息】
+工程名称：{name}
+建设地点：{location}
+工程类型：{project_type}
+工程规模：{scale}（建筑面积{area}㎡ / {floors}层 / 合同额{contract}万元）
+建设单位：{owner}
+施工单位：{contractor}
+本人职务：{role}
+在职时间：{start_date} 至 {end_date}
+
+【获奖情况】
+{awards}
+
+【撰写要求】
+1. 开头说明工程概况和重要性
+2. 重点描述本人承担的技术职责和解决的关键技术问题
+3. 说明工程技术创新点或难点突破
+4. 结合获奖情况说明工程质量和社会效益
+5. 语言专业、客观、符合政府机关公文风格
+6. 不要使用夸张词汇，数据必须与输入信息一致
+"""</div>
+
+  <h3>② 单条业绩描述（网上填报用）</h3>
+  <div class="code-block">
+PROMPT_ACHIEVEMENT = """
+请根据以下信息，撰写一段工程业绩简介，用于职称申报系统网上填报，字数100~150字。
+
+工程名称：{name}
+工程类型：{project_type}
+建筑面积：{area}㎡
+层数/高度：{floors}层/{height}米
+合同金额：{contract}万元
+本人职务：{role}
+主要工作：{work_content}
+
+要求：语言简洁，突出本人贡献，数据准确，一段话，无标题。
+"""</div>
+
+  <h3>③ 专业技术工作总结</h3>
+  <div class="code-block">
+PROMPT_SUMMARY = """
+请根据以下申报人信息，撰写一份专业技术工作总结，字数约1500字，格式为分段正文（无需编号标题）。
+
+申报人：{name}
+申报职称：{title_level}
+从事专业年限：{years}年
+
+【工程业绩】
+{achievements}
+
+【获奖情况】
+{awards}
+
+【论文著作】
+{papers}
+
+撰写要求：
+1. 概述从业经历和技术成长轨迹
+2. 按时间或项目类型分段介绍主要业绩
+3. 突出技术能力、解决复杂问题的能力
+4. 提及获奖和论文体现学术贡献
+5. 结尾总结技术水平达到{title_level}评审条件
+6. 符合广西住建行业职称评审语言风格
+"""</div>
+
+  <div class="warn-box">
+    <strong>注意事项：</strong>
+    AI 生成内容为<strong>草稿</strong>，申报人必须审核确认所有数据与实际情况一致后方可使用。
+    系统在 AI 生成界面顶部显示醒目提示：「以下内容由 AI 辅助生成，请仔细核对所有数据后再使用」。
   </div>
 
   <hr />
