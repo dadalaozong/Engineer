@@ -1605,6 +1605,122 @@ PROMPT_SUMMARY = """
 
   <hr />
 
+  <!-- ══════════════ 中介业务管理 ══════════════ -->
+
+  <h2 id="batch">年度批次管理</h2>
+
+  <p>每年职称申报是一个独立批次，按"行业 + 评委会 + 年度"三个维度组织。同一客户可能连续多年申报（今年未过，明年再来），历史记录完整保留。</p>
+
+  <table>
+    <tr><th>维度</th><th>说明</th></tr>
+    <tr><td>年度</td><td>如"2026年度"</td></tr>
+    <tr><td>行业</td><td>住房城乡建设 / 教育 / 卫生健康</td></tr>
+    <tr><td>评委会</td><td>高级职称评委会 / 中级职称评委会 / 正高级职称评委会</td></tr>
+    <tr><td>材料截止</td><td>向评委会提交材料的截止日期</td></tr>
+    <tr><td>网填截止</td><td>gxrczc.com 网上填报截止日期（通常早于材料截止）</td></tr>
+  </table>
+
+  <h3>批次层级结构示例</h3>
+  <div class="filetree">
+<span class="dir">2026年度申报/</span><br>
+├── <span class="dir">住房城乡建设行业/</span><br>
+│   ├── <span class="dir">高级职称评委会/</span>     <span class="note">材料截止：2026-08-31  网填截止：2026-08-15</span><br>
+│   │   ├── <span class="file">张建国（高级工程师·建筑工程）</span>  <span class="req">● 待提交</span><br>
+│   │   └── <span class="file">黄伟东（正高工程师·建筑工程）</span>  <span class="opt">● 材料待补</span><br>
+│   ├── <span class="dir">中级职称评委会/</span>     <span class="note">材料截止：2026-08-31</span><br>
+│   │   ├── <span class="file">李秀梅（工程师·市政工程）</span>      <span class="opt">● 材料待补</span><br>
+│   │   └── <span class="file">陈美玲（工程师·建筑工程）</span>      <span class="note">● 建档中</span><br>
+│   └── <span class="dir">正高级职称评委会/</span><br>
+│       └── <span class="file">黄伟东...</span><br>
+└── <span class="dir">教育行业/</span><span class="note">（预留）</span>
+  </div>
+
+  <h2 id="deadline">截止日期与预警系统</h2>
+
+  <p>截止日期管理是中介最核心的风险控制点，逾期无法补救。</p>
+
+  <h3>预警规则</h3>
+  <table>
+    <tr><th>预警级别</th><th>触发条件</th><th>界面表现</th><th>行动建议</th></tr>
+    <tr><td>🟢 正常</td><td>距截止 &gt;30天</td><td>绿色进度条</td><td>正常推进</td></tr>
+    <tr><td>🟡 注意</td><td>距截止 15-30天</td><td>黄色进度条</td><td>加快催办</td></tr>
+    <tr><td>🔴 紧急</td><td>距截止 &lt;15天</td><td>红色闪烁提示</td><td>立即处理</td></tr>
+    <tr><td>⚫ 已截止</td><td>超过截止日期</td><td>灰色锁定状态</td><td>只能下年申报</td></tr>
+  </table>
+
+  <h3>首页倒计时组件设计</h3>
+  <ul style="margin:10px 0 16px 20px; line-height:2; color:var(--text-sub); font-size:14px;">
+    <li>每个批次显示一个倒计时卡片</li>
+    <li>显示：批次名称 + 截止日期 + 剩余天数（大字） + 该批次未完成人数</li>
+    <li>点击跳转到该批次的申报人列表</li>
+  </ul>
+
+  <h2 id="fee">服务费用管理</h2>
+
+  <p>中介服务费通常分两期收取：签约时收定金（30-50%），申报提交后收尾款。系统只做辅助记录，不涉及在线支付。</p>
+
+  <h3>费用状态流转</h3>
+  <div class="flow">
+    <div class="flow-step">签约收定金</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">材料齐全确认</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">提交申报</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">收尾款</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">结清</div>
+  </div>
+
+  <h3>费用统计（首页显示）</h3>
+  <ul style="margin:10px 0 16px 20px; line-height:2; color:var(--text-sub); font-size:14px;">
+    <li>本年度应收总额 / 已收总额 / 待收尾款</li>
+    <li>未付定金客户名单（风险提示）</li>
+  </ul>
+
+  <div class="callout callout-orange">
+    <strong>收费规则建议：</strong>建议在材料完整性检查通过、准备提交前，系统检查尾款状态，若未结清则弹出提示："张三尾款未收，确认要提交申报吗？"
+  </div>
+
+  <h2 id="result">评审结果跟踪</h2>
+
+  <h3>评审结果状态流程</h3>
+  <div class="flow">
+    <div class="flow-step">已提交</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">评审中</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">公示中</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">通过 / 不通过</div>
+  </div>
+
+  <h3>评审结果记录说明</h3>
+  <table>
+    <tr><th>字段</th><th>说明</th></tr>
+    <tr><td>评审结果</td><td>通过 / 不通过 / 公示中</td></tr>
+    <tr><td>结果公布日期</td><td>评委会发文日期</td></tr>
+    <tr><td>评委意见</td><td>未通过时的具体原因，指导下次申报</td></tr>
+    <tr><td>下次申报计划</td><td>未通过者的下一年度申报计划</td></tr>
+  </table>
+
+  <div class="callout callout-blue">
+    历史未通过记录会自动携带到下一年项目，提示哪些材料需要补强。
+  </div>
+
+  <h2 id="report">业务统计报表</h2>
+
+  <table>
+    <tr><th>报表</th><th>内容</th><th>用途</th></tr>
+    <tr><td>年度汇总</td><td>申报总人数、通过人数、通过率</td><td>向客户展示成功率</td></tr>
+    <tr><td>行业分布</td><td>各行业申报人数占比</td><td>了解业务结构</td></tr>
+    <tr><td>职称级别分布</td><td>各级别人数</td><td>掌握客户层次</td></tr>
+    <tr><td>收入统计</td><td>各月收款额、年度总收入</td><td>财务管理</td></tr>
+    <tr><td>未通过原因分析</td><td>常见被拒原因汇总</td><td>提高申报质量</td></tr>
+  </table>
+
+  <hr />
+
   <!-- ══════════════ 开发计划 ══════════════ -->
   <h2 id="roadmap">开发计划</h2>
 
@@ -1663,6 +1779,13 @@ PROMPT_SUMMARY = """
       <td>第八阶段</td>
       <td>联调测试 + 异常处理完善 + PyInstaller 打包 .exe</td>
       <td>全模块</td>
+      <td>1天</td>
+      <td class="later">待开始</td>
+    </tr>
+    <tr>
+      <td>第九阶段</td>
+      <td>中介业务管理模块（批次管理 / 截止预警 / 费用记录 / 结果跟踪 / 报表）</td>
+      <td>中介业务管理</td>
       <td>1天</td>
       <td class="later">待开始</td>
     </tr>
