@@ -6,1069 +6,1420 @@
 <title>界面布局设计方案对比 — 职称申报管理系统</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f8fafc; color: #1e293b; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; background: #0f172a; color: #334155; }
 
-  /* ── Section switching ── */
-  .section { display: none; }
-  .section.active { display: flex; flex-direction: column; min-height: 100vh; }
+  /* ===== HOME ===== */
+  #home { min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); display: flex; flex-direction: column; align-items: center; padding: 60px 24px; }
+  #home h1 { color: #f1f5f9; font-size: 2rem; font-weight: 700; margin-bottom: 8px; text-align: center; }
+  #home p.sub { color: #94a3b8; font-size: 1rem; margin-bottom: 48px; text-align: center; }
+  .home-cards { display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; max-width: 1100px; }
+  .home-card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; width: 320px; overflow: hidden; cursor: pointer; transition: transform .2s, box-shadow .2s; }
+  .home-card:hover { transform: translateY(-6px); box-shadow: 0 20px 48px rgba(0,0,0,.5); }
+  .home-card .thumb { height: 200px; display: flex; align-items: center; justify-content: center; font-size: 3rem; position: relative; overflow: hidden; }
+  .thumb-a { background: linear-gradient(135deg, #1e293b 0%, #1e3a5f 100%); }
+  .thumb-b { background: linear-gradient(135deg, #022c22 0%, #134e4a 100%); }
+  .thumb-c { background: linear-gradient(135deg, #2e1065 0%, #4c1d95 100%); }
+  .thumb-inner { width: 260px; height: 160px; border-radius: 8px; overflow: hidden; position: relative; box-shadow: 0 4px 24px rgba(0,0,0,.4); }
 
-  /* ══════════════════════════════════════════
-     HOME PAGE
-  ══════════════════════════════════════════ */
-  #home {
-    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
-    min-height: 100vh;
-    padding: 60px 40px;
-    align-items: center;
-  }
-  .home-hero { text-align: center; margin-bottom: 56px; }
-  .home-hero h1 {
-    font-size: 2.6rem; font-weight: 700; color: #fff;
-    letter-spacing: -0.5px; margin-bottom: 16px;
-  }
-  .home-hero h1 span { color: #60a5fa; }
-  .home-hero p {
-    font-size: 1.05rem; color: #94a3b8; max-width: 560px;
-    margin: 0 auto; line-height: 1.7;
-  }
-  .cards-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr);
-    gap: 28px; width: 100%; max-width: 1100px;
-  }
-  .proposal-card {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 20px; padding: 32px 28px;
-    cursor: pointer; transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
-    display: flex; flex-direction: column; gap: 20px;
-  }
-  .proposal-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 24px 60px rgba(0,0,0,0.4);
-    border-color: rgba(255,255,255,0.25);
-  }
-  .card-badge {
-    display: inline-block; font-size: 0.72rem; font-weight: 600;
-    padding: 3px 10px; border-radius: 20px; letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
-  .badge-a { background: rgba(37,99,235,0.2); color: #60a5fa; border: 1px solid rgba(37,99,235,0.4); }
-  .badge-b { background: rgba(13,148,136,0.2); color: #2dd4bf; border: 1px solid rgba(13,148,136,0.4); }
-  .badge-c { background: rgba(124,58,237,0.2); color: #c4b5fd; border: 1px solid rgba(124,58,237,0.4); }
-  .card-title { font-size: 1.25rem; font-weight: 700; color: #f1f5f9; }
-  .card-desc { font-size: 0.88rem; color: #94a3b8; line-height: 1.65; flex: 1; }
+  /* Thumb A mini */
+  .ta { display: flex; height: 100%; }
+  .ta-side { width: 64px; background: #0f172a; padding: 6px 0; }
+  .ta-side-logo { height: 18px; background: #2563eb; border-radius: 2px; margin: 0 6px 8px; }
+  .ta-nav-item { height: 6px; background: #334155; border-radius: 2px; margin: 3px 6px; }
+  .ta-nav-item.active { background: #2563eb; }
+  .ta-main { flex: 1; background: #f8fafc; padding: 6px; }
+  .ta-bar { height: 10px; background: #e2e8f0; border-radius: 3px; margin-bottom: 5px; }
+  .ta-stats { display: flex; gap: 3px; margin-bottom: 5px; }
+  .ta-stat { flex: 1; height: 22px; background: #eff6ff; border-radius: 3px; border-left: 2px solid #2563eb; }
+  .ta-table-row { height: 8px; background: #f1f5f9; border-radius: 2px; margin-bottom: 3px; }
+  .ta-countdown { display: flex; gap: 3px; margin-bottom: 5px; }
+  .ta-cd { flex: 1; height: 18px; border-radius: 3px; }
+  .ta-cd.green { background: #dcfce7; border-left: 2px solid #16a34a; }
+  .ta-cd.red { background: #fee2e2; border-left: 2px solid #dc2626; }
 
-  /* Thumbnail previews */
-  .thumb { border-radius: 10px; overflow: hidden; height: 140px; position: relative; background: #1e293b; border: 1px solid rgba(255,255,255,0.08); }
-  /* Thumb A — sidebar layout */
-  .thumb-a-sidebar { position: absolute; left: 0; top: 0; width: 28%; height: 100%; background: #1e293b; }
-  .thumb-a-sidebar-item { height: 8px; border-radius: 4px; margin: 8px 8px 0; background: rgba(255,255,255,0.1); }
-  .thumb-a-sidebar-item.active { background: #2563eb; }
-  .thumb-a-header { position: absolute; left: 28%; right: 0; top: 0; height: 18%; background: #fff; border-bottom: 1px solid #e2e8f0; }
-  .thumb-a-content { position: absolute; left: 28%; right: 0; top: 18%; bottom: 0; background: #f1f5f9; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
-  .thumb-a-stat { display: flex; gap: 3px; }
-  .thumb-a-stat-card { flex: 1; height: 18px; border-radius: 4px; background: #fff; }
-  .thumb-a-row { height: 8px; border-radius: 3px; background: #e2e8f0; }
-  /* Thumb B — classic desktop */
-  .thumb-b-titlebar { height: 12%; background: #374151; }
-  .thumb-b-menu { height: 10%; background: #4b5563; display: flex; align-items: center; gap: 3px; padding: 0 4px; }
-  .thumb-b-menu-item { height: 8px; width: 20px; border-radius: 3px; background: rgba(255,255,255,0.2); }
-  .thumb-b-menu-item.active { background: #0d9488; }
-  .thumb-b-toolbar { height: 10%; background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
-  .thumb-b-body { position: absolute; left: 0; right: 0; bottom: 0; top: 32%; display: flex; }
-  .thumb-b-panel { width: 30%; height: 100%; background: #f3f4f6; border-right: 1px solid #e5e7eb; }
-  .thumb-b-main { flex: 1; background: #fff; }
-  .thumb-b-statusbar { position: absolute; bottom: 0; left: 0; right: 0; height: 8%; background: #e5e7eb; }
-  /* Thumb C — card layout */
-  .thumb-c-nav { height: 14%; background: #fff; border-bottom: 1px solid #e2e8f0; }
-  .thumb-c-filters { height: 10%; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
-  .thumb-c-grid { position: absolute; left: 0; right: 0; top: 24%; bottom: 0; display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; padding: 6px; background: #f8fafc; }
-  .thumb-c-card { background: #fff; border-radius: 6px; border: 1px solid #e2e8f0; }
+  /* Thumb B mini */
+  .tb { display: flex; flex-direction: column; height: 100%; }
+  .tb-title { height: 12px; background: #374151; display: flex; align-items: center; padding: 0 4px; gap: 3px; }
+  .tb-dot { width: 4px; height: 4px; border-radius: 50%; }
+  .tb-menu { height: 10px; background: #111827; display: flex; gap: 4px; align-items: center; padding: 0 4px; }
+  .tb-menu-item { height: 5px; width: 20px; background: #374151; border-radius: 1px; }
+  .tb-menu-item.active { background: #0d9488; }
+  .tb-body { flex: 1; display: flex; }
+  .tb-left { width: 72px; background: #f9fafb; border-right: 1px solid #e5e7eb; padding: 4px; }
+  .tb-tree-item { height: 5px; background: #e5e7eb; border-radius: 1px; margin-bottom: 3px; }
+  .tb-tree-item.l1 { background: #6b7280; }
+  .tb-tree-item.l2 { margin-left: 6px; }
+  .tb-tree-item.active { background: #0d9488; }
+  .tb-tree-item.urgent { background: #dc2626; }
+  .tb-right { flex: 1; padding: 4px; background: #fff; }
+  .tb-alert { height: 10px; background: #fee2e2; border-radius: 2px; margin-bottom: 3px; }
+  .tb-row { height: 7px; background: #f3f4f6; border-radius: 2px; margin-bottom: 2px; }
+  .tb-status { height: 8px; background: #f0fdf4; border-radius: 1px; margin-bottom: 2px; }
 
-  .view-btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    padding: 11px 24px; border-radius: 10px; border: none;
-    font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
-    color: #fff; width: 100%;
-  }
-  .btn-a { background: #2563eb; }
-  .btn-a:hover { background: #1d4ed8; box-shadow: 0 6px 20px rgba(37,99,235,0.4); }
-  .btn-b { background: #0d9488; }
-  .btn-b:hover { background: #0f766e; box-shadow: 0 6px 20px rgba(13,148,136,0.4); }
-  .btn-c { background: #7c3aed; }
-  .btn-c:hover { background: #6d28d9; box-shadow: 0 6px 20px rgba(124,58,237,0.4); }
+  /* Thumb C mini */
+  .tc { display: flex; flex-direction: column; height: 100%; }
+  .tc-nav { height: 14px; background: #fff; border-bottom: 1px solid #e9d5ff; display: flex; align-items: center; padding: 0 6px; gap: 4px; }
+  .tc-logo { width: 16px; height: 6px; background: #7c3aed; border-radius: 2px; }
+  .tc-nav-link { width: 14px; height: 4px; background: #ddd6fe; border-radius: 1px; }
+  .tc-hero { height: 30px; background: linear-gradient(90deg, #7c3aed22, #a78bfa22); display: flex; gap: 4px; align-items: center; padding: 0 6px; }
+  .tc-cd-box { flex: 1; height: 20px; border-radius: 3px; }
+  .tc-cd-box.green { background: #dcfce7; border: 1px solid #16a34a; }
+  .tc-cd-box.red { background: #fee2e2; border: 1px solid #dc2626; }
+  .tc-tabs { height: 12px; background: #f5f3ff; display: flex; gap: 3px; align-items: center; padding: 0 5px; }
+  .tc-tab { height: 6px; width: 22px; background: #ddd6fe; border-radius: 2px; }
+  .tc-tab.active { background: #7c3aed; }
+  .tc-cards { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; padding: 4px; background: #faf5ff; }
+  .tc-card { background: #fff; border-radius: 3px; border: 1px solid #e9d5ff; padding: 3px; }
+  .tc-card-chip { height: 4px; background: #ede9fe; border-radius: 1px; width: 60%; margin-bottom: 2px; }
+  .tc-card-name { height: 5px; background: #6d28d9; border-radius: 1px; width: 40%; margin-bottom: 2px; }
+  .tc-card-badge { height: 4px; background: #d1fae5; border-radius: 4px; width: 50%; }
 
-  /* Back button shared */
-  .back-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2);
-    padding: 7px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
-    transition: background 0.2s; font-family: inherit;
-  }
-  .back-btn:hover { background: rgba(255,255,255,0.2); }
-  .back-btn-dark {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: #f1f5f9; color: #374151; border: 1px solid #d1d5db;
-    padding: 7px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;
-    transition: background 0.2s; font-family: inherit;
-  }
-  .back-btn-dark:hover { background: #e2e8f0; }
+  .home-card-body { padding: 20px; }
+  .home-card-body h2 { color: #f1f5f9; font-size: 1.05rem; font-weight: 600; margin-bottom: 6px; }
+  .home-card-body p { color: #94a3b8; font-size: 0.82rem; line-height: 1.5; margin-bottom: 16px; }
+  .home-card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .tag { font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; }
+  .tag-a { background: #1d3a6e; color: #93c5fd; }
+  .tag-b { background: #063a2e; color: #6ee7b7; }
+  .tag-c { background: #3b0764; color: #d8b4fe; }
+  .btn-view { display: block; text-align: center; padding: 10px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: none; width: 100%; transition: opacity .2s; }
+  .btn-view:hover { opacity: .85; }
+  .btn-a { background: #2563eb; color: #fff; }
+  .btn-b { background: #0d9488; color: #fff; }
+  .btn-c { background: #7c3aed; color: #fff; }
 
-  /* Status badges shared */
-  .status { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-  .status-gray { background: #f3f4f6; color: #6b7280; }
-  .status-orange { background: #fff7ed; color: #ea580c; }
-  .status-blue { background: #eff6ff; color: #2563eb; }
-  .status-green { background: #f0fdf4; color: #16a34a; }
+  /* ===== SHARED SECTION WRAPPER ===== */
+  .scheme-section { display: none; min-height: 100vh; }
 
-  /* ══════════════════════════════════════════
+  /* ===== BACK BUTTON ===== */
+  .back-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 500; cursor: pointer; border: none; transition: background .15s; }
+  .back-btn-a { background: #1e3a5f; color: #93c5fd; }
+  .back-btn-a:hover { background: #1d4ed8; color: #fff; }
+  .back-btn-b { background: #134e4a; color: #6ee7b7; }
+  .back-btn-b:hover { background: #0f766e; color: #fff; }
+  .back-btn-c { background: #ede9fe; color: #6d28d9; }
+  .back-btn-c:hover { background: #7c3aed; color: #fff; }
+
+  /* ===================================================
      SCHEME A — Professional Dark Sidebar
-  ══════════════════════════════════════════ */
-  #a {
-    flex-direction: row !important;
-    height: 100vh; overflow: hidden;
-    --accent: #2563eb; --accent-hover: #1d4ed8;
-    --sidebar-bg: #1e293b; --sidebar-text: #94a3b8;
-    --sidebar-active: #2563eb; --sidebar-hover: rgba(255,255,255,0.06);
-    --header-bg: #ffffff; --content-bg: #f1f5f9;
-  }
-  /* Sidebar */
-  .a-sidebar {
-    width: 220px; background: var(--sidebar-bg); display: flex;
-    flex-direction: column; flex-shrink: 0; overflow: hidden;
-  }
-  .a-logo {
-    padding: 22px 20px 18px; border-bottom: 1px solid rgba(255,255,255,0.06);
-  }
-  .a-logo-name {
-    font-size: 1rem; font-weight: 700; color: #fff; letter-spacing: -0.3px;
-  }
-  .a-logo-sub { font-size: 0.7rem; color: #475569; margin-top: 2px; }
-  .a-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
-  .a-nav-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 20px; color: var(--sidebar-text);
-    cursor: pointer; transition: background 0.15s, color 0.15s;
-    font-size: 0.88rem; border-radius: 0;
-  }
-  .a-nav-item:hover { background: var(--sidebar-hover); color: #cbd5e1; }
-  .a-nav-item.active { background: rgba(37,99,235,0.15); color: #fff; border-right: 3px solid var(--accent); }
-  .a-nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
-  .a-sidebar-footer {
-    padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.06);
-    font-size: 0.75rem; color: #475569;
-  }
-  /* Main area */
-  .a-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--content-bg); }
-  /* Header */
-  .a-header {
-    background: var(--header-bg); padding: 0 28px;
-    height: 56px; display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 1px solid #e2e8f0; flex-shrink: 0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  }
-  .a-breadcrumb { font-size: 0.85rem; color: #94a3b8; }
-  .a-breadcrumb span { color: #1e293b; font-weight: 500; }
-  .a-header-right { display: flex; align-items: center; gap: 16px; }
-  .a-bell { font-size: 1.1rem; cursor: pointer; color: #64748b; position: relative; }
-  .a-bell::after {
-    content: ''; position: absolute; top: -2px; right: -2px;
-    width: 8px; height: 8px; background: #ef4444; border-radius: 50%;
-    border: 2px solid #fff;
-  }
-  .a-avatar {
-    width: 32px; height: 32px; border-radius: 50%; background: var(--accent);
-    color: #fff; font-size: 0.72rem; font-weight: 700;
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-  }
-  .a-user-name { font-size: 0.85rem; color: #374151; font-weight: 500; }
-  /* Content */
-  .a-content { flex: 1; overflow-y: auto; padding: 28px; }
-  .a-page-title { font-size: 1.3rem; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
-  .a-page-sub { font-size: 0.85rem; color: #64748b; margin-bottom: 24px; }
-  .a-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 28px; }
-  .a-stat-card {
-    background: #fff; border-radius: 12px; padding: 20px 22px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid #f1f5f9;
-    display: flex; flex-direction: column; gap: 8px;
-    transition: box-shadow 0.2s;
-  }
-  .a-stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
-  .a-stat-label { font-size: 0.8rem; color: #64748b; font-weight: 500; }
-  .a-stat-num { font-size: 2rem; font-weight: 800; color: #0f172a; line-height: 1; }
-  .a-stat-icon { font-size: 1.4rem; margin-bottom: 4px; }
-  .a-stat-card.highlight .a-stat-num { color: var(--accent); }
-  .a-stat-card.warn .a-stat-num { color: #f97316; }
-  .a-stat-card.info .a-stat-num { color: #0ea5e9; }
-  .a-stat-card.ok .a-stat-num { color: #22c55e; }
-  /* Table */
-  .a-table-card {
-    background: #fff; border-radius: 12px; overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06); border: 1px solid #f1f5f9;
-  }
-  .a-table-header {
-    padding: 18px 22px; display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 1px solid #f1f5f9;
-  }
-  .a-table-title { font-size: 0.95rem; font-weight: 700; color: #0f172a; }
-  .a-add-btn {
-    background: var(--accent); color: #fff; border: none;
-    padding: 8px 18px; border-radius: 8px; font-size: 0.83rem; font-weight: 600;
-    cursor: pointer; display: flex; align-items: center; gap: 5px; transition: background 0.2s;
-    font-family: inherit;
-  }
-  .a-add-btn:hover { background: var(--accent-hover); }
-  table { width: 100%; border-collapse: collapse; }
-  thead th {
-    text-align: left; padding: 12px 20px;
-    font-size: 0.78rem; font-weight: 600; color: #64748b;
-    background: #f8fafc; border-bottom: 1px solid #e2e8f0;
-    text-transform: uppercase; letter-spacing: 0.4px;
-  }
-  tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.15s; }
-  tbody tr:hover { background: #f8fafc; }
-  tbody td { padding: 14px 20px; font-size: 0.875rem; color: #374151; }
-  .progress-bar { height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; width: 80px; }
-  .progress-fill { height: 100%; border-radius: 3px; background: var(--accent); }
-  .a-action-btn {
-    background: none; border: 1px solid #e2e8f0; color: #374151;
-    padding: 5px 12px; border-radius: 6px; font-size: 0.78rem;
-    cursor: pointer; transition: all 0.15s; font-family: inherit;
-    margin-right: 4px;
-  }
-  .a-action-btn:hover { border-color: var(--accent); color: var(--accent); background: #eff6ff; }
-  .a-back-wrap { padding: 12px 20px; background: rgba(255,255,255,0.04); border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
+  =================================================== */
+  #scheme-a { background: #f1f5f9; flex-direction: row; }
 
-  /* ══════════════════════════════════════════
+  .sa-sidebar { width: 220px; min-height: 100vh; background: #1e293b; display: flex; flex-direction: column; flex-shrink: 0; }
+  .sa-logo { padding: 20px 16px 16px; border-bottom: 1px solid #334155; }
+  .sa-logo-text { color: #f1f5f9; font-size: 0.95rem; font-weight: 700; line-height: 1.3; }
+  .sa-logo-sub { color: #64748b; font-size: 0.7rem; margin-top: 2px; }
+  .sa-nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+  .sa-nav-group { margin-bottom: 4px; }
+  .sa-nav-group-label { color: #475569; font-size: 0.68rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 8px 16px 4px; }
+  .sa-nav-item { display: flex; align-items: center; gap: 8px; padding: 8px 16px; color: #94a3b8; font-size: 0.82rem; cursor: pointer; transition: background .15s, color .15s; }
+  .sa-nav-item:hover { background: #334155; color: #e2e8f0; }
+  .sa-nav-item.active { background: #2563eb; color: #fff; }
+  .sa-nav-item .icon { width: 16px; text-align: center; flex-shrink: 0; }
+  .sa-nav-sub .sa-nav-item { padding-left: 40px; font-size: 0.78rem; }
+  .sa-sidebar-footer { padding: 12px 16px; border-top: 1px solid #334155; }
+  .sa-user { display: flex; align-items: center; gap: 10px; }
+  .sa-avatar { width: 32px; height: 32px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; flex-shrink: 0; }
+  .sa-user-info { color: #94a3b8; font-size: 0.75rem; }
+  .sa-user-name { color: #e2e8f0; font-size: 0.8rem; font-weight: 500; }
+
+  .sa-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+  .sa-topbar { height: 56px; background: #fff; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; padding: 0 24px; gap: 12px; flex-shrink: 0; }
+  .sa-breadcrumb { flex: 1; color: #64748b; font-size: 0.82rem; }
+  .sa-breadcrumb span { color: #1e293b; font-weight: 500; }
+  .sa-topbar-actions { display: flex; align-items: center; gap: 12px; }
+  .sa-icon-btn { width: 32px; height: 32px; border-radius: 8px; background: #f1f5f9; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+  .sa-content { flex: 1; padding: 24px; overflow-y: auto; }
+
+  .sa-countdown-row { display: flex; gap: 16px; margin-bottom: 20px; }
+  .sa-cd-card { flex: 1; border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; }
+  .sa-cd-card.green { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1.5px solid #16a34a; }
+  .sa-cd-card.red { background: linear-gradient(135deg, #fff1f2, #fee2e2); border: 1.5px solid #dc2626; animation: pulse-red 2s ease-in-out infinite; }
+  @keyframes pulse-red { 0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,.2); } 50% { box-shadow: 0 0 0 8px rgba(220,38,38,0); } }
+  .sa-cd-icon { font-size: 1.8rem; }
+  .sa-cd-info { flex: 1; }
+  .sa-cd-label { font-size: 0.75rem; color: #64748b; margin-bottom: 2px; }
+  .sa-cd-days { font-size: 2rem; font-weight: 800; line-height: 1; }
+  .sa-cd-card.green .sa-cd-days { color: #16a34a; }
+  .sa-cd-card.red .sa-cd-days { color: #dc2626; }
+  .sa-cd-sub { font-size: 0.72rem; color: #64748b; margin-top: 2px; }
+  .sa-cd-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+  .sa-cd-badge.green { background: #16a34a; color: #fff; }
+  .sa-cd-badge.red { background: #dc2626; color: #fff; }
+
+  .sa-stats { display: flex; gap: 12px; margin-bottom: 20px; }
+  .sa-stat { flex: 1; background: #fff; border-radius: 10px; padding: 14px 16px; border: 1px solid #e2e8f0; }
+  .sa-stat-label { font-size: 0.72rem; color: #64748b; margin-bottom: 4px; }
+  .sa-stat-value { font-size: 1.5rem; font-weight: 700; color: #1e293b; }
+  .sa-stat-sub { font-size: 0.7rem; color: #94a3b8; margin-top: 2px; }
+  .sa-stat.accent { border-left: 3px solid #2563eb; }
+  .sa-stat.warn { border-left: 3px solid #f59e0b; }
+  .sa-stat.danger { border-left: 3px solid #dc2626; }
+  .sa-stat.success { border-left: 3px solid #16a34a; }
+
+  .sa-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .sa-toolbar-left { display: flex; align-items: center; gap: 10px; }
+  .sa-section-title { font-size: 0.95rem; font-weight: 600; color: #1e293b; }
+  .sa-filter-btns { display: flex; gap: 6px; }
+  .sa-filter-btn { padding: 5px 12px; border-radius: 6px; font-size: 0.75rem; border: 1px solid #e2e8f0; background: #fff; color: #64748b; cursor: pointer; transition: all .15s; }
+  .sa-filter-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+  .sa-action-btn { padding: 7px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 500; border: none; cursor: pointer; transition: opacity .15s; }
+  .sa-action-btn:hover { opacity: .85; }
+  .sa-btn-primary { background: #2563eb; color: #fff; }
+  .sa-btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+  .sa-btn-warn { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+  .sa-table-wrap { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; }
+  .sa-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .sa-table th { background: #f8fafc; padding: 11px 14px; text-align: left; font-size: 0.72rem; font-weight: 600; color: #64748b; letter-spacing: .04em; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+  .sa-table td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  .sa-table tr:last-child td { border-bottom: none; }
+  .sa-table tr:hover td { background: #f8fafc; }
+  .sa-name-cell { display: flex; flex-direction: column; }
+  .sa-name { font-weight: 600; color: #1e293b; }
+  .sa-name-id { font-size: 0.7rem; color: #94a3b8; margin-top: 1px; }
+  .sa-committee-chip { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 500; }
+  .sa-chip-high { background: #dbeafe; color: #1d4ed8; }
+  .sa-chip-mid { background: #d1fae5; color: #065f46; }
+  .sa-chip-top { background: #ede9fe; color: #5b21b6; }
+  .progress-wrap { display: flex; align-items: center; gap: 8px; }
+  .progress-bar { flex: 1; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden; min-width: 80px; }
+  .progress-fill { height: 100%; border-radius: 3px; }
+  .pf-green { background: linear-gradient(90deg, #16a34a, #4ade80); }
+  .pf-yellow { background: linear-gradient(90deg, #f59e0b, #fcd34d); }
+  .pf-red { background: linear-gradient(90deg, #dc2626, #f87171); }
+  .progress-pct { font-size: 0.72rem; color: #64748b; white-space: nowrap; }
+  .fee-badge { display: inline-flex; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 500; }
+  .fee-clear { background: #dcfce7; color: #166534; }
+  .fee-deposit { background: #fef9c3; color: #854d0e; }
+  .fee-none { background: #fee2e2; color: #991b1b; }
+  .status-badge { display: inline-flex; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 500; }
+  .s-submitted { background: #dbeafe; color: #1d4ed8; }
+  .s-material { background: #fef3c7; color: #92400e; }
+  .s-passed { background: #dcfce7; color: #166534; }
+  .s-pending { background: #f1f5f9; color: #64748b; }
+  .sa-contact-time { font-size: 0.75rem; color: #64748b; }
+  .sa-ops { display: flex; gap: 6px; }
+  .sa-op-btn { padding: 4px 10px; border-radius: 5px; font-size: 0.72rem; border: 1px solid #e2e8f0; background: #f8fafc; color: #475569; cursor: pointer; transition: all .15s; white-space: nowrap; }
+  .sa-op-btn:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
+  .sa-op-btn.urge { border-color: #f59e0b; color: #92400e; background: #fef9c3; }
+
+  /* ===================================================
      SCHEME B — Classic Desktop Tool
-  ══════════════════════════════════════════ */
-  #b {
-    flex-direction: column !important;
-    height: 100vh; overflow: hidden;
-    --accent: #0d9488; --accent-light: #ccfbf1;
-  }
-  .b-titlebar {
-    background: #1f2937; color: #d1d5db; padding: 6px 16px;
-    font-size: 0.78rem; display: flex; align-items: center; justify-content: space-between;
-    flex-shrink: 0;
-  }
-  .b-titlebar-left { display: flex; align-items: center; gap: 8px; }
-  .b-win-dot { width: 10px; height: 10px; border-radius: 50%; }
-  .b-win-dot.red { background: #ef4444; }
-  .b-win-dot.yellow { background: #f59e0b; }
-  .b-win-dot.green { background: #22c55e; }
-  .b-titlebar-title { font-size: 0.8rem; font-weight: 500; color: #9ca3af; }
-  .b-menubar {
-    background: #374151; display: flex; align-items: stretch;
-    flex-shrink: 0; height: 36px; gap: 2px; padding: 0 8px;
-  }
-  .b-menu-tab {
-    display: flex; align-items: center; padding: 0 16px; color: #d1d5db;
-    font-size: 0.83rem; cursor: pointer; border-bottom: 2px solid transparent;
-    transition: background 0.15s, color 0.15s;
-  }
-  .b-menu-tab:hover { background: rgba(255,255,255,0.08); color: #fff; }
-  .b-menu-tab.active { color: #fff; background: rgba(255,255,255,0.1); border-bottom-color: #0d9488; }
-  .b-toolbar {
-    background: #f9fafb; border-bottom: 1px solid #d1d5db;
-    display: flex; align-items: center; gap: 6px; padding: 6px 12px;
-    flex-shrink: 0;
-  }
-  .b-tool-btn {
-    background: #fff; border: 1px solid #d1d5db; color: #374151;
-    padding: 5px 14px; border-radius: 5px; font-size: 0.8rem; cursor: pointer;
-    display: flex; align-items: center; gap: 5px; font-family: inherit;
-    transition: all 0.15s;
-  }
-  .b-tool-btn:hover { background: #f3f4f6; border-color: #9ca3af; }
-  .b-tool-btn.primary { background: #0d9488; color: #fff; border-color: #0d9488; }
-  .b-tool-btn.primary:hover { background: #0f766e; }
-  .b-separator { width: 1px; height: 22px; background: #d1d5db; margin: 0 4px; }
-  .b-body { flex: 1; display: flex; overflow: hidden; }
-  .b-panel {
-    width: 280px; flex-shrink: 0; background: #f3f4f6;
-    border-right: 1px solid #d1d5db; display: flex; flex-direction: column;
-    overflow: hidden;
-  }
-  .b-panel-header {
-    padding: 10px 12px; background: #e5e7eb; border-bottom: 1px solid #d1d5db;
-    font-size: 0.8rem; font-weight: 600; color: #374151;
-  }
-  .b-search {
-    margin: 10px 12px 0; padding: 7px 10px; border: 1px solid #d1d5db;
-    border-radius: 6px; font-size: 0.82rem; width: calc(100% - 24px);
-    background: #fff; font-family: inherit;
-  }
-  .b-filter-group { padding: 12px 12px 8px; border-bottom: 1px solid #e5e7eb; }
-  .b-filter-title { font-size: 0.75rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; }
-  .b-filter-item {
-    display: flex; align-items: center; gap: 8px; padding: 4px 0;
-    font-size: 0.82rem; color: #374151; cursor: pointer;
-  }
-  .b-filter-item input[type=checkbox] { accent-color: #0d9488; }
-  .b-tree { flex: 1; overflow-y: auto; padding: 8px 0; }
-  .b-tree-item {
-    padding: 7px 16px; font-size: 0.83rem; color: #374151;
-    cursor: pointer; display: flex; align-items: center; gap: 8px;
-    border-left: 3px solid transparent; transition: background 0.15s;
-  }
-  .b-tree-item:hover { background: #e5e7eb; }
-  .b-tree-item.active { background: #ccfbf1; color: #0d9488; border-left-color: #0d9488; font-weight: 600; }
-  .b-tree-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-  .b-main { flex: 1; background: #fff; display: flex; flex-direction: column; overflow: hidden; }
-  .b-main-header {
-    padding: 14px 20px; border-bottom: 1px solid #e5e7eb;
-    display: flex; align-items: center; justify-content: space-between;
-    flex-shrink: 0;
-  }
-  .b-main-title { font-size: 1rem; font-weight: 700; color: #111827; }
-  .b-main-count { font-size: 0.8rem; color: #6b7280; margin-top: 2px; }
-  .b-table-wrap { flex: 1; overflow-y: auto; }
-  .b-statusbar {
-    background: #e5e7eb; border-top: 1px solid #d1d5db;
-    padding: 4px 16px; font-size: 0.75rem; color: #6b7280;
-    display: flex; align-items: center; gap: 20px; flex-shrink: 0;
-  }
-  .b-back-wrap {
-    background: #1f2937; padding: 6px 16px;
-    display: flex; align-items: center; justify-content: flex-start;
-    flex-shrink: 0;
-  }
+  =================================================== */
+  #scheme-b { background: #f3f4f6; flex-direction: column; }
+  .sb-window { display: flex; flex-direction: column; height: 100vh; }
+  .sb-titlebar { height: 36px; background: #1f2937; display: flex; align-items: center; padding: 0 16px; gap: 8px; flex-shrink: 0; user-select: none; }
+  .sb-dots { display: flex; gap: 6px; }
+  .sb-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .sb-dot-r { background: #ef4444; }
+  .sb-dot-y { background: #f59e0b; }
+  .sb-dot-g { background: #22c55e; }
+  .sb-title { flex: 1; text-align: center; color: #9ca3af; font-size: 0.82rem; }
+  .sb-menubar { height: 32px; background: #111827; display: flex; align-items: center; padding: 0 8px; gap: 2px; flex-shrink: 0; }
+  .sb-menu-item { padding: 4px 12px; color: #d1d5db; font-size: 0.78rem; border-radius: 4px; cursor: pointer; transition: background .15s; }
+  .sb-menu-item:hover { background: #374151; }
+  .sb-menu-item.active { background: #0d9488; color: #fff; }
+  .sb-toolbar { height: 40px; background: #e5e7eb; border-bottom: 1px solid #d1d5db; display: flex; align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0; }
+  .sb-tool-btn { display: flex; align-items: center; gap: 5px; padding: 4px 10px; background: #fff; border: 1px solid #d1d5db; border-radius: 4px; font-size: 0.75rem; color: #374151; cursor: pointer; white-space: nowrap; }
+  .sb-tool-btn:hover { background: #f9fafb; border-color: #0d9488; color: #0d9488; }
+  .sb-tool-sep { width: 1px; height: 20px; background: #d1d5db; margin: 0 2px; }
+  .sb-tool-btn.warn-btn { border-color: #f59e0b; color: #92400e; background: #fef9c3; }
 
-  /* ══════════════════════════════════════════
+  .sb-body { flex: 1; display: flex; overflow: hidden; }
+  .sb-left-panel { width: 240px; background: #f9fafb; border-right: 1px solid #e5e7eb; display: flex; flex-direction: column; flex-shrink: 0; }
+  .sb-panel-header { padding: 10px 12px; border-bottom: 1px solid #e5e7eb; font-size: 0.8rem; font-weight: 600; color: #374151; background: #fff; }
+  .sb-search { padding: 8px; border-bottom: 1px solid #f3f4f6; }
+  .sb-search input { width: 100%; padding: 5px 10px; border: 1px solid #e5e7eb; border-radius: 4px; font-size: 0.78rem; color: #374151; outline: none; }
+  .sb-search input:focus { border-color: #0d9488; }
+  .sb-tree { flex: 1; overflow-y: auto; padding: 6px 0; }
+  .sb-tree-label { display: flex; align-items: center; gap: 6px; padding: 5px 12px; font-size: 0.78rem; color: #374151; cursor: pointer; transition: background .12s; }
+  .sb-tree-label:hover { background: #f3f4f6; }
+  .sb-tree-label.selected { background: #ccfbf1; color: #0d9488; font-weight: 600; }
+  .sb-tree-label.year { font-weight: 700; color: #111827; font-size: 0.82rem; }
+  .sb-tree-label.industry { font-weight: 600; color: #374151; padding-left: 16px; }
+  .sb-tree-label.committee { padding-left: 28px; }
+  .sb-tree-label.disabled { color: #9ca3af; cursor: not-allowed; }
+  .sb-tree-label .expand-icon { width: 12px; font-size: 0.7rem; flex-shrink: 0; }
+  .sb-tree-label .count-badge { margin-left: auto; font-size: 0.68rem; background: #e5e7eb; color: #6b7280; padding: 1px 6px; border-radius: 8px; }
+  .sb-tree-label.selected .count-badge { background: #0d9488; color: #fff; }
+  .sb-deadline-tag { font-size: 0.65rem; padding: 1px 5px; border-radius: 3px; white-space: nowrap; }
+  .sb-deadline-ok { background: #d1fae5; color: #065f46; }
+  .sb-deadline-urgent { background: #fee2e2; color: #991b1b; font-weight: 700; }
+
+  .sb-right-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .sb-right-header { padding: 12px 20px; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .sb-right-title { font-size: 0.9rem; font-weight: 700; color: #111827; }
+  .sb-right-sub { font-size: 0.75rem; color: #6b7280; margin-top: 2px; }
+  .sb-urgent-banner { background: #fef2f2; border-bottom: 2px solid #dc2626; padding: 10px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .sb-urgent-text { flex: 1; font-size: 0.82rem; color: #991b1b; font-weight: 500; }
+  .sb-urgent-days { font-size: 1.4rem; font-weight: 800; color: #dc2626; }
+  .sb-urgent-label { font-size: 0.7rem; color: #dc2626; }
+  .sb-content { flex: 1; overflow-y: auto; padding: 16px 20px; }
+
+  .sb-table-wrap { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; }
+  .sb-table-toolbar { padding: 8px 12px; background: #f9fafb; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 10px; font-size: 0.78rem; color: #6b7280; }
+  .sb-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .sb-table th { background: #f3f4f6; padding: 9px 12px; text-align: left; font-size: 0.72rem; font-weight: 600; color: #6b7280; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+  .sb-table td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+  .sb-table tr:last-child td { border-bottom: none; }
+  .sb-table tr:hover td { background: #f9fafb; }
+  .sb-name { font-weight: 600; color: #111827; }
+  .sb-title-text { font-size: 0.75rem; color: #6b7280; }
+  .sb-prog { display: flex; align-items: center; gap: 6px; }
+  .sb-prog-bar { flex: 1; height: 5px; background: #e5e7eb; border-radius: 3px; overflow: hidden; min-width: 60px; }
+  .sb-prog-fill { height: 100%; border-radius: 3px; }
+  .sb-prog-green { background: #0d9488; }
+  .sb-prog-yellow { background: #f59e0b; }
+  .sb-prog-red { background: #ef4444; }
+  .sb-ops-cell { display: flex; gap: 4px; }
+  .sb-op { padding: 3px 8px; border: 1px solid #e5e7eb; border-radius: 3px; font-size: 0.7rem; color: #374151; cursor: pointer; background: #fff; }
+  .sb-op:hover { background: #f0fdfa; border-color: #0d9488; color: #0d9488; }
+  .sb-op.urge { border-color: #f59e0b; color: #92400e; background: #fffbeb; }
+
+  .sb-statusbar { height: 26px; background: #1f2937; display: flex; align-items: center; padding: 0 16px; gap: 20px; flex-shrink: 0; }
+  .sb-status-item { font-size: 0.68rem; color: #9ca3af; display: flex; align-items: center; gap: 6px; }
+  .sb-status-item .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  .sb-status-item .dot-green { background: #22c55e; }
+  .sb-status-item .dot-red { background: #ef4444; }
+  .sb-status-sep { color: #4b5563; font-size: 0.68rem; }
+
+  /* ===================================================
      SCHEME C — Clean Card Flow
-  ══════════════════════════════════════════ */
-  #c {
-    flex-direction: column !important;
-    min-height: 100vh; background: #f8fafc;
-    --accent: #7c3aed; --accent-light: #ede9fe;
-    --accent-hover: #6d28d9;
-  }
-  .c-navbar {
-    background: #fff; border-bottom: 1px solid #e2e8f0;
-    padding: 0 32px; height: 60px;
-    display: flex; align-items: center; justify-content: space-between;
-    flex-shrink: 0; position: sticky; top: 0; z-index: 10;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  }
-  .c-logo {
-    width: 36px; height: 36px; border-radius: 10px;
-    background: var(--accent); color: #fff;
-    font-size: 0.85rem; font-weight: 800;
-    display: flex; align-items: center; justify-content: center;
-    letter-spacing: -0.5px;
-  }
-  .c-logo-group { display: flex; align-items: center; gap: 10px; }
-  .c-logo-title { font-size: 0.95rem; font-weight: 700; color: #1e293b; }
-  .c-nav-links { display: flex; align-items: center; gap: 4px; }
-  .c-nav-link {
-    padding: 7px 16px; border-radius: 8px; font-size: 0.875rem;
-    color: #64748b; cursor: pointer; transition: all 0.15s; font-weight: 500;
-  }
-  .c-nav-link:hover { background: #f1f5f9; color: #1e293b; }
-  .c-nav-link.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
-  .c-nav-actions { display: flex; align-items: center; gap: 10px; }
-  .c-new-btn {
-    background: var(--accent); color: #fff; border: none;
-    padding: 8px 18px; border-radius: 9px; font-size: 0.85rem; font-weight: 600;
-    cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: inherit;
-    transition: all 0.2s;
-  }
-  .c-new-btn:hover { background: var(--accent-hover); box-shadow: 0 4px 14px rgba(124,58,237,0.35); }
-  .c-avatar {
-    width: 34px; height: 34px; border-radius: 50%; background: #e2e8f0;
-    color: #475569; font-size: 0.75rem; font-weight: 700;
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-  }
-  .c-content { max-width: 1200px; margin: 0 auto; width: 100%; padding: 32px 24px; flex: 1; }
-  .c-page-header { margin-bottom: 24px; }
-  .c-page-title { font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
-  .c-page-sub { font-size: 0.875rem; color: #64748b; }
-  /* Filter tabs */
-  .c-filter-tabs { display: flex; gap: 4px; margin-bottom: 28px; background: #fff; padding: 5px; border-radius: 12px; border: 1px solid #e2e8f0; width: fit-content; }
-  .c-filter-tab {
-    padding: 7px 18px; border-radius: 8px; font-size: 0.85rem;
-    color: #64748b; cursor: pointer; font-weight: 500; transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .c-filter-tab:hover { background: #f1f5f9; }
-  .c-filter-tab.active { background: var(--accent); color: #fff; font-weight: 600; }
-  .c-filter-tab .count { font-size: 0.75rem; opacity: 0.75; margin-left: 3px; }
-  /* Cards grid */
-  .c-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-  .c-card {
-    background: #fff; border-radius: 16px; overflow: hidden;
-    border: 1px solid #e2e8f0; display: flex; flex-direction: column;
-    transition: box-shadow 0.2s, transform 0.2s; cursor: pointer;
-  }
-  .c-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.1); transform: translateY(-3px); }
-  .c-card-top { padding: 22px 22px 16px; }
-  .c-card-name { font-size: 1.2rem; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
-  .c-card-meta { font-size: 0.83rem; color: #64748b; margin-bottom: 12px; line-height: 1.5; }
-  .c-card-divider { height: 1px; background: #f1f5f9; margin: 0 22px; }
-  .c-card-bottom { padding: 16px 22px; display: flex; flex-direction: column; gap: 14px; }
-  .c-progress-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-  .c-progress-text { font-size: 0.78rem; color: #64748b; font-weight: 500; }
-  .c-progress-pct { font-size: 0.78rem; font-weight: 700; color: #0f172a; }
-  .c-progress-bar { height: 7px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
-  .c-progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), #a78bfa); }
-  .c-card-actions { display: flex; gap: 6px; }
-  .c-act-btn {
-    flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;
-    background: #fff; color: #374151; font-size: 0.78rem; font-weight: 600;
-    cursor: pointer; transition: all 0.15s; font-family: inherit; text-align: center;
-  }
-  .c-act-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
-  .c-act-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .c-act-btn.primary:hover { background: var(--accent-hover); }
-  .c-back-wrap { padding: 12px 24px; background: #fff; border-top: 1px solid #e2e8f0; margin-top: auto; display: flex; align-items: center; }
+  =================================================== */
+  #scheme-c { background: #faf5ff; flex-direction: column; }
+  .sc-navbar { background: #fff; border-bottom: 1px solid #e9d5ff; padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px; position: sticky; top: 0; z-index: 10; flex-shrink: 0; }
+  .sc-logo { display: flex; align-items: center; gap: 8px; }
+  .sc-logo-icon { width: 32px; height: 32px; background: #7c3aed; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1rem; font-weight: 700; }
+  .sc-logo-text { font-size: 0.9rem; font-weight: 700; color: #1e1b4b; }
+  .sc-nav-links { display: flex; gap: 4px; margin-left: 16px; }
+  .sc-nav-link { padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; color: #6b7280; cursor: pointer; transition: all .15s; }
+  .sc-nav-link:hover { background: #f5f3ff; color: #7c3aed; }
+  .sc-nav-link.active { background: #ede9fe; color: #7c3aed; font-weight: 600; }
+  .sc-navbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .sc-new-btn { background: #7c3aed; color: #fff; border: none; padding: 7px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: background .15s; }
+  .sc-new-btn:hover { background: #6d28d9; }
+  .sc-avatar { width: 32px; height: 32px; border-radius: 50%; background: #7c3aed; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
 
-  /* Animations */
-  .section { animation: none; }
-  .section.active { animation: fadeIn 0.3s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .sc-selector-bar { background: #fff; border-bottom: 1px solid #f3f4f6; padding: 10px 24px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; flex-wrap: wrap; }
+  .sc-selector-label { font-size: 0.78rem; color: #6b7280; }
+  .sc-select { padding: 6px 28px 6px 12px; border: 1px solid #ddd6fe; border-radius: 8px; font-size: 0.82rem; color: #4c1d95; background: #faf5ff; -webkit-appearance: none; outline: none; cursor: pointer; font-weight: 600; }
+  .sc-select:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.1); }
+  .sc-selector-bar-actions { margin-left: auto; display: flex; gap: 8px; }
+  .sc-action-btn { padding: 6px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 500; cursor: pointer; transition: all .15s; }
+  .sc-urge-btn { border: 1px solid #f59e0b; color: #92400e; background: #fef9c3; }
+  .sc-urge-btn:hover { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+  .sc-export-btn { border: 1px solid #ddd6fe; color: #7c3aed; background: #faf5ff; }
+  .sc-export-btn:hover { background: #7c3aed; color: #fff; border-color: #7c3aed; }
 
-  /* Responsive */
-  @media (max-width: 900px) {
-    .cards-grid { grid-template-columns: 1fr; }
-    .a-stats { grid-template-columns: repeat(2, 1fr); }
-    .c-cards { grid-template-columns: repeat(2, 1fr); }
+  .sc-hero { background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 60%, #a78bfa 100%); padding: 28px 24px; display: flex; align-items: flex-start; gap: 20px; flex-shrink: 0; flex-wrap: wrap; }
+  .sc-hero-info { flex: 1; min-width: 200px; }
+  .sc-hero-title { color: #fff; font-size: 1.2rem; font-weight: 700; margin-bottom: 4px; }
+  .sc-hero-sub { color: #ddd6fe; font-size: 0.82rem; }
+  .sc-hero-stats { margin-top: 12px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .sc-hero-stat { background: rgba(255,255,255,.15); border-radius: 8px; padding: 6px 14px; font-size: .78rem; color: #e9d5ff; }
+  .sc-hero-stat strong { color: #fff; }
+  .sc-hero-stat.warn strong { color: #fcd34d; }
+  .sc-hero-stat.danger strong { color: #f87171; }
+  .sc-cd-cards { display: flex; gap: 12px; flex-wrap: wrap; }
+  .sc-cd-card { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); border-radius: 12px; padding: 14px 20px; min-width: 155px; backdrop-filter: blur(8px); }
+  .sc-cd-card.urgent { background: rgba(220,38,38,.25); border-color: rgba(220,38,38,.5); animation: pulse-red 2s ease-in-out infinite; }
+  @keyframes pulse-red { 0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,.3); } 50% { box-shadow: 0 0 0 8px rgba(220,38,38,0); } }
+  .sc-cd-label { font-size: 0.7rem; color: rgba(255,255,255,.7); margin-bottom: 4px; }
+  .sc-cd-days { font-size: 2.2rem; font-weight: 800; color: #fff; line-height: 1; }
+  .sc-cd-sub { font-size: 0.68rem; color: rgba(255,255,255,.6); margin-top: 3px; }
+  .sc-cd-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.65rem; font-weight: 700; margin-top: 6px; }
+  .sc-cd-tag.ok { background: #16a34a; color: #fff; }
+  .sc-cd-tag.urgent-tag { background: #dc2626; color: #fff; }
+
+  .sc-filter-bar { padding: 16px 24px 0; display: flex; align-items: center; justify-content: space-between; }
+  .sc-tabs { display: flex; gap: 4px; }
+  .sc-tab { padding: 7px 16px; border-radius: 20px; font-size: 0.8rem; cursor: pointer; transition: all .15s; border: 1px solid transparent; color: #64748b; }
+  .sc-tab:hover { background: #ede9fe; color: #7c3aed; }
+  .sc-tab.active { background: #7c3aed; color: #fff; font-weight: 600; }
+  .sc-tab-count { font-size: 0.65rem; margin-left: 4px; opacity: .7; }
+  .sc-filter-right { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: #6b7280; }
+  .sc-sort-select { padding: 4px 8px; border: 1px solid #ddd6fe; border-radius: 6px; font-size: .75rem; color: #6d28d9; background: #faf5ff; outline: none; }
+
+  .sc-grid { padding: 16px 24px 32px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .sc-card { background: #fff; border-radius: 12px; border: 1px solid #e9d5ff; padding: 16px; transition: box-shadow .2s, transform .15s; cursor: pointer; }
+  .sc-card:hover { box-shadow: 0 8px 24px rgba(124,58,237,.12); transform: translateY(-2px); }
+  .sc-card-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .sc-card-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; }
+  .sc-card-info { flex: 1; min-width: 0; }
+  .sc-card-name { font-size: 0.9rem; font-weight: 700; color: #1e1b4b; }
+  .sc-card-title { font-size: 0.73rem; color: #6b7280; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sc-card-badges { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
+  .sc-chip { display: inline-flex; padding: 2px 8px; border-radius: 4px; font-size: 0.68rem; font-weight: 500; }
+  .sc-chip-committee { background: #ede9fe; color: #6d28d9; }
+  .sc-chip-high { background: #dbeafe; color: #1d4ed8; }
+  .sc-chip-mid { background: #d1fae5; color: #065f46; }
+  .sc-chip-top { background: #fce7f3; color: #9d174d; }
+  .sc-fee-badge { padding: 2px 8px; border-radius: 4px; font-size: 0.68rem; font-weight: 600; }
+  .sc-fee-clear { background: #dcfce7; color: #166534; }
+  .sc-fee-deposit { background: #fef9c3; color: #854d0e; }
+  .sc-fee-none { background: #fee2e2; color: #991b1b; }
+  .sc-alert-mini { border-radius: 6px; padding: 6px 10px; font-size: .72rem; margin-bottom: 10px; border-left: 3px solid; }
+  .sc-alert-red { background: #fef2f2; color: #991b1b; border-color: #dc2626; }
+  .sc-alert-green { background: #f0fdf4; color: #166534; border-color: #16a34a; }
+  .sc-card-progress { margin-bottom: 10px; }
+  .sc-prog-header { display: flex; justify-content: space-between; font-size: 0.7rem; color: #6b7280; margin-bottom: 4px; }
+  .sc-prog-bar { height: 5px; background: #f3f0ff; border-radius: 3px; overflow: hidden; }
+  .sc-prog-fill { height: 100%; border-radius: 3px; }
+  .sc-pf-green { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
+  .sc-pf-yellow { background: linear-gradient(90deg, #f59e0b, #fcd34d); }
+  .sc-pf-red { background: linear-gradient(90deg, #dc2626, #f87171); }
+  .sc-card-footer { display: flex; align-items: center; justify-content: space-between; font-size: 0.7rem; }
+  .sc-contact-time { color: #9ca3af; }
+  .sc-card-status { font-size: .72rem; margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+  .sc-status-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .sc-status-blue { color: #1d4ed8; } .sc-status-blue .sc-status-dot { background: #3b82f6; }
+  .sc-status-amber { color: #92400e; } .sc-status-amber .sc-status-dot { background: #f59e0b; }
+  .sc-status-green { color: #166534; } .sc-status-green .sc-status-dot { background: #16a34a; }
+  .sc-status-gray { color: #64748b; }
+  .sc-card-actions { display: flex; gap: 5px; }
+  .sc-card-btn { padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 500; border: 1px solid; cursor: pointer; transition: all .15s; }
+  .sc-view-btn { border-color: #ddd6fe; color: #7c3aed; background: #faf5ff; }
+  .sc-view-btn:hover { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+  .sc-fill-btn { border-color: #7c3aed; color: #7c3aed; background: #ede9fe; }
+  .sc-fill-btn:hover { background: #7c3aed; color: #fff; }
+  .sc-urge-btn-sm { border-color: #f59e0b; color: #92400e; background: #fef9c3; }
+  .sc-urge-btn-sm:hover { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+
+  @media (max-width: 960px) {
+    .sc-grid { grid-template-columns: repeat(2, 1fr); }
+    .sa-stats { flex-wrap: wrap; }
+    .sc-cd-cards { justify-content: flex-end; }
+  }
+  @media (max-width: 640px) {
+    .sc-grid { grid-template-columns: 1fr; }
+    .sa-countdown-row { flex-direction: column; }
   }
 </style>
 </head>
 <body>
 
-<!-- ══════════════ HOME ══════════════ -->
-<div id="home" class="section active">
-  <div class="home-hero">
-    <h1>界面布局<span>设计方案</span>对比</h1>
-    <p>为职称申报管理系统精心设计的三套界面风格，从专业深色侧边栏到简洁卡片流，覆盖不同用户偏好与使用场景。</p>
-  </div>
-  <div class="cards-grid">
+<!-- ========== HOME ========== -->
+<div id="home">
+  <h1>界面布局设计方案对比</h1>
+  <p class="sub">职称申报中介管理系统 — 三种UI风格方案，点击查看完整布局</p>
+  <div class="home-cards">
+
     <!-- Card A -->
-    <div class="proposal-card" onclick="show('a')">
-      <div><span class="card-badge badge-a">方案 A</span></div>
-      <div class="card-title">专业深色侧边栏</div>
-      <p class="card-desc">采用深色侧边栏导航搭配浅色内容区域，提供清晰的层级结构与现代 SaaS 产品质感，适合专业用户长时间操作。</p>
-      <!-- Thumbnail A -->
-      <div class="thumb" style="background:#f1f5f9;">
-        <div class="thumb-a-sidebar">
-          <div style="height:10px;background:rgba(255,255,255,0.06);margin:10px 6px 8px;border-radius:3px;"></div>
-          <div class="thumb-a-sidebar-item active"></div>
-          <div class="thumb-a-sidebar-item"></div>
-          <div class="thumb-a-sidebar-item"></div>
-          <div class="thumb-a-sidebar-item"></div>
-          <div class="thumb-a-sidebar-item"></div>
-        </div>
-        <div class="thumb-a-header"></div>
-        <div class="thumb-a-content">
-          <div class="thumb-a-stat">
-            <div class="thumb-a-stat-card"></div>
-            <div class="thumb-a-stat-card"></div>
-            <div class="thumb-a-stat-card"></div>
-            <div class="thumb-a-stat-card"></div>
+    <div class="home-card">
+      <div class="thumb thumb-a">
+        <div class="thumb-inner">
+          <div class="ta">
+            <div class="ta-side">
+              <div class="ta-side-logo"></div>
+              <div class="ta-nav-item active"></div>
+              <div class="ta-nav-item"></div>
+              <div class="ta-nav-item"></div>
+              <div class="ta-nav-item"></div>
+              <div class="ta-nav-item"></div>
+            </div>
+            <div class="ta-main">
+              <div class="ta-bar"></div>
+              <div class="ta-countdown">
+                <div class="ta-cd green"></div>
+                <div class="ta-cd red"></div>
+              </div>
+              <div class="ta-stats">
+                <div class="ta-stat"></div>
+                <div class="ta-stat"></div>
+                <div class="ta-stat"></div>
+                <div class="ta-stat"></div>
+              </div>
+              <div class="ta-table-row"></div>
+              <div class="ta-table-row"></div>
+              <div class="ta-table-row"></div>
+              <div class="ta-table-row"></div>
+            </div>
           </div>
-          <div class="thumb-a-row" style="width:90%;margin-top:4px;"></div>
-          <div class="thumb-a-row" style="width:75%;"></div>
-          <div class="thumb-a-row" style="width:85%;"></div>
-          <div class="thumb-a-row" style="width:70%;"></div>
-          <div class="thumb-a-row" style="width:80%;"></div>
         </div>
       </div>
-      <button class="view-btn btn-a">查看方案 →</button>
+      <div class="home-card-body">
+        <h2>方案 A — 专业深色侧边栏</h2>
+        <p>蓝色调深色侧边栏，按行业&gt;评委会树状导航，顶部双截止日期倒计时预警卡片，完整申报人数据表格。</p>
+        <div class="home-card-tags">
+          <span class="tag tag-a">蓝色 #2563eb</span>
+          <span class="tag tag-a">深色侧栏 220px</span>
+          <span class="tag tag-a">行业树状导航</span>
+          <span class="tag tag-a">倒计时预警</span>
+        </div>
+        <button class="btn-view btn-a" onclick="show('scheme-a')">查看方案 A →</button>
+      </div>
     </div>
+
     <!-- Card B -->
-    <div class="proposal-card" onclick="show('b')">
-      <div><span class="card-badge badge-b">方案 B</span></div>
-      <div class="card-title">经典桌面工具风格</div>
-      <p class="card-desc">仿桌面应用设计，顶部菜单栏 + 工具栏 + 左侧面板结构，操作密度高，功能一目了然，适合习惯传统软件的用户群体。</p>
-      <!-- Thumbnail B -->
-      <div class="thumb" style="background:#f3f4f6; position:relative;">
-        <div class="thumb-b-titlebar"></div>
-        <div class="thumb-b-menu">
-          <div class="thumb-b-menu-item active"></div>
-          <div class="thumb-b-menu-item"></div>
-          <div class="thumb-b-menu-item"></div>
-          <div class="thumb-b-menu-item"></div>
-        </div>
-        <div class="thumb-b-toolbar"></div>
-        <div class="thumb-b-body">
-          <div class="thumb-b-panel">
-            <div style="height:8px;background:#d1d5db;margin:8px 6px;border-radius:3px;"></div>
-            <div style="height:6px;background:#d1d5db;margin:5px 6px;border-radius:2px;width:70%;"></div>
-            <div style="height:6px;background:#d1d5db;margin:5px 6px;border-radius:2px;width:80%;"></div>
-            <div style="height:6px;background:#0d9488;margin:5px 6px;border-radius:2px;width:85%;opacity:0.6;"></div>
-            <div style="height:6px;background:#d1d5db;margin:5px 6px;border-radius:2px;width:75%;"></div>
+    <div class="home-card">
+      <div class="thumb thumb-b">
+        <div class="thumb-inner">
+          <div class="tb">
+            <div class="tb-title">
+              <div class="tb-dot" style="background:#ef4444"></div>
+              <div class="tb-dot" style="background:#f59e0b"></div>
+              <div class="tb-dot" style="background:#22c55e"></div>
+            </div>
+            <div class="tb-menu">
+              <div class="tb-menu-item active"></div>
+              <div class="tb-menu-item"></div>
+              <div class="tb-menu-item"></div>
+              <div class="tb-menu-item"></div>
+            </div>
+            <div class="tb-body">
+              <div class="tb-left">
+                <div class="tb-tree-item l1"></div>
+                <div class="tb-tree-item l2"></div>
+                <div class="tb-tree-item l2 active"></div>
+                <div class="tb-tree-item l2 urgent"></div>
+                <div class="tb-tree-item l2"></div>
+              </div>
+              <div class="tb-right">
+                <div class="tb-alert"></div>
+                <div class="tb-row"></div>
+                <div class="tb-row"></div>
+                <div class="tb-status"></div>
+                <div class="tb-row"></div>
+                <div class="tb-row"></div>
+              </div>
+            </div>
           </div>
-          <div class="thumb-b-main">
-            <div style="height:6px;background:#e5e7eb;margin:8px 8px 4px;border-radius:2px;width:80%;"></div>
-            <div style="height:5px;background:#e5e7eb;margin:4px 8px;border-radius:2px;width:90%;"></div>
-            <div style="height:5px;background:#e5e7eb;margin:4px 8px;border-radius:2px;width:75%;"></div>
-            <div style="height:5px;background:#e5e7eb;margin:4px 8px;border-radius:2px;width:85%;"></div>
-          </div>
         </div>
-        <div class="thumb-b-statusbar"></div>
       </div>
-      <button class="view-btn btn-b">查看方案 →</button>
+      <div class="home-card-body">
+        <h2>方案 B — 经典桌面工具</h2>
+        <p>仿桌面应用风格，左侧年度&gt;行业&gt;评委会&gt;申报人三级树形面板，选中评委会后右侧显示详情与紧急截止红色横幅。</p>
+        <div class="home-card-tags">
+          <span class="tag tag-b">绿色 #0d9488</span>
+          <span class="tag tag-b">桌面工具风格</span>
+          <span class="tag tag-b">三级树形结构</span>
+          <span class="tag tag-b">底部状态栏</span>
+        </div>
+        <button class="btn-view btn-b" onclick="show('scheme-b')">查看方案 B →</button>
+      </div>
     </div>
+
     <!-- Card C -->
-    <div class="proposal-card" onclick="show('c')">
-      <div><span class="card-badge badge-c">方案 C</span></div>
-      <div class="card-title">简洁卡片流</div>
-      <p class="card-desc">无侧边栏的全宽卡片布局，顶部导航栏简洁，项目以卡片网格呈现，视觉层次清晰，现代 Web 应用质感，上手零门槛。</p>
-      <!-- Thumbnail C -->
-      <div class="thumb" style="background:#f8fafc; position:relative;">
-        <div class="thumb-c-nav" style="display:flex;align-items:center;padding:0 8px;gap:4px;">
-          <div style="width:14px;height:14px;border-radius:3px;background:#7c3aed;"></div>
-          <div style="height:6px;background:#e2e8f0;border-radius:2px;width:20%;margin-left:8px;"></div>
-          <div style="height:6px;background:#e2e8f0;border-radius:2px;width:12%;margin-left:4px;"></div>
-          <div style="height:6px;background:#e2e8f0;border-radius:2px;width:12%;margin-left:4px;"></div>
-        </div>
-        <div class="thumb-c-filters" style="display:flex;align-items:center;padding:0 8px;gap:4px;">
-          <div style="height:7px;background:#7c3aed;border-radius:3px;width:16%;opacity:0.8;"></div>
-          <div style="height:7px;background:#e2e8f0;border-radius:3px;width:16%;"></div>
-          <div style="height:7px;background:#e2e8f0;border-radius:3px;width:16%;"></div>
-          <div style="height:7px;background:#e2e8f0;border-radius:3px;width:16%;"></div>
-        </div>
-        <div class="thumb-c-grid">
-          <div class="thumb-c-card"></div>
-          <div class="thumb-c-card"></div>
-          <div class="thumb-c-card"></div>
-          <div class="thumb-c-card" style="opacity:0.5;"></div>
+    <div class="home-card">
+      <div class="thumb thumb-c">
+        <div class="thumb-inner">
+          <div class="tc">
+            <div class="tc-nav">
+              <div class="tc-logo"></div>
+              <div class="tc-nav-link"></div>
+              <div class="tc-nav-link"></div>
+            </div>
+            <div class="tc-hero">
+              <div class="tc-cd-box green"></div>
+              <div class="tc-cd-box red"></div>
+            </div>
+            <div class="tc-tabs">
+              <div class="tc-tab active"></div>
+              <div class="tc-tab"></div>
+              <div class="tc-tab"></div>
+            </div>
+            <div class="tc-cards">
+              <div class="tc-card"><div class="tc-card-chip"></div><div class="tc-card-name"></div><div class="tc-card-badge"></div></div>
+              <div class="tc-card"><div class="tc-card-chip"></div><div class="tc-card-name"></div><div class="tc-card-badge"></div></div>
+              <div class="tc-card"><div class="tc-card-chip"></div><div class="tc-card-name"></div><div class="tc-card-badge"></div></div>
+              <div class="tc-card"><div class="tc-card-chip"></div><div class="tc-card-name"></div><div class="tc-card-badge"></div></div>
+              <div class="tc-card"><div class="tc-card-chip"></div><div class="tc-card-name"></div><div class="tc-card-badge"></div></div>
+              <div class="tc-card"><div class="tc-card-chip"></div><div class="tc-card-name"></div><div class="tc-card-badge"></div></div>
+            </div>
+          </div>
         </div>
       </div>
-      <button class="view-btn btn-c">查看方案 →</button>
+      <div class="home-card-body">
+        <h2>方案 C — 简洁卡片流</h2>
+        <p>现代SaaS风格，顶部批次&amp;评委会选择器，Hero区大字倒计时，卡片网格展示申报人，含评委会chip、费用badge、催办按钮。</p>
+        <div class="home-card-tags">
+          <span class="tag tag-c">紫色 #7c3aed</span>
+          <span class="tag tag-c">卡片网格</span>
+          <span class="tag tag-c">批次选择器</span>
+          <span class="tag tag-c">快速筛选tab</span>
+        </div>
+        <button class="btn-view btn-c" onclick="show('scheme-c')">查看方案 C →</button>
+      </div>
     </div>
+
   </div>
 </div>
 
-<!-- ══════════════ SCHEME A ══════════════ -->
-<div id="a" class="section">
+<!-- ========== SCHEME A ========== -->
+<div id="scheme-a" class="scheme-section" style="flex-direction:row">
   <!-- Sidebar -->
-  <div class="a-sidebar">
-    <div class="a-logo">
-      <div class="a-logo-name">⚡ 职称申报管理</div>
-      <div class="a-logo-sub">专业版 v3.0</div>
+  <div class="sa-sidebar">
+    <div class="sa-logo">
+      <div class="sa-logo-text">职称申报管理系统</div>
+      <div class="sa-logo-sub">gxrczc.com · 中介管理端</div>
     </div>
-    <nav class="a-nav">
-      <div class="a-nav-item active"><span class="icon">🏠</span>项目总览</div>
-      <div class="a-nav-item"><span class="icon">👥</span>申报人管理</div>
-      <div class="a-nav-item"><span class="icon">📁</span>材料管理</div>
-      <div class="a-nav-item"><span class="icon">✅</span>完整性检查</div>
-      <div class="a-nav-item"><span class="icon">🤖</span>自动填报</div>
-      <div class="a-nav-item"><span class="icon">⚙️</span>系统设置</div>
+    <nav class="sa-nav">
+      <div class="sa-nav-group">
+        <div class="sa-nav-group-label">工作台</div>
+        <div class="sa-nav-item active"><span class="icon">⊞</span>项目总览</div>
+        <div class="sa-nav-item"><span class="icon">📋</span>批次管理</div>
+      </div>
+      <div class="sa-nav-group">
+        <div class="sa-nav-group-label">申报人管理</div>
+        <div class="sa-nav-item"><span class="icon">🏗</span>住房城乡建设行业</div>
+        <div class="sa-nav-sub">
+          <div class="sa-nav-item"><span class="icon">🏛</span>高级职称评委会</div>
+          <div class="sa-nav-item"><span class="icon">🏛</span>中级职称评委会</div>
+          <div class="sa-nav-item"><span class="icon">🏛</span>正高级职称评委会</div>
+        </div>
+        <div class="sa-nav-item" style="color:#475569;cursor:default;opacity:.6"><span class="icon">📚</span>教育行业（预留）</div>
+        <div class="sa-nav-item" style="color:#475569;cursor:default;opacity:.6"><span class="icon">🏥</span>卫生健康行业（预留）</div>
+      </div>
+      <div class="sa-nav-group">
+        <div class="sa-nav-group-label">材料</div>
+        <div class="sa-nav-item"><span class="icon">📁</span>材料管理</div>
+        <div class="sa-nav-item"><span class="icon">🔍</span>OCR识别</div>
+        <div class="sa-nav-item"><span class="icon">✅</span>完整性检查</div>
+      </div>
+      <div class="sa-nav-group">
+        <div class="sa-nav-group-label">提报</div>
+        <div class="sa-nav-item"><span class="icon">🤖</span>自动填报</div>
+        <div class="sa-nav-item"><span class="icon">✍️</span>AI写作</div>
+      </div>
+      <div class="sa-nav-group">
+        <div class="sa-nav-group-label">业务</div>
+        <div class="sa-nav-item"><span class="icon">💰</span>费用管理</div>
+        <div class="sa-nav-item"><span class="icon">🏆</span>结果跟踪</div>
+        <div class="sa-nav-item"><span class="icon">📊</span>统计报表</div>
+      </div>
+      <div class="sa-nav-group">
+        <div class="sa-nav-group-label">系统</div>
+        <div class="sa-nav-item"><span class="icon">⚙️</span>设置</div>
+      </div>
     </nav>
-    <div class="a-sidebar-footer">© 2024 职称申报系统</div>
-    <div class="a-back-wrap">
-      <button class="back-btn" onclick="show('home')">← 返回方案对比</button>
+    <div class="sa-sidebar-footer">
+      <div class="sa-user">
+        <div class="sa-avatar">陈</div>
+        <div class="sa-user-info">
+          <div class="sa-user-name">陈工（管理员）</div>
+          <div>中介服务账号</div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Main -->
-  <div class="a-main">
-    <header class="a-header">
-      <div class="a-breadcrumb">首页 / <span>项目总览</span></div>
-      <div class="a-header-right">
-        <div class="a-bell" title="通知">🔔</div>
-        <div class="a-avatar" title="管理员">管</div>
-        <span class="a-user-name">管理员</span>
+  <!-- Main content -->
+  <div class="sa-main">
+    <div class="sa-topbar">
+      <button class="back-btn back-btn-a" onclick="show('home')">← 返回方案列表</button>
+      <div class="sa-breadcrumb">工作台 / <span>项目总览</span></div>
+      <div class="sa-topbar-actions">
+        <button class="sa-icon-btn" title="通知">🔔</button>
+        <button class="sa-icon-btn" title="帮助">❓</button>
+        <div class="sa-avatar" style="cursor:pointer">陈</div>
       </div>
-    </header>
+    </div>
+    <div class="sa-content">
 
-    <div class="a-content">
-      <div class="a-page-title">项目总览</div>
-      <div class="a-page-sub">当前共有 24 个职称申报项目，统计截止今日</div>
+      <!-- Countdown cards -->
+      <div class="sa-countdown-row">
+        <div class="sa-cd-card green">
+          <div class="sa-cd-icon">📅</div>
+          <div class="sa-cd-info">
+            <div class="sa-cd-label">住建行业 · 高级职称评委会 — 材料截止倒计时</div>
+            <div class="sa-cd-days">47 <span style="font-size:1rem;font-weight:500;color:#166534">天</span></div>
+            <div class="sa-cd-sub">材料截止 2026-08-05 &nbsp;|&nbsp; 网填截止 2026-08-10</div>
+          </div>
+          <div><span class="sa-cd-badge green">充裕</span></div>
+        </div>
+        <div class="sa-cd-card red">
+          <div class="sa-cd-icon">⏰</div>
+          <div class="sa-cd-info">
+            <div class="sa-cd-label">住建行业 · 中级职称评委会 — 材料截止倒计时</div>
+            <div class="sa-cd-days">12 <span style="font-size:1rem;font-weight:500;color:#dc2626">天</span></div>
+            <div class="sa-cd-sub">材料截止 2026-06-29 &nbsp;|&nbsp; 网填截止 2026-07-01</div>
+          </div>
+          <div><span class="sa-cd-badge red">🔴 紧急</span></div>
+        </div>
+      </div>
 
-      <!-- Stats -->
-      <div class="a-stats">
-        <div class="a-stat-card highlight">
-          <div class="a-stat-icon">📋</div>
-          <div class="a-stat-label">总项目数</div>
-          <div class="a-stat-num">24</div>
+      <!-- Stats row -->
+      <div class="sa-stats">
+        <div class="sa-stat accent">
+          <div class="sa-stat-label">总申报人数</div>
+          <div class="sa-stat-value">12</div>
+          <div class="sa-stat-sub">2026年度在办</div>
         </div>
-        <div class="a-stat-card warn">
-          <div class="a-stat-icon">⚠️</div>
-          <div class="a-stat-label">材料待补充</div>
-          <div class="a-stat-num">8</div>
+        <div class="sa-stat warn">
+          <div class="sa-stat-label">材料待补充</div>
+          <div class="sa-stat-value">4</div>
+          <div class="sa-stat-sub">需催促客户</div>
         </div>
-        <div class="a-stat-card info">
-          <div class="a-stat-icon">📅</div>
-          <div class="a-stat-label">本周待提交</div>
-          <div class="a-stat-num">5</div>
+        <div class="sa-stat danger">
+          <div class="sa-stat-label">可立即提交</div>
+          <div class="sa-stat-value">3</div>
+          <div class="sa-stat-sub">材料已齐备</div>
         </div>
-        <div class="a-stat-card ok">
-          <div class="a-stat-icon">✅</div>
-          <div class="a-stat-label">已完成</div>
-          <div class="a-stat-num">11</div>
+        <div class="sa-stat success">
+          <div class="sa-stat-label">已结清费用</div>
+          <div class="sa-stat-value">8</div>
+          <div class="sa-stat-sub">未收尾款 4 人</div>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="sa-toolbar">
+        <div class="sa-toolbar-left">
+          <div class="sa-section-title">申报人列表</div>
+          <div class="sa-filter-btns">
+            <button class="sa-filter-btn active">全部 (12)</button>
+            <button class="sa-filter-btn">高级评委会 (5)</button>
+            <button class="sa-filter-btn">中级评委会 (4)</button>
+            <button class="sa-filter-btn">正高评委会 (3)</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="sa-action-btn sa-btn-warn">📢 生成催办清单</button>
+          <button class="sa-action-btn sa-btn-secondary">📊 导出</button>
+          <button class="sa-action-btn sa-btn-primary">+ 新增申报人</button>
         </div>
       </div>
 
       <!-- Table -->
-      <div class="a-table-card">
-        <div class="a-table-header">
-          <div class="a-table-title">申报人列表</div>
-          <button class="a-add-btn">＋ 新建项目</button>
-        </div>
-        <table>
+      <div class="sa-table-wrap">
+        <table class="sa-table">
           <thead>
             <tr>
-              <th>姓名</th>
+              <th>姓名 / 编号</th>
+              <th>行业 / 评委会</th>
               <th>申报职称</th>
-              <th>申报单位</th>
-              <th>状态</th>
-              <th>完整度</th>
+              <th>材料完整度</th>
+              <th>费用状态</th>
+              <th>申报状态</th>
+              <th>最近联系</th>
               <th>操作</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><strong>张伟</strong></td>
-              <td>工程师</td>
-              <td>技术研发部</td>
-              <td><span class="status status-gray">建档中</span></td>
-              <td>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>
-                  <span style="font-size:0.78rem;color:#64748b;">40%</span>
-                </div>
-              </td>
-              <td>
-                <button class="a-action-btn">查看</button>
-                <button class="a-action-btn">编辑</button>
-              </td>
-            </tr>
-            <tr>
-              <td><strong>李晓梅</strong></td>
+              <td><div class="sa-name-cell"><span class="sa-name">张建国</span><span class="sa-name-id">2026-HJ-001</span></div></td>
+              <td><span class="sa-committee-chip sa-chip-high">住建 · 高级</span></td>
               <td>高级工程师</td>
-              <td>产品设计部</td>
-              <td><span class="status status-orange">材料待补</span></td>
-              <td>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <div class="progress-bar"><div class="progress-fill" style="width:65%;background:#f97316;"></div></div>
-                  <span style="font-size:0.78rem;color:#64748b;">65%</span>
-                </div>
-              </td>
-              <td>
-                <button class="a-action-btn">查看</button>
-                <button class="a-action-btn">编辑</button>
-              </td>
+              <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill pf-green" style="width:90%"></div></div><span class="progress-pct">90%</span></div></td>
+              <td><span class="fee-badge fee-clear">已结清</span></td>
+              <td><span class="status-badge s-submitted">待审核</span></td>
+              <td><span class="sa-contact-time">3天前</span></td>
+              <td><div class="sa-ops"><button class="sa-op-btn">详情</button><button class="sa-op-btn">填报</button></div></td>
             </tr>
             <tr>
-              <td><strong>王建国</strong></td>
+              <td><div class="sa-name-cell"><span class="sa-name">李秀梅</span><span class="sa-name-id">2026-ZJ-001</span></div></td>
+              <td><span class="sa-committee-chip sa-chip-mid">住建 · 中级</span></td>
               <td>工程师</td>
-              <td>基础架构部</td>
-              <td><span class="status status-blue">待提交</span></td>
-              <td>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <div class="progress-bar"><div class="progress-fill" style="width:90%;background:#3b82f6;"></div></div>
-                  <span style="font-size:0.78rem;color:#64748b;">90%</span>
-                </div>
-              </td>
-              <td>
-                <button class="a-action-btn">查看</button>
-                <button class="a-action-btn">提交</button>
-              </td>
+              <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill pf-red" style="width:40%"></div></div><span class="progress-pct">40%</span></div></td>
+              <td><span class="fee-badge fee-deposit">已付定金</span></td>
+              <td><span class="status-badge s-material">材料收集中</span></td>
+              <td><span class="sa-contact-time">8天前</span></td>
+              <td><div class="sa-ops"><button class="sa-op-btn">详情</button><button class="sa-op-btn urge">催办</button></div></td>
             </tr>
             <tr>
-              <td><strong>陈志远</strong></td>
+              <td><div class="sa-name-cell"><span class="sa-name">王志强</span><span class="sa-name-id">2026-ZJ-002</span></div></td>
+              <td><span class="sa-committee-chip sa-chip-mid">住建 · 中级</span></td>
+              <td>工程师</td>
+              <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill pf-yellow" style="width:65%"></div></div><span class="progress-pct">65%</span></div></td>
+              <td><span class="fee-badge fee-none">未付款</span></td>
+              <td><span class="status-badge s-material">材料收集中</span></td>
+              <td><span class="sa-contact-time">12天前</span></td>
+              <td><div class="sa-ops"><button class="sa-op-btn">详情</button><button class="sa-op-btn urge">催办</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="sa-name-cell"><span class="sa-name">陈美玲</span><span class="sa-name-id">2026-ZG-001</span></div></td>
+              <td><span class="sa-committee-chip sa-chip-top">住建 · 正高</span></td>
+              <td>正高级工程师</td>
+              <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill pf-green" style="width:100%"></div></div><span class="progress-pct">100%</span></div></td>
+              <td><span class="fee-badge fee-clear">已结清</span></td>
+              <td><span class="status-badge s-submitted">已提交</span></td>
+              <td><span class="sa-contact-time">1天前</span></td>
+              <td><div class="sa-ops"><button class="sa-op-btn">详情</button><button class="sa-op-btn">结果</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="sa-name-cell"><span class="sa-name">黄伟东</span><span class="sa-name-id">2026-HJ-002</span></div></td>
+              <td><span class="sa-committee-chip sa-chip-high">住建 · 高级</span></td>
               <td>高级工程师</td>
-              <td>战略发展部</td>
-              <td><span class="status status-green">已完成</span></td>
-              <td>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <div class="progress-bar"><div class="progress-fill" style="width:100%;background:#22c55e;"></div></div>
-                  <span style="font-size:0.78rem;color:#64748b;">100%</span>
-                </div>
-              </td>
-              <td>
-                <button class="a-action-btn">查看</button>
-                <button class="a-action-btn">归档</button>
-              </td>
+              <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill pf-green" style="width:80%"></div></div><span class="progress-pct">80%</span></div></td>
+              <td><span class="fee-badge fee-deposit">已付定金</span></td>
+              <td><span class="status-badge s-pending">准备中</span></td>
+              <td><span class="sa-contact-time">5天前</span></td>
+              <td><div class="sa-ops"><button class="sa-op-btn">详情</button><button class="sa-op-btn">填报</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="sa-name-cell"><span class="sa-name">梁志华</span><span class="sa-name-id">2026-ZJ-003</span></div></td>
+              <td><span class="sa-committee-chip sa-chip-mid">住建 · 中级</span></td>
+              <td>工程师</td>
+              <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill pf-red" style="width:25%"></div></div><span class="progress-pct">25%</span></div></td>
+              <td><span class="fee-badge fee-none">未付款</span></td>
+              <td><span class="status-badge s-material">材料收集中</span></td>
+              <td><span class="sa-contact-time">15天前</span></td>
+              <td><div class="sa-ops"><button class="sa-op-btn">详情</button><button class="sa-op-btn urge">催办</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="sa-name-cell"><span class="sa-name">刘晓燕</span><span class="sa-name-id">2026-HJ-003</span></div></td>
+              <td><span class="sa-committee-chip sa-chip-high">住建 · 高级</span></td>
+              <td>高级工程师</td>
+              <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill pf-green" style="width:95%"></div></div><span class="progress-pct">95%</span></div></td>
+              <td><span class="fee-badge fee-clear">已结清</span></td>
+              <td><span class="status-badge s-passed">通过评审 ✓</span></td>
+              <td><span class="sa-contact-time">昨天</span></td>
+              <td><div class="sa-ops"><button class="sa-op-btn">详情</button><button class="sa-op-btn">结果</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="sa-name-cell"><span class="sa-name">赵明辉</span><span class="sa-name-id">2026-ZG-002</span></div></td>
+              <td><span class="sa-committee-chip sa-chip-top">住建 · 正高</span></td>
+              <td>正高级工程师</td>
+              <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill pf-yellow" style="width:70%"></div></div><span class="progress-pct">70%</span></div></td>
+              <td><span class="fee-badge fee-deposit">已付定金</span></td>
+              <td><span class="status-badge s-pending">准备中</span></td>
+              <td><span class="sa-contact-time">6天前</span></td>
+              <td><div class="sa-ops"><button class="sa-op-btn">详情</button><button class="sa-op-btn">填报</button></div></td>
+            </tr>
+            <tr>
+              <td><div class="sa-name-cell"><span class="sa-name">孙雪梅</span><span class="sa-name-id">2026-ZJ-004</span></div></td>
+              <td><span class="sa-committee-chip sa-chip-mid">住建 · 中级</span></td>
+              <td>工程师</td>
+              <td><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill pf-green" style="width:100%"></div></div><span class="progress-pct">100%</span></div></td>
+              <td><span class="fee-badge fee-clear">已结清</span></td>
+              <td><span class="status-badge s-pending">待提交</span></td>
+              <td><span class="sa-contact-time">2天前</span></td>
+              <td><div class="sa-ops"><button class="sa-op-btn">详情</button><button class="sa-op-btn">填报</button></div></td>
             </tr>
           </tbody>
         </table>
       </div>
+
+    </div><!-- /sa-content -->
+  </div><!-- /sa-main -->
+</div><!-- /scheme-a -->
+
+<!-- ========== SCHEME B ========== -->
+<div id="scheme-b" class="scheme-section" style="flex-direction:column">
+  <div class="sb-window">
+    <div class="sb-titlebar">
+      <div class="sb-dots">
+        <div class="sb-dot sb-dot-r"></div>
+        <div class="sb-dot sb-dot-y"></div>
+        <div class="sb-dot sb-dot-g"></div>
+      </div>
+      <div class="sb-title">职称申报管理系统 — gxrczc.com 中介管理端</div>
     </div>
-  </div>
-</div>
-
-<!-- ══════════════ SCHEME B ══════════════ -->
-<div id="b" class="section">
-  <!-- Window title bar -->
-  <div class="b-titlebar">
-    <div class="b-titlebar-left">
-      <div class="b-win-dot red"></div>
-      <div class="b-win-dot yellow"></div>
-      <div class="b-win-dot green"></div>
+    <div class="sb-menubar">
+      <button class="back-btn back-btn-b" onclick="show('home')" style="margin-right:8px;font-size:.75rem;padding:4px 10px">← 返回</button>
+      <div class="sb-menu-item active">项目管理</div>
+      <div class="sb-menu-item">申报人档案</div>
+      <div class="sb-menu-item">材料检查</div>
+      <div class="sb-menu-item">自动填报</div>
+      <div class="sb-menu-item">费用管理</div>
+      <div class="sb-menu-item">结果跟踪</div>
+      <div class="sb-menu-item">设置</div>
     </div>
-    <div class="b-titlebar-title">职称申报管理系统 v2.1</div>
-    <div style="font-size:0.75rem;color:#6b7280;">Ctrl+N 新建 &nbsp; F5 刷新</div>
-  </div>
-
-  <!-- Menu bar -->
-  <div class="b-menubar">
-    <div class="b-menu-tab active">项目管理</div>
-    <div class="b-menu-tab">申报人档案</div>
-    <div class="b-menu-tab">材料检查</div>
-    <div class="b-menu-tab">自动填报</div>
-    <div class="b-menu-tab">设置</div>
-    <div style="margin-left:auto;display:flex;align-items:center;">
-      <button class="back-btn" onclick="show('home')">← 返回方案对比</button>
+    <div class="sb-toolbar">
+      <button class="sb-tool-btn">➕ 新增申报人</button>
+      <button class="sb-tool-btn">📁 导入档案</button>
+      <div class="sb-tool-sep"></div>
+      <button class="sb-tool-btn">🔍 OCR识别</button>
+      <button class="sb-tool-btn">✅ 完整性检查</button>
+      <button class="sb-tool-btn">🤖 批量填报</button>
+      <div class="sb-tool-sep"></div>
+      <button class="sb-tool-btn warn-btn">📢 生成催办清单</button>
+      <button class="sb-tool-btn">📊 导出报表</button>
     </div>
-  </div>
 
-  <!-- Toolbar -->
-  <div class="b-toolbar">
-    <button class="b-tool-btn">📄 新建项目</button>
-    <button class="b-tool-btn">📥 导入</button>
-    <button class="b-tool-btn">📤 导出</button>
-    <div class="b-separator"></div>
-    <button class="b-tool-btn">🔍 检查材料</button>
-    <button class="b-tool-btn primary">🤖 启动填报</button>
-  </div>
-
-  <!-- Body -->
-  <div class="b-body">
-    <!-- Left panel -->
-    <div class="b-panel">
-      <div class="b-panel-header">📁 项目筛选</div>
-      <input class="b-search" type="text" placeholder="🔍 搜索项目...">
-
-      <div class="b-filter-group">
-        <div class="b-filter-title">按状态筛选</div>
-        <label class="b-filter-item"><input type="checkbox" checked> <span class="status status-gray" style="font-size:0.75rem;">建档中</span></label>
-        <label class="b-filter-item"><input type="checkbox" checked> <span class="status status-orange" style="font-size:0.75rem;">材料待补</span></label>
-        <label class="b-filter-item"><input type="checkbox" checked> <span class="status status-blue" style="font-size:0.75rem;">待提交</span></label>
-        <label class="b-filter-item"><input type="checkbox" checked> <span class="status status-green" style="font-size:0.75rem;">已完成</span></label>
+    <div class="sb-body">
+      <!-- Left panel: tree -->
+      <div class="sb-left-panel">
+        <div class="sb-panel-header">申报项目树</div>
+        <div class="sb-search"><input type="text" placeholder="🔍 搜索申报人..."></div>
+        <div class="sb-tree">
+          <div class="sb-tree-label year">▼ 📋 2026年度申报</div>
+          <div class="sb-tree-label industry">▼ 📁 住房城乡建设行业</div>
+          <div class="sb-tree-label committee">
+            <span class="expand-icon">▶</span>
+            <span>🏛 高级职称评委会</span>
+            <span class="count-badge" style="margin-left:auto">5人</span>
+            <span class="sb-deadline-tag sb-deadline-ok">47天</span>
+          </div>
+          <div class="sb-tree-label committee selected">
+            <span class="expand-icon">▼</span>
+            <span>🏛 中级职称评委会</span>
+            <span class="count-badge">4人</span>
+            <span class="sb-deadline-tag sb-deadline-urgent">12天🔴</span>
+          </div>
+          <div style="padding-left:44px">
+            <div class="sb-tree-label" style="padding:3px 8px;font-size:.73rem;color:#374151">👤 李秀梅</div>
+            <div class="sb-tree-label" style="padding:3px 8px;font-size:.73rem;color:#374151">👤 王志强</div>
+            <div class="sb-tree-label" style="padding:3px 8px;font-size:.73rem;color:#374151">👤 梁志华</div>
+            <div class="sb-tree-label" style="padding:3px 8px;font-size:.73rem;color:#374151">👤 孙雪梅</div>
+          </div>
+          <div class="sb-tree-label committee">
+            <span class="expand-icon">▶</span>
+            <span>🏛 正高级职称评委会</span>
+            <span class="count-badge" style="margin-left:auto">3人</span>
+            <span class="sb-deadline-tag sb-deadline-ok">62天</span>
+          </div>
+          <div class="sb-tree-label industry disabled">▶ 📁 教育行业（预留）</div>
+          <div class="sb-tree-label industry disabled">▶ 📁 卫生健康行业（预留）</div>
+        </div>
       </div>
 
-      <div class="b-tree">
-        <div class="b-tree-item active">
-          <div class="b-tree-dot" style="background:#6b7280;"></div>张伟 — 工程师
+      <!-- Right panel -->
+      <div class="sb-right-panel">
+        <div class="sb-right-header">
+          <div>
+            <div class="sb-right-title">住房城乡建设行业 · 中级职称评委会</div>
+            <div class="sb-right-sub">2026年度 · 共4名申报人 · 材料截止 2026-06-29 · 网填截止 2026-07-01</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="sb-tool-btn" style="font-size:.73rem">🔗 打开申报网站</button>
+            <button class="sb-tool-btn warn-btn" style="font-size:.73rem">📢 催办本批次</button>
+          </div>
         </div>
-        <div class="b-tree-item">
-          <div class="b-tree-dot" style="background:#f97316;"></div>李晓梅 — 高级工程师
+
+        <div class="sb-urgent-banner">
+          <span style="font-size:1.1rem">🚨</span>
+          <div class="sb-urgent-text">
+            <strong>紧急提醒：</strong>本评委会材料截止日期仅剩 <strong>12天</strong>，仍有 <strong>3名</strong> 申报人材料未齐备，请立即催促！
+          </div>
+          <div style="text-align:center;flex-shrink:0">
+            <div class="sb-urgent-days">12</div>
+            <div class="sb-urgent-label">天后截止</div>
+          </div>
         </div>
-        <div class="b-tree-item">
-          <div class="b-tree-dot" style="background:#3b82f6;"></div>王建国 — 工程师
+
+        <div class="sb-content">
+          <div class="sb-table-wrap">
+            <div class="sb-table-toolbar">
+              <input type="checkbox"> <span style="margin-left:4px">全选</span>
+              <span style="color:#d1d5db;margin:0 6px">|</span>
+              <span>已选 0 人</span>
+              <span style="color:#d1d5db;margin:0 6px">|</span>
+              <button class="sb-tool-btn" style="padding:2px 8px;font-size:.7rem">批量导出</button>
+              <button class="sb-tool-btn warn-btn" style="padding:2px 8px;font-size:.7rem">批量催办</button>
+              <span style="margin-left:auto">共 4 条记录</span>
+            </div>
+            <table class="sb-table">
+              <thead>
+                <tr>
+                  <th style="width:28px"><input type="checkbox"></th>
+                  <th>姓名</th>
+                  <th>申报职称</th>
+                  <th>材料完整度</th>
+                  <th>费用状态</th>
+                  <th>申报状态</th>
+                  <th>最近联系</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="checkbox"></td>
+                  <td><div class="sb-name">李秀梅</div><div class="sb-title-text">2026-ZJ-001</div></td>
+                  <td>工程师（中级）</td>
+                  <td>
+                    <div class="sb-prog"><div class="sb-prog-bar"><div class="sb-prog-fill sb-prog-red" style="width:40%"></div></div><span style="font-size:.72rem;color:#6b7280">40%</span></div>
+                    <div style="font-size:.68rem;color:#dc2626;margin-top:2px">缺：工作证明、学历证书</div>
+                  </td>
+                  <td><span class="fee-badge fee-deposit">已付定金</span></td>
+                  <td><span class="status-badge s-material">材料收集中</span></td>
+                  <td><span style="font-size:.75rem;color:#6b7280">8天前</span></td>
+                  <td><div class="sb-ops-cell"><button class="sb-op">详情</button><button class="sb-op">材料</button><button class="sb-op urge">催办</button></div></td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox"></td>
+                  <td><div class="sb-name">王志强</div><div class="sb-title-text">2026-ZJ-002</div></td>
+                  <td>工程师（中级）</td>
+                  <td>
+                    <div class="sb-prog"><div class="sb-prog-bar"><div class="sb-prog-fill sb-prog-yellow" style="width:65%"></div></div><span style="font-size:.72rem;color:#6b7280">65%</span></div>
+                    <div style="font-size:.68rem;color:#f59e0b;margin-top:2px">缺：业绩证明材料</div>
+                  </td>
+                  <td><span class="fee-badge fee-none">未付款</span></td>
+                  <td><span class="status-badge s-material">材料收集中</span></td>
+                  <td><span style="font-size:.75rem;color:#6b7280">12天前</span></td>
+                  <td><div class="sb-ops-cell"><button class="sb-op">详情</button><button class="sb-op">材料</button><button class="sb-op urge">催办</button></div></td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox"></td>
+                  <td><div class="sb-name">梁志华</div><div class="sb-title-text">2026-ZJ-003</div></td>
+                  <td>工程师（中级）</td>
+                  <td>
+                    <div class="sb-prog"><div class="sb-prog-bar"><div class="sb-prog-fill sb-prog-red" style="width:25%"></div></div><span style="font-size:.72rem;color:#6b7280">25%</span></div>
+                    <div style="font-size:.68rem;color:#dc2626;margin-top:2px">缺：多项，高度紧急</div>
+                  </td>
+                  <td><span class="fee-badge fee-none">未付款</span></td>
+                  <td><span class="status-badge s-material">材料收集中</span></td>
+                  <td><span style="font-size:.75rem;color:#6b7280">15天前</span></td>
+                  <td><div class="sb-ops-cell"><button class="sb-op">详情</button><button class="sb-op">材料</button><button class="sb-op urge">催办</button></div></td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox"></td>
+                  <td><div class="sb-name">孙雪梅</div><div class="sb-title-text">2026-ZJ-004</div></td>
+                  <td>工程师（中级）</td>
+                  <td>
+                    <div class="sb-prog"><div class="sb-prog-bar"><div class="sb-prog-fill sb-prog-green" style="width:100%"></div></div><span style="font-size:.72rem;color:#6b7280">100%</span></div>
+                    <div style="font-size:.68rem;color:#0d9488;margin-top:2px">材料齐备，可立即填报</div>
+                  </td>
+                  <td><span class="fee-badge fee-clear">已结清</span></td>
+                  <td><span class="status-badge s-pending">待提交</span></td>
+                  <td><span style="font-size:.75rem;color:#6b7280">2天前</span></td>
+                  <td><div class="sb-ops-cell"><button class="sb-op">详情</button><button class="sb-op" style="border-color:#0d9488;color:#0d9488">填报</button></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="b-tree-item">
-          <div class="b-tree-dot" style="background:#22c55e;"></div>陈志远 — 高级工程师
+
+        <div class="sb-statusbar">
+          <div class="sb-status-item"><span class="dot dot-red"></span>本批次截止：2026-06-29（剩12天）</div>
+          <span class="sb-status-sep">|</span>
+          <div class="sb-status-item">本评委会：4人 · 未完成：3人</div>
+          <span class="sb-status-sep">|</span>
+          <div class="sb-status-item">本年应收：¥48,000 · 已收：¥28,000 · 待收：¥20,000</div>
+          <span class="sb-status-sep">|</span>
+          <div class="sb-status-item"><span class="dot dot-green"></span>系统正常</div>
         </div>
       </div>
     </div>
+  </div>
+</div><!-- /scheme-b -->
 
-    <!-- Main content -->
-    <div class="b-main">
-      <div class="b-main-header">
+<!-- ========== SCHEME C ========== -->
+<div id="scheme-c" class="scheme-section" style="flex-direction:column">
+  <div class="sc-navbar">
+    <div class="sc-logo">
+      <div class="sc-logo-icon">申</div>
+      <div class="sc-logo-text">职称申报管理系统</div>
+    </div>
+    <div class="sc-nav-links">
+      <div class="sc-nav-link active">工作台</div>
+      <div class="sc-nav-link">材料管理</div>
+      <div class="sc-nav-link">自动填报</div>
+      <div class="sc-nav-link">费用管理</div>
+      <div class="sc-nav-link">结果跟踪</div>
+      <div class="sc-nav-link">统计报表</div>
+    </div>
+    <div class="sc-navbar-right">
+      <button class="back-btn back-btn-c" onclick="show('home')">← 返回</button>
+      <button class="sc-new-btn">+ 新增申报人</button>
+      <div class="sc-avatar">陈</div>
+    </div>
+  </div>
+
+  <!-- Selector bar -->
+  <div class="sc-selector-bar">
+    <span class="sc-selector-label">当前批次：</span>
+    <select class="sc-select">
+      <option>2026年度申报</option>
+      <option>2025年度申报</option>
+    </select>
+    <select class="sc-select">
+      <option>住房城乡建设行业</option>
+      <option>教育行业（预留）</option>
+      <option>卫生健康行业（预留）</option>
+    </select>
+    <select class="sc-select">
+      <option>全部评委会</option>
+      <option>高级职称评委会</option>
+      <option>中级职称评委会</option>
+      <option>正高级职称评委会</option>
+    </select>
+    <div class="sc-selector-bar-actions">
+      <button class="sc-action-btn sc-urge-btn">📢 生成催办清单</button>
+      <button class="sc-action-btn sc-export-btn">📊 导出报表</button>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="sc-hero">
+    <div class="sc-hero-info">
+      <div class="sc-hero-title">2026年度 · 住房城乡建设行业</div>
+      <div class="sc-hero-sub">共3个评委会 · 12名申报人在办 · 申报网站：gxrczc.com</div>
+      <div class="sc-hero-stats">
+        <div class="sc-hero-stat">已结清费用：<strong>8人</strong></div>
+        <div class="sc-hero-stat warn">未收尾款：<strong>4人</strong></div>
+        <div class="sc-hero-stat danger">材料待补：<strong>4人</strong></div>
+      </div>
+    </div>
+    <div class="sc-cd-cards">
+      <div class="sc-cd-card">
+        <div class="sc-cd-label">住建 · 高级职称评委会</div>
+        <div class="sc-cd-days">47</div>
+        <div class="sc-cd-sub">材料截止 2026-08-05</div>
+        <div class="sc-cd-sub">网填截止 2026-08-10</div>
+        <span class="sc-cd-tag ok">充裕</span>
+      </div>
+      <div class="sc-cd-card urgent">
+        <div class="sc-cd-label">住建 · 中级职称评委会</div>
+        <div class="sc-cd-days">12</div>
+        <div class="sc-cd-sub">材料截止 2026-06-29</div>
+        <div class="sc-cd-sub">网填截止 2026-07-01</div>
+        <span class="sc-cd-tag urgent-tag">🔴 紧急</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="sc-filter-bar">
+    <div class="sc-tabs">
+      <div class="sc-tab active">全部 <span class="sc-tab-count">(12)</span></div>
+      <div class="sc-tab">高级评委会 <span class="sc-tab-count">(5)</span></div>
+      <div class="sc-tab">中级评委会 <span class="sc-tab-count">(4)</span></div>
+      <div class="sc-tab">正高评委会 <span class="sc-tab-count">(3)</span></div>
+    </div>
+    <div class="sc-filter-right">
+      <span>排序：</span>
+      <select class="sc-sort-select">
+        <option>截止日期最近</option>
+        <option>材料完整度</option>
+        <option>最近联系时间</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Card grid -->
+  <div class="sc-grid">
+
+    <!-- 李秀梅 中级 紧急 -->
+    <div class="sc-card">
+      <div class="sc-card-header">
+        <div class="sc-card-avatar">秀</div>
+        <div class="sc-card-info">
+          <div class="sc-card-name">李秀梅</div>
+          <div class="sc-card-title">申报：工程师（中级）· 2026-ZJ-001</div>
+        </div>
+      </div>
+      <div class="sc-card-badges">
+        <span class="sc-chip sc-chip-committee">住建行业</span>
+        <span class="sc-chip sc-chip-mid">中级评委会</span>
+        <span class="sc-fee-badge sc-fee-deposit">已付定金</span>
+      </div>
+      <div class="sc-alert-mini sc-alert-red">⏰ 距材料截止仅剩 <strong>12天</strong>，材料完整度仅40%</div>
+      <div class="sc-card-progress">
+        <div class="sc-prog-header"><span>材料完整度</span><span style="color:#dc2626;font-weight:600">40%</span></div>
+        <div class="sc-prog-bar"><div class="sc-prog-fill sc-pf-red" style="width:40%"></div></div>
+      </div>
+      <div class="sc-card-footer">
         <div>
-          <div class="b-main-title">项目管理 — 全部申报项目</div>
-          <div class="b-main-count">共 4 条记录 &nbsp;·&nbsp; 已选中 0 项</div>
+          <div class="sc-contact-time">最近联系：8天前</div>
+          <div class="sc-card-status sc-status-amber"><span class="sc-status-dot"></span>材料收集中</div>
         </div>
-        <div style="display:flex;gap:6px;">
-          <button class="b-tool-btn" style="font-size:0.75rem;">⬆ 排序</button>
-          <button class="b-tool-btn" style="font-size:0.75rem;">⚙ 列设置</button>
-        </div>
-      </div>
-
-      <div class="b-table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:36px;"><input type="checkbox"></th>
-              <th>姓名</th>
-              <th>申报职称</th>
-              <th>申报单位</th>
-              <th>状态</th>
-              <th>完整度</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><input type="checkbox"></td>
-              <td><strong>张伟</strong></td>
-              <td>工程师</td>
-              <td>技术研发部</td>
-              <td><span class="status status-gray">建档中</span></td>
-              <td>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <div class="progress-bar" style="--accent:#0d9488;"><div class="progress-fill" style="width:40%;background:#6b7280;"></div></div>
-                  <span style="font-size:0.78rem;color:#64748b;">40%</span>
-                </div>
-              </td>
-              <td>
-                <button class="a-action-btn" style="--accent:#0d9488;">查看</button>
-                <button class="a-action-btn">编辑</button>
-              </td>
-            </tr>
-            <tr>
-              <td><input type="checkbox"></td>
-              <td><strong>李晓梅</strong></td>
-              <td>高级工程师</td>
-              <td>产品设计部</td>
-              <td><span class="status status-orange">材料待补</span></td>
-              <td>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <div class="progress-bar"><div class="progress-fill" style="width:65%;background:#f97316;"></div></div>
-                  <span style="font-size:0.78rem;color:#64748b;">65%</span>
-                </div>
-              </td>
-              <td>
-                <button class="a-action-btn">查看</button>
-                <button class="a-action-btn">补充</button>
-              </td>
-            </tr>
-            <tr>
-              <td><input type="checkbox"></td>
-              <td><strong>王建国</strong></td>
-              <td>工程师</td>
-              <td>基础架构部</td>
-              <td><span class="status status-blue">待提交</span></td>
-              <td>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <div class="progress-bar"><div class="progress-fill" style="width:90%;background:#3b82f6;"></div></div>
-                  <span style="font-size:0.78rem;color:#64748b;">90%</span>
-                </div>
-              </td>
-              <td>
-                <button class="a-action-btn">查看</button>
-                <button class="a-action-btn">提交</button>
-              </td>
-            </tr>
-            <tr>
-              <td><input type="checkbox"></td>
-              <td><strong>陈志远</strong></td>
-              <td>高级工程师</td>
-              <td>战略发展部</td>
-              <td><span class="status status-green">已完成</span></td>
-              <td>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <div class="progress-bar"><div class="progress-fill" style="width:100%;background:#22c55e;"></div></div>
-                  <span style="font-size:0.78rem;color:#64748b;">100%</span>
-                </div>
-              </td>
-              <td>
-                <button class="a-action-btn">查看</button>
-                <button class="a-action-btn">归档</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- Status bar -->
-  <div class="b-statusbar">
-    <span>就绪</span>
-    <span>总项目: 4</span>
-    <span>建档中: 1 &nbsp;·&nbsp; 待补: 1 &nbsp;·&nbsp; 待提交: 1 &nbsp;·&nbsp; 已完成: 1</span>
-    <span style="margin-left:auto;">最后更新: 2024-01-15 09:32</span>
-  </div>
-</div>
-
-<!-- ══════════════ SCHEME C ══════════════ -->
-<div id="c" class="section">
-  <!-- Navbar -->
-  <nav class="c-navbar">
-    <div class="c-logo-group">
-      <div class="c-logo">职申</div>
-      <span class="c-logo-title">职称申报管理</span>
-    </div>
-    <div class="c-nav-links">
-      <div class="c-nav-link active">项目</div>
-      <div class="c-nav-link">申报人</div>
-      <div class="c-nav-link">材料</div>
-      <div class="c-nav-link">填报</div>
-    </div>
-    <div class="c-nav-actions">
-      <button class="c-new-btn">＋ 新建项目</button>
-      <div class="c-avatar" title="管理员">管</div>
-      <button class="back-btn-dark" onclick="show('home')">← 返回方案对比</button>
-    </div>
-  </nav>
-
-  <!-- Content -->
-  <div class="c-content">
-    <div class="c-page-header">
-      <div class="c-page-title">申报项目</div>
-      <div class="c-page-sub">管理所有职称申报人员的档案、材料与进度</div>
-    </div>
-
-    <!-- Filter tabs -->
-    <div class="c-filter-tabs">
-      <div class="c-filter-tab active">全部<span class="count">(4)</span></div>
-      <div class="c-filter-tab">建档中<span class="count">(1)</span></div>
-      <div class="c-filter-tab">材料待补<span class="count">(1)</span></div>
-      <div class="c-filter-tab">待提交<span class="count">(1)</span></div>
-      <div class="c-filter-tab">已完成<span class="count">(1)</span></div>
-    </div>
-
-    <!-- Cards -->
-    <div class="c-cards">
-      <!-- Card 1 -->
-      <div class="c-card">
-        <div class="c-card-top">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div class="c-card-name">张伟</div>
-            <span class="status status-gray">建档中</span>
-          </div>
-          <div class="c-card-meta">
-            🎓 申报职称：<strong>工程师</strong><br>
-            🏢 申报单位：技术研发部
-          </div>
-        </div>
-        <div class="c-card-divider"></div>
-        <div class="c-card-bottom">
-          <div>
-            <div class="c-progress-label">
-              <span class="c-progress-text">材料完整度</span>
-              <span class="c-progress-pct">40%</span>
-            </div>
-            <div class="c-progress-bar"><div class="c-progress-fill" style="width:40%;"></div></div>
-          </div>
-          <div class="c-card-actions">
-            <button class="c-act-btn primary">查看</button>
-            <button class="c-act-btn">编辑</button>
-            <button class="c-act-btn">检查</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 2 -->
-      <div class="c-card">
-        <div class="c-card-top">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div class="c-card-name">李晓梅</div>
-            <span class="status status-orange">材料待补</span>
-          </div>
-          <div class="c-card-meta">
-            🎓 申报职称：<strong>高级工程师</strong><br>
-            🏢 申报单位：产品设计部
-          </div>
-        </div>
-        <div class="c-card-divider"></div>
-        <div class="c-card-bottom">
-          <div>
-            <div class="c-progress-label">
-              <span class="c-progress-text">材料完整度</span>
-              <span class="c-progress-pct">65%</span>
-            </div>
-            <div class="c-progress-bar"><div class="c-progress-fill" style="width:65%;background:linear-gradient(90deg,#f97316,#fb923c);"></div></div>
-          </div>
-          <div class="c-card-actions">
-            <button class="c-act-btn primary">查看</button>
-            <button class="c-act-btn">补充</button>
-            <button class="c-act-btn">检查</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 3 -->
-      <div class="c-card">
-        <div class="c-card-top">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div class="c-card-name">王建国</div>
-            <span class="status status-blue">待提交</span>
-          </div>
-          <div class="c-card-meta">
-            🎓 申报职称：<strong>工程师</strong><br>
-            🏢 申报单位：基础架构部
-          </div>
-        </div>
-        <div class="c-card-divider"></div>
-        <div class="c-card-bottom">
-          <div>
-            <div class="c-progress-label">
-              <span class="c-progress-text">材料完整度</span>
-              <span class="c-progress-pct">90%</span>
-            </div>
-            <div class="c-progress-bar"><div class="c-progress-fill" style="width:90%;background:linear-gradient(90deg,#3b82f6,#60a5fa);"></div></div>
-          </div>
-          <div class="c-card-actions">
-            <button class="c-act-btn primary">查看</button>
-            <button class="c-act-btn">编辑</button>
-            <button class="c-act-btn">提交</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 4 -->
-      <div class="c-card">
-        <div class="c-card-top">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div class="c-card-name">陈志远</div>
-            <span class="status status-green">已完成</span>
-          </div>
-          <div class="c-card-meta">
-            🎓 申报职称：<strong>高级工程师</strong><br>
-            🏢 申报单位：战略发展部
-          </div>
-        </div>
-        <div class="c-card-divider"></div>
-        <div class="c-card-bottom">
-          <div>
-            <div class="c-progress-label">
-              <span class="c-progress-text">材料完整度</span>
-              <span class="c-progress-pct">100%</span>
-            </div>
-            <div class="c-progress-bar"><div class="c-progress-fill" style="width:100%;background:linear-gradient(90deg,#22c55e,#4ade80);"></div></div>
-          </div>
-          <div class="c-card-actions">
-            <button class="c-act-btn primary">查看</button>
-            <button class="c-act-btn">归档</button>
-            <button class="c-act-btn">导出</button>
-          </div>
+        <div class="sc-card-actions">
+          <button class="sc-card-btn sc-view-btn">详情</button>
+          <button class="sc-card-btn sc-urge-btn-sm">催办</button>
         </div>
       </div>
     </div>
-  </div>
-</div>
+
+    <!-- 张建国 高级 -->
+    <div class="sc-card">
+      <div class="sc-card-header">
+        <div class="sc-card-avatar">建</div>
+        <div class="sc-card-info">
+          <div class="sc-card-name">张建国</div>
+          <div class="sc-card-title">申报：高级工程师 · 2026-HJ-001</div>
+        </div>
+      </div>
+      <div class="sc-card-badges">
+        <span class="sc-chip sc-chip-committee">住建行业</span>
+        <span class="sc-chip sc-chip-high">高级评委会</span>
+        <span class="sc-fee-badge sc-fee-clear">已结清</span>
+      </div>
+      <div class="sc-card-progress">
+        <div class="sc-prog-header"><span>材料完整度</span><span>90%</span></div>
+        <div class="sc-prog-bar"><div class="sc-prog-fill sc-pf-green" style="width:90%"></div></div>
+      </div>
+      <div class="sc-card-footer">
+        <div>
+          <div class="sc-contact-time">最近联系：3天前</div>
+          <div class="sc-card-status sc-status-blue"><span class="sc-status-dot"></span>待审核</div>
+        </div>
+        <div class="sc-card-actions">
+          <button class="sc-card-btn sc-view-btn">详情</button>
+          <button class="sc-card-btn sc-fill-btn">填报</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 陈美玲 正高 -->
+    <div class="sc-card">
+      <div class="sc-card-header">
+        <div class="sc-card-avatar" style="background:linear-gradient(135deg,#5b21b6,#a78bfa)">美</div>
+        <div class="sc-card-info">
+          <div class="sc-card-name">陈美玲</div>
+          <div class="sc-card-title">申报：正高级工程师 · 2026-ZG-001</div>
+        </div>
+      </div>
+      <div class="sc-card-badges">
+        <span class="sc-chip sc-chip-committee">住建行业</span>
+        <span class="sc-chip sc-chip-top">正高评委会</span>
+        <span class="sc-fee-badge sc-fee-clear">已结清</span>
+      </div>
+      <div class="sc-card-progress">
+        <div class="sc-prog-header"><span>材料完整度</span><span>100%</span></div>
+        <div class="sc-prog-bar"><div class="sc-prog-fill sc-pf-green" style="width:100%"></div></div>
+      </div>
+      <div class="sc-card-footer">
+        <div>
+          <div class="sc-contact-time">最近联系：1天前</div>
+          <div class="sc-card-status sc-status-blue"><span class="sc-status-dot"></span>已提交</div>
+        </div>
+        <div class="sc-card-actions">
+          <button class="sc-card-btn sc-view-btn">详情</button>
+          <button class="sc-card-btn sc-view-btn">结果</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 王志强 中级 紧急 -->
+    <div class="sc-card">
+      <div class="sc-card-header">
+        <div class="sc-card-avatar">志</div>
+        <div class="sc-card-info">
+          <div class="sc-card-name">王志强</div>
+          <div class="sc-card-title">申报：工程师（中级）· 2026-ZJ-002</div>
+        </div>
+      </div>
+      <div class="sc-card-badges">
+        <span class="sc-chip sc-chip-committee">住建行业</span>
+        <span class="sc-chip sc-chip-mid">中级评委会</span>
+        <span class="sc-fee-badge sc-fee-none">未付款</span>
+      </div>
+      <div class="sc-alert-mini sc-alert-red">⏰ 距截止 <strong>12天</strong>，材料65%，缺业绩证明</div>
+      <div class="sc-card-progress">
+        <div class="sc-prog-header"><span>材料完整度</span><span style="color:#f59e0b;font-weight:600">65%</span></div>
+        <div class="sc-prog-bar"><div class="sc-prog-fill sc-pf-yellow" style="width:65%"></div></div>
+      </div>
+      <div class="sc-card-footer">
+        <div>
+          <div class="sc-contact-time">最近联系：12天前</div>
+          <div class="sc-card-status sc-status-amber"><span class="sc-status-dot"></span>材料收集中</div>
+        </div>
+        <div class="sc-card-actions">
+          <button class="sc-card-btn sc-view-btn">详情</button>
+          <button class="sc-card-btn sc-urge-btn-sm">催办</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 黄伟东 高级 -->
+    <div class="sc-card">
+      <div class="sc-card-header">
+        <div class="sc-card-avatar">伟</div>
+        <div class="sc-card-info">
+          <div class="sc-card-name">黄伟东</div>
+          <div class="sc-card-title">申报：高级工程师 · 2026-HJ-002</div>
+        </div>
+      </div>
+      <div class="sc-card-badges">
+        <span class="sc-chip sc-chip-committee">住建行业</span>
+        <span class="sc-chip sc-chip-high">高级评委会</span>
+        <span class="sc-fee-badge sc-fee-deposit">已付定金</span>
+      </div>
+      <div class="sc-card-progress">
+        <div class="sc-prog-header"><span>材料完整度</span><span>80%</span></div>
+        <div class="sc-prog-bar"><div class="sc-prog-fill sc-pf-green" style="width:80%"></div></div>
+      </div>
+      <div class="sc-card-footer">
+        <div>
+          <div class="sc-contact-time">最近联系：5天前</div>
+          <div class="sc-card-status sc-status-gray">准备中</div>
+        </div>
+        <div class="sc-card-actions">
+          <button class="sc-card-btn sc-view-btn">详情</button>
+          <button class="sc-card-btn sc-urge-btn-sm">催办</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 刘晓燕 高级 已通过 -->
+    <div class="sc-card">
+      <div class="sc-card-header">
+        <div class="sc-card-avatar">燕</div>
+        <div class="sc-card-info">
+          <div class="sc-card-name">刘晓燕</div>
+          <div class="sc-card-title">申报：高级工程师 · 2026-HJ-003</div>
+        </div>
+      </div>
+      <div class="sc-card-badges">
+        <span class="sc-chip sc-chip-committee">住建行业</span>
+        <span class="sc-chip sc-chip-high">高级评委会</span>
+        <span class="sc-fee-badge sc-fee-clear">已结清</span>
+      </div>
+      <div class="sc-alert-mini sc-alert-green">✓ 评审结果：<strong>通过</strong>，证书办理中</div>
+      <div class="sc-card-progress">
+        <div class="sc-prog-header"><span>材料完整度</span><span>100%</span></div>
+        <div class="sc-prog-bar"><div class="sc-prog-fill sc-pf-green" style="width:100%"></div></div>
+      </div>
+      <div class="sc-card-footer">
+        <div>
+          <div class="sc-contact-time">最近联系：昨天</div>
+          <div class="sc-card-status sc-status-green"><span class="sc-status-dot"></span>评审通过 ✓</div>
+        </div>
+        <div class="sc-card-actions">
+          <button class="sc-card-btn sc-view-btn">详情</button>
+          <button class="sc-card-btn sc-view-btn">结果</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 梁志华 中级 最紧急 -->
+    <div class="sc-card">
+      <div class="sc-card-header">
+        <div class="sc-card-avatar">梁</div>
+        <div class="sc-card-info">
+          <div class="sc-card-name">梁志华</div>
+          <div class="sc-card-title">申报：工程师（中级）· 2026-ZJ-003</div>
+        </div>
+      </div>
+      <div class="sc-card-badges">
+        <span class="sc-chip sc-chip-committee">住建行业</span>
+        <span class="sc-chip sc-chip-mid">中级评委会</span>
+        <span class="sc-fee-badge sc-fee-none">未付款</span>
+      </div>
+      <div class="sc-alert-mini sc-alert-red">🚨 距截止 <strong>12天</strong>，材料仅25%，高度紧急！</div>
+      <div class="sc-card-progress">
+        <div class="sc-prog-header"><span>材料完整度</span><span style="color:#dc2626;font-weight:600">25%</span></div>
+        <div class="sc-prog-bar"><div class="sc-prog-fill sc-pf-red" style="width:25%"></div></div>
+      </div>
+      <div class="sc-card-footer">
+        <div>
+          <div class="sc-contact-time">最近联系：15天前</div>
+          <div class="sc-card-status sc-status-amber"><span class="sc-status-dot"></span>材料收集中</div>
+        </div>
+        <div class="sc-card-actions">
+          <button class="sc-card-btn sc-view-btn">详情</button>
+          <button class="sc-card-btn sc-urge-btn-sm">催办</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 赵明辉 正高 -->
+    <div class="sc-card">
+      <div class="sc-card-header">
+        <div class="sc-card-avatar" style="background:linear-gradient(135deg,#5b21b6,#a78bfa)">辉</div>
+        <div class="sc-card-info">
+          <div class="sc-card-name">赵明辉</div>
+          <div class="sc-card-title">申报：正高级工程师 · 2026-ZG-002</div>
+        </div>
+      </div>
+      <div class="sc-card-badges">
+        <span class="sc-chip sc-chip-committee">住建行业</span>
+        <span class="sc-chip sc-chip-top">正高评委会</span>
+        <span class="sc-fee-badge sc-fee-deposit">已付定金</span>
+      </div>
+      <div class="sc-card-progress">
+        <div class="sc-prog-header"><span>材料完整度</span><span>70%</span></div>
+        <div class="sc-prog-bar"><div class="sc-prog-fill sc-pf-yellow" style="width:70%"></div></div>
+      </div>
+      <div class="sc-card-footer">
+        <div>
+          <div class="sc-contact-time">最近联系：6天前</div>
+          <div class="sc-card-status sc-status-gray">准备中</div>
+        </div>
+        <div class="sc-card-actions">
+          <button class="sc-card-btn sc-view-btn">详情</button>
+          <button class="sc-card-btn sc-urge-btn-sm">催办</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 孙雪梅 中级 可提交 -->
+    <div class="sc-card">
+      <div class="sc-card-header">
+        <div class="sc-card-avatar">孙</div>
+        <div class="sc-card-info">
+          <div class="sc-card-name">孙雪梅</div>
+          <div class="sc-card-title">申报：工程师（中级）· 2026-ZJ-004</div>
+        </div>
+      </div>
+      <div class="sc-card-badges">
+        <span class="sc-chip sc-chip-committee">住建行业</span>
+        <span class="sc-chip sc-chip-mid">中级评委会</span>
+        <span class="sc-fee-badge sc-fee-clear">已结清</span>
+      </div>
+      <div class="sc-alert-mini sc-alert-green">✓ 材料已齐备，可立即提交填报</div>
+      <div class="sc-card-progress">
+        <div class="sc-prog-header"><span>材料完整度</span><span>100%</span></div>
+        <div class="sc-prog-bar"><div class="sc-prog-fill sc-pf-green" style="width:100%"></div></div>
+      </div>
+      <div class="sc-card-footer">
+        <div>
+          <div class="sc-contact-time">最近联系：2天前</div>
+          <div class="sc-card-status sc-status-gray">待提交</div>
+        </div>
+        <div class="sc-card-actions">
+          <button class="sc-card-btn sc-view-btn">详情</button>
+          <button class="sc-card-btn sc-fill-btn">填报</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /sc-grid -->
+</div><!-- /scheme-c -->
 
 <script>
   function show(id) {
-    document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    window.scrollTo(0, 0);
+    document.getElementById('home').style.display = 'none';
+    ['scheme-a','scheme-b','scheme-c'].forEach(function(sid) {
+      document.getElementById(sid).style.display = 'none';
+    });
+    if (id === 'home') {
+      document.getElementById('home').style.display = 'flex';
+    } else {
+      var el = document.getElementById(id);
+      el.style.display = 'flex';
+      window.scrollTo(0, 0);
+    }
   }
 
-  // Filter tab interaction (scheme C)
-  document.querySelectorAll('.c-filter-tab').forEach(tab => {
-    tab.addEventListener('click', function() {
-      document.querySelectorAll('.c-filter-tab').forEach(t => t.classList.remove('active'));
-      this.classList.add('active');
-    });
-  });
-
-  // Nav item interaction (scheme A)
-  document.querySelectorAll('.a-nav-item').forEach(item => {
+  // Sidebar nav A interactivity
+  document.querySelectorAll('#scheme-a .sa-nav-item').forEach(function(item) {
     item.addEventListener('click', function() {
-      document.querySelectorAll('.a-nav-item').forEach(i => i.classList.remove('active'));
+      document.querySelectorAll('#scheme-a .sa-nav-item').forEach(function(i){ i.classList.remove('active'); });
       this.classList.add('active');
     });
   });
 
-  // Menu tab interaction (scheme B)
-  document.querySelectorAll('.b-menu-tab').forEach(tab => {
-    tab.addEventListener('click', function() {
-      document.querySelectorAll('.b-menu-tab').forEach(t => t.classList.remove('active'));
+  // Filter buttons A
+  document.querySelectorAll('.sa-filter-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.sa-filter-btn').forEach(function(b){ b.classList.remove('active'); });
       this.classList.add('active');
     });
   });
 
-  // Tree item interaction (scheme B)
-  document.querySelectorAll('.b-tree-item').forEach(item => {
+  // Menu bar B interactivity
+  document.querySelectorAll('.sb-menu-item').forEach(function(item) {
     item.addEventListener('click', function() {
-      document.querySelectorAll('.b-tree-item').forEach(i => i.classList.remove('active'));
+      document.querySelectorAll('.sb-menu-item').forEach(function(i){ i.classList.remove('active'); });
       this.classList.add('active');
     });
   });
 
-  // C nav link interaction
-  document.querySelectorAll('.c-nav-link').forEach(link => {
+  // Tree nodes B
+  document.querySelectorAll('.sb-tree-label').forEach(function(label) {
+    label.addEventListener('click', function() {
+      if (!this.classList.contains('disabled')) {
+        document.querySelectorAll('.sb-tree-label').forEach(function(l){ l.classList.remove('selected'); });
+        this.classList.add('selected');
+      }
+    });
+  });
+
+  // Filter tabs C
+  document.querySelectorAll('.sc-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.sc-tab').forEach(function(t){ t.classList.remove('active'); });
+      this.classList.add('active');
+    });
+  });
+
+  // Nav links C
+  document.querySelectorAll('.sc-nav-link').forEach(function(link) {
     link.addEventListener('click', function() {
-      document.querySelectorAll('.c-nav-link').forEach(l => l.classList.remove('active'));
+      document.querySelectorAll('.sc-nav-link').forEach(function(l){ l.classList.remove('active'); });
       this.classList.add('active');
     });
   });
