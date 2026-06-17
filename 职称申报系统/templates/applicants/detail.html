@@ -1,0 +1,541 @@
+{% extends "base.html" %}
+{% block title %}{{ applicant.name }} — 申报人详情{% endblock %}
+{% block page_title %}申报人详情{% endblock %}
+{% block content %}
+
+{% set aid = applicant.id %}
+
+<!-- 基本信息卡 -->
+<div class="card" style="margin-bottom:16px">
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div style="flex:1;min-width:200px">
+      <div style="font-size:20px;font-weight:700;color:#1e293b">{{ applicant.name }}</div>
+      <div style="font-size:12px;color:#64748b;margin-top:2px">
+        {{ applicant.gender or '' }}
+        {% if applicant.birth_date %} · {{ applicant.birth_date }}{% endif %}
+        {% if applicant.id_card %} · {{ applicant.id_card }}{% endif %}
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      {% if applicant.title_level %}
+      <span class="badge badge-blue">{{ applicant.title_level }}</span>
+      {% endif %}
+      {% if applicant.education %}
+      <span class="badge badge-gray">{{ applicant.education }}</span>
+      {% endif %}
+    </div>
+    <div style="display:flex;gap:8px">
+      <a href="{{ url_for('applicants.edit_page', aid=aid) }}" class="btn btn-outline btn-sm">✏️ 编辑基本信息</a>
+      <a href="{{ url_for('projects.list_page', applicant_id=aid) }}" class="btn btn-outline btn-sm">📁 查看申报项目</a>
+      <a href="{{ url_for('applicants.list_page') }}" class="btn btn-outline btn-sm">← 返回列表</a>
+    </div>
+  </div>
+  <hr class="divider">
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;font-size:13px">
+    <div><span class="text-muted">电话：</span>{{ applicant.phone or '—' }}</div>
+    <div><span class="text-muted">单位：</span>{{ applicant.work_unit or '—' }}</div>
+    <div><span class="text-muted">专业：</span>{{ applicant.major or '—' }}</div>
+    <div><span class="text-muted">毕业院校：</span>{{ applicant.school or '—' }}</div>
+    <div><span class="text-muted">参工年份：</span>{{ applicant.work_start_year or '—' }}</div>
+    <div><span class="text-muted">毕业年份：</span>{{ applicant.graduation_year or '—' }}</div>
+    <div><span class="text-muted">取证年份：</span>{{ applicant.title_year or '—' }}</div>
+    <div><span class="text-muted">邮箱：</span>{{ applicant.email or '—' }}</div>
+  </div>
+</div>
+
+<!-- Tab导航 -->
+<div style="display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:16px">
+  {% for tab_id, tab_label, count in [
+    ('achievements', '工程业绩', achievements|length),
+    ('awards',       '获奖情况', awards|length),
+    ('papers',       '论文著作', papers|length),
+    ('logs',         '沟通记录', logs|length),
+  ] %}
+  <button class="tab-btn" data-tab="{{ tab_id }}"
+    style="padding:10px 20px;border:none;background:none;cursor:pointer;
+           font-size:13px;font-weight:600;color:#64748b;border-bottom:2px solid transparent;
+           margin-bottom:-2px;transition:color .15s,border-color .15s">
+    {{ tab_label }}
+    <span style="background:#e2e8f0;color:#64748b;border-radius:10px;
+                 padding:1px 7px;font-size:11px;margin-left:4px">{{ count }}</span>
+  </button>
+  {% endfor %}
+</div>
+
+<!-- ══ Tab: 工程业绩 ══ -->
+<div id="tab-achievements" class="tab-panel">
+  <div class="toolbar">
+    <div class="section-title" style="margin:0">工程业绩</div>
+    <div class="toolbar-right">
+      <button class="btn btn-primary btn-sm" onclick="openModal('ach-add-modal')">➕ 添加业绩</button>
+    </div>
+  </div>
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr><th>工程名称</th><th>类型</th><th>规模</th><th>担任职务</th>
+            <th>起止时间</th><th>投资(万)</th><th>代表性</th><th>操作</th></tr>
+      </thead>
+      <tbody>
+        {% for a in achievements %}
+        <tr>
+          <td><strong>{{ a.project_name }}</strong>
+            {% if a.description %}
+            <div style="font-size:11px;color:#64748b;margin-top:2px">{{ a.description[:40] }}...</div>
+            {% endif %}
+          </td>
+          <td>{{ a.project_type or '—' }}</td>
+          <td>{{ a.scale or '—' }}</td>
+          <td>{{ a.role or '—' }}</td>
+          <td style="font-size:12px">{{ a.start_date or '—' }}<br>{{ a.end_date or '' }}</td>
+          <td>{{ a.investment or '—' }}</td>
+          <td>{% if a.is_representative %}<span class="badge badge-blue">代表性</span>{% endif %}</td>
+          <td>
+            <button class="btn btn-sm btn-outline"
+              onclick="openAchEdit({{ a.id }},'{{ a.project_name|e }}','{{ a.project_type or '' }}',
+                '{{ a.scale or '' }}','{{ a.role or '' }}','{{ a.start_date or '' }}','{{ a.end_date or '' }}',
+                '{{ a.location or '' }}','{{ a.owner or '' }}','{{ a.contractor or '' }}',
+                '{{ a.investment or '' }}','{{ a.area or '' }}','{{ a.description or ''|e }}',
+                {{ 1 if a.is_representative else 0 }})">编辑</button>
+            <button class="btn btn-sm btn-danger"
+              onclick="confirmDelete('{{ url_for('applicants.achievement_delete', aid=aid, rid=a.id) }}','业绩')">删除</button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-muted" style="text-align:center;padding:20px">暂无工程业绩</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ Tab: 获奖情况 ══ -->
+<div id="tab-awards" class="tab-panel hidden">
+  <div class="toolbar">
+    <div class="section-title" style="margin:0">获奖情况</div>
+    <div class="toolbar-right">
+      <button class="btn btn-primary btn-sm" onclick="openModal('award-add-modal')">➕ 添加获奖</button>
+    </div>
+  </div>
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr><th>奖项名称</th><th>级别</th><th>年份</th><th>颁奖单位</th><th>本人排名</th><th>证书编号</th><th>操作</th></tr>
+      </thead>
+      <tbody>
+        {% for w in awards %}
+        <tr>
+          <td><strong>{{ w.award_name }}</strong></td>
+          <td>
+            {% if w.award_level in ['国家级','省部级'] %}
+            <span class="badge badge-red">{{ w.award_level }}</span>
+            {% else %}
+            <span class="badge badge-gray">{{ w.award_level or '—' }}</span>
+            {% endif %}
+          </td>
+          <td>{{ w.award_year or '—' }}</td>
+          <td>{{ w.award_org or '—' }}</td>
+          <td>{{ w.rank or '—' }}</td>
+          <td class="text-muted">{{ w.certificate_no or '—' }}</td>
+          <td>
+            <button class="btn btn-sm btn-outline"
+              onclick="openAwardEdit({{ w.id }},'{{ w.award_name|e }}','{{ w.award_level or '' }}',
+                '{{ w.award_year or '' }}','{{ w.award_org or '' }}','{{ w.rank or '' }}',
+                '{{ w.certificate_no or '' }}','{{ w.notes or '' }}')">编辑</button>
+            <button class="btn btn-sm btn-danger"
+              onclick="confirmDelete('{{ url_for('applicants.award_delete', aid=aid, wid=w.id) }}','获奖记录')">删除</button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-muted" style="text-align:center;padding:20px">暂无获奖记录</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ Tab: 论文著作 ══ -->
+<div id="tab-papers" class="tab-panel hidden">
+  <div class="toolbar">
+    <div class="section-title" style="margin:0">论文 / 著作</div>
+    <div class="toolbar-right">
+      <button class="btn btn-primary btn-sm" onclick="openModal('paper-add-modal')">➕ 添加论文</button>
+    </div>
+  </div>
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr><th>题目</th><th>类型</th><th>期刊/出版社</th><th>发表时间</th><th>作者排名</th><th>CN/ISSN</th><th>操作</th></tr>
+      </thead>
+      <tbody>
+        {% for p in papers %}
+        <tr>
+          <td><strong>{{ p.title }}</strong></td>
+          <td><span class="badge badge-gray">{{ p.paper_type }}</span></td>
+          <td>{{ p.journal or '—' }}</td>
+          <td>{{ p.pub_date or '—' }}</td>
+          <td>{{ p.author_rank or '—' }}</td>
+          <td class="text-muted">{{ p.cn_issn or '—' }}</td>
+          <td>
+            <button class="btn btn-sm btn-outline"
+              onclick="openPaperEdit({{ p.id }},'{{ p.title|e }}','{{ p.paper_type }}',
+                '{{ p.journal or '' }}','{{ p.pub_date or '' }}','{{ p.author_rank or '' }}',
+                '{{ p.cn_issn or '' }}','{{ p.notes or '' }}')">编辑</button>
+            <button class="btn btn-sm btn-danger"
+              onclick="confirmDelete('{{ url_for('applicants.paper_delete', aid=aid, pid=p.id) }}','论文')">删除</button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-muted" style="text-align:center;padding:20px">暂无论文记录</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ Tab: 沟通记录 ══ -->
+<div id="tab-logs" class="tab-panel hidden">
+  <div class="toolbar">
+    <div class="section-title" style="margin:0">沟通记录</div>
+    <div class="toolbar-right">
+      <button class="btn btn-primary btn-sm" onclick="openModal('log-add-modal')">➕ 记录沟通</button>
+    </div>
+  </div>
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr><th>日期</th><th>方式</th><th>内容</th><th>后续跟进</th><th>经办人</th><th>操作</th></tr>
+      </thead>
+      <tbody>
+        {% for lg in logs %}
+        <tr>
+          <td>{{ lg.contact_date or '—' }}</td>
+          <td><span class="badge badge-gray">{{ lg.contact_type }}</span></td>
+          <td>{{ lg.content or '—' }}</td>
+          <td>{{ lg.follow_up or '—' }}</td>
+          <td>{{ lg.operator or '—' }}</td>
+          <td>
+            <button class="btn btn-sm btn-danger"
+              onclick="confirmDelete('{{ url_for('applicants.log_delete', aid=aid, lid=lg.id) }}','记录')">删除</button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-muted" style="text-align:center;padding:20px">暂无沟通记录</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ Modals ══ -->
+
+<!-- 添加/编辑业绩 -->
+{% macro ach_fields() %}
+<div class="form-row">
+  <div class="form-group"><label class="form-label">工程名称 *</label>
+    <input class="form-control" name="project_name" id="ach-name" required></div>
+  <div class="form-group"><label class="form-label">工程类型</label>
+    <input class="form-control" name="project_type" id="ach-type" placeholder="如：房屋建筑"></div>
+</div>
+<div class="form-row">
+  <div class="form-group"><label class="form-label">工程规模</label>
+    <select class="form-control" name="scale" id="ach-scale">
+      <option value="">—</option><option>大型</option><option>中型</option><option>小型</option>
+    </select></div>
+  <div class="form-group"><label class="form-label">担任职务</label>
+    <input class="form-control" name="role" id="ach-role" placeholder="如：项目负责人"></div>
+</div>
+<div class="form-row">
+  <div class="form-group"><label class="form-label">开工日期</label>
+    <input class="form-control" name="start_date" id="ach-start" type="date"></div>
+  <div class="form-group"><label class="form-label">竣工日期</label>
+    <input class="form-control" name="end_date" id="ach-end" type="date"></div>
+</div>
+<div class="form-row">
+  <div class="form-group"><label class="form-label">工程造价(万元)</label>
+    <input class="form-control" name="investment" id="ach-investment" type="number" step="0.01"></div>
+  <div class="form-group"><label class="form-label">建筑面积(万㎡)</label>
+    <input class="form-control" name="area" id="ach-area" type="number" step="0.01"></div>
+</div>
+<div class="form-row">
+  <div class="form-group"><label class="form-label">建设地点</label>
+    <input class="form-control" name="location" id="ach-location"></div>
+  <div class="form-group"><label class="form-label">建设单位</label>
+    <input class="form-control" name="owner" id="ach-owner"></div>
+</div>
+<div class="form-group"><label class="form-label">承建单位</label>
+  <input class="form-control" name="contractor" id="ach-contractor"></div>
+<div class="form-group"><label class="form-label">工程简介</label>
+  <textarea class="form-control" name="description" id="ach-desc"></textarea></div>
+<div class="form-group">
+  <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+    <input type="checkbox" name="is_representative" id="ach-rep" value="1">
+    标记为代表性工程
+  </label>
+</div>
+{% endmacro %}
+
+<div id="ach-add-modal" class="modal-overlay hidden">
+  <div class="modal-box" style="width:640px">
+    <div class="modal-title">添加工程业绩</div>
+    <form method="post" action="{{ url_for('applicants.achievement_create', aid=aid) }}">
+      {{ ach_fields() }}
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('ach-add-modal')">取消</button>
+        <button class="btn btn-primary" type="submit">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="ach-edit-modal" class="modal-overlay hidden">
+  <div class="modal-box" style="width:640px">
+    <div class="modal-title">编辑工程业绩</div>
+    <form id="ach-edit-form" method="post">
+      {{ ach_fields() }}
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('ach-edit-modal')">取消</button>
+        <button class="btn btn-primary" type="submit">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 添加/编辑获奖 -->
+<div id="award-add-modal" class="modal-overlay hidden">
+  <div class="modal-box" style="width:540px">
+    <div class="modal-title">添加获奖记录</div>
+    <form method="post" action="{{ url_for('applicants.award_create', aid=aid) }}">
+      {% include "applicants/_award_fields.html" ignore missing %}
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">奖项名称 *</label>
+          <input class="form-control" name="award_name" id="aw-name" required></div>
+        <div class="form-group"><label class="form-label">奖励级别</label>
+          <select class="form-control" name="award_level" id="aw-level">
+            <option value="">—</option>
+            <option>国家级</option><option>省部级</option><option>市厅级</option><option>县局级</option>
+          </select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">获奖年份</label>
+          <input class="form-control" name="award_year" id="aw-year"></div>
+        <div class="form-group"><label class="form-label">颁奖单位</label>
+          <input class="form-control" name="award_org" id="aw-org"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">本人排名</label>
+          <input class="form-control" name="rank" id="aw-rank" placeholder="如：第一"></div>
+        <div class="form-group"><label class="form-label">证书编号</label>
+          <input class="form-control" name="certificate_no" id="aw-cert"></div>
+      </div>
+      <div class="form-group"><label class="form-label">备注</label>
+        <input class="form-control" name="notes" id="aw-notes"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('award-add-modal')">取消</button>
+        <button class="btn btn-primary" type="submit">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="award-edit-modal" class="modal-overlay hidden">
+  <div class="modal-box" style="width:540px">
+    <div class="modal-title">编辑获奖记录</div>
+    <form id="award-edit-form" method="post">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">奖项名称 *</label>
+          <input class="form-control" name="award_name" id="awe-name" required></div>
+        <div class="form-group"><label class="form-label">奖励级别</label>
+          <select class="form-control" name="award_level" id="awe-level">
+            <option value="">—</option>
+            <option>国家级</option><option>省部级</option><option>市厅级</option><option>县局级</option>
+          </select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">获奖年份</label>
+          <input class="form-control" name="award_year" id="awe-year"></div>
+        <div class="form-group"><label class="form-label">颁奖单位</label>
+          <input class="form-control" name="award_org" id="awe-org"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">本人排名</label>
+          <input class="form-control" name="rank" id="awe-rank"></div>
+        <div class="form-group"><label class="form-label">证书编号</label>
+          <input class="form-control" name="certificate_no" id="awe-cert"></div>
+      </div>
+      <div class="form-group"><label class="form-label">备注</label>
+        <input class="form-control" name="notes" id="awe-notes"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('award-edit-modal')">取消</button>
+        <button class="btn btn-primary" type="submit">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 添加/编辑论文 -->
+<div id="paper-add-modal" class="modal-overlay hidden">
+  <div class="modal-box" style="width:540px">
+    <div class="modal-title">添加论文 / 著作</div>
+    <form method="post" action="{{ url_for('applicants.paper_create', aid=aid) }}">
+      <div class="form-group"><label class="form-label">题目 *</label>
+        <input class="form-control" name="title" required></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">类型</label>
+          <select class="form-control" name="paper_type">
+            <option>论文</option><option>著作</option><option>专利</option><option>标准</option>
+          </select></div>
+        <div class="form-group"><label class="form-label">期刊/出版社</label>
+          <input class="form-control" name="journal"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">发表时间</label>
+          <input class="form-control" name="pub_date" type="date"></div>
+        <div class="form-group"><label class="form-label">作者排名</label>
+          <input class="form-control" name="author_rank" placeholder="如：第一作者"></div>
+      </div>
+      <div class="form-group"><label class="form-label">CN号/ISSN</label>
+        <input class="form-control" name="cn_issn"></div>
+      <div class="form-group"><label class="form-label">备注</label>
+        <input class="form-control" name="notes"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('paper-add-modal')">取消</button>
+        <button class="btn btn-primary" type="submit">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="paper-edit-modal" class="modal-overlay hidden">
+  <div class="modal-box" style="width:540px">
+    <div class="modal-title">编辑论文 / 著作</div>
+    <form id="paper-edit-form" method="post">
+      <div class="form-group"><label class="form-label">题目 *</label>
+        <input class="form-control" name="title" id="pe-title" required></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">类型</label>
+          <select class="form-control" name="paper_type" id="pe-type">
+            <option>论文</option><option>著作</option><option>专利</option><option>标准</option>
+          </select></div>
+        <div class="form-group"><label class="form-label">期刊/出版社</label>
+          <input class="form-control" name="journal" id="pe-journal"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">发表时间</label>
+          <input class="form-control" name="pub_date" id="pe-date" type="date"></div>
+        <div class="form-group"><label class="form-label">作者排名</label>
+          <input class="form-control" name="author_rank" id="pe-rank"></div>
+      </div>
+      <div class="form-group"><label class="form-label">CN号/ISSN</label>
+        <input class="form-control" name="cn_issn" id="pe-issn"></div>
+      <div class="form-group"><label class="form-label">备注</label>
+        <input class="form-control" name="notes" id="pe-notes"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('paper-edit-modal')">取消</button>
+        <button class="btn btn-primary" type="submit">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 添加沟通记录 -->
+<div id="log-add-modal" class="modal-overlay hidden">
+  <div class="modal-box" style="width:480px">
+    <div class="modal-title">记录沟通</div>
+    <form method="post" action="{{ url_for('applicants.log_create', aid=aid) }}">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">沟通日期</label>
+          <input class="form-control" name="contact_date" type="date"
+                 value="{{ now[:10] if now else '' }}"></div>
+        <div class="form-group"><label class="form-label">沟通方式</label>
+          <select class="form-control" name="contact_type">
+            <option>电话</option><option>微信</option><option>面谈</option><option>邮件</option>
+          </select></div>
+      </div>
+      <div class="form-group"><label class="form-label">沟通内容</label>
+        <textarea class="form-control" name="content" rows="3" required></textarea></div>
+      <div class="form-group"><label class="form-label">后续跟进</label>
+        <input class="form-control" name="follow_up"></div>
+      <div class="form-group"><label class="form-label">经办人</label>
+        <input class="form-control" name="operator" value="管理员"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('log-add-modal')">取消</button>
+        <button class="btn btn-primary" type="submit">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+// ── Tab switching ──────────────────────────────────────────────
+const tabs   = ["achievements","awards","papers","logs"];
+const tabBtns = document.querySelectorAll(".tab-btn");
+
+function switchTab(name) {
+  tabs.forEach(t => {
+    document.getElementById("tab-" + t).classList.toggle("hidden", t !== name);
+  });
+  tabBtns.forEach(b => {
+    const active = b.dataset.tab === name;
+    b.style.color       = active ? "#2563eb" : "#64748b";
+    b.style.borderColor = active ? "#2563eb" : "transparent";
+  });
+}
+
+tabBtns.forEach(b => b.addEventListener("click", () => switchTab(b.dataset.tab)));
+
+// Activate tab from hash or default
+const hash = location.hash.replace("#","") || "achievements";
+switchTab(tabs.includes(hash) ? hash : "achievements");
+
+// ── Achievement edit ───────────────────────────────────────────
+function openAchEdit(id,name,type,scale,role,start,end,loc,owner,contr,inv,area,desc,rep) {
+  const f = document.getElementById("ach-edit-form");
+  f.action = `/applicants/{{ aid }}/achievements/${id}/edit`;
+  document.getElementById("ach-name").value  = name;
+  document.getElementById("ach-type").value  = type;
+  document.getElementById("ach-scale").value = scale;
+  document.getElementById("ach-role").value  = role;
+  document.getElementById("ach-start").value = start;
+  document.getElementById("ach-end").value   = end;
+  document.getElementById("ach-location").value   = loc;
+  document.getElementById("ach-owner").value      = owner;
+  document.getElementById("ach-contractor").value = contr;
+  document.getElementById("ach-investment").value = inv;
+  document.getElementById("ach-area").value        = area;
+  document.getElementById("ach-desc").value        = desc;
+  document.getElementById("ach-rep").checked       = rep === 1;
+  openModal("ach-edit-modal");
+}
+
+// ── Award edit ─────────────────────────────────────────────────
+function openAwardEdit(id,name,level,year,org,rank,cert,notes) {
+  document.getElementById("award-edit-form").action =
+    `/applicants/{{ aid }}/awards/${id}/edit`;
+  document.getElementById("awe-name").value  = name;
+  document.getElementById("awe-level").value = level;
+  document.getElementById("awe-year").value  = year;
+  document.getElementById("awe-org").value   = org;
+  document.getElementById("awe-rank").value  = rank;
+  document.getElementById("awe-cert").value  = cert;
+  document.getElementById("awe-notes").value = notes;
+  openModal("award-edit-modal");
+}
+
+// ── Paper edit ─────────────────────────────────────────────────
+function openPaperEdit(id,title,type,journal,date,rank,issn,notes) {
+  document.getElementById("paper-edit-form").action =
+    `/applicants/{{ aid }}/papers/${id}/edit`;
+  document.getElementById("pe-title").value   = title;
+  document.getElementById("pe-type").value    = type;
+  document.getElementById("pe-journal").value = journal;
+  document.getElementById("pe-date").value    = date;
+  document.getElementById("pe-rank").value    = rank;
+  document.getElementById("pe-issn").value    = issn;
+  document.getElementById("pe-notes").value   = notes;
+  openModal("paper-edit-modal");
+}
+</script>
+{% endblock %}
