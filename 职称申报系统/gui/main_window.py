@@ -10,6 +10,8 @@ from gui.styles import QSS, SIDEBAR_BG, TEXT_MUTED
 from gui.pages.dashboard import DashboardPage
 from gui.pages.applicants import ApplicantsPage
 from gui.pages.projects import ProjectsPage
+from gui.pages.batches import BatchesPage
+from gui.pages.fees_report import FeesReportPage
 from gui.pages.placeholder import PlaceholderPage
 
 # Nav definition: (group_label, [(icon, label, page_key), ...])
@@ -24,7 +26,7 @@ NAV_STRUCTURE = [
     ]),
     ("批次管理", [
         ("📅", "申报批次",     "batches"),
-        ("⏰", "截止日期",     "deadlines"),
+        ("💰", "费用报表",     "fees_report"),
     ]),
     ("材料管理", [
         ("📄", "材料目录",     "docs"),
@@ -46,7 +48,7 @@ PAGE_TITLES = {
     "projects":      "项目管理",
     "scale":         "工程规模判断",
     "batches":       "申报批次管理",
-    "deadlines":     "截止日期",
+    "fees_report":   "费用汇总报表",
     "docs":          "材料目录",
     "checker":       "完整性检查",
     "ai_writer":     "AI 辅助写作",
@@ -191,6 +193,10 @@ class MainWindow(QMainWindow):
             page.view_projects.connect(self._open_projects_for_applicant)
         elif key == "projects":
             page = ProjectsPage()
+        elif key == "batches":
+            page = BatchesPage()
+        elif key == "fees_report":
+            page = FeesReportPage()
         else:
             page = PlaceholderPage(PAGE_TITLES.get(key, key))
 
