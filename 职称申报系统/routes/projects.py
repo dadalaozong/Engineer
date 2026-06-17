@@ -24,9 +24,12 @@ def _form_data():
 
 @bp.route("/")
 def list_page():
-    applicant_id = request.args.get("applicant_id")
-    projects = list_projects(applicant_id=applicant_id)
-    return render_template("projects/list.html", projects=projects)
+    applicant_id = request.args.get("applicant_id", type=int)
+    rows = list_projects(applicant_id=applicant_id)
+    return render_template("projects/list.html",
+                           rows=rows,
+                           applicants=list_applicants(),
+                           filter_aid=applicant_id)
 
 @bp.route("/new", methods=["GET"])
 def new_page():
