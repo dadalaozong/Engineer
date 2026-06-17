@@ -395,11 +395,13 @@
 ├── <span class="dir">core/</span><br>
 │   ├── <span class="file">folder_builder.py</span> <span class="note"># 按职称级别生成本地文件夹结构</span><br>
 │   ├── <span class="file">ocr_reader.py</span>    <span class="note"># PaddleOCR 识别身份证/毕业证/职称证</span><br>
-│   ├── <span class="file">scale_engine.py</span>  <span class="note"># 工程规模判断引擎</span><br>
 │   ├── <span class="file">checker.py</span>       <span class="note"># 完整性检查逻辑（含规模校验）</span><br>
 │   ├── <span class="file">crypto.py</span>        <span class="note"># 申报网站密码加密/解密（Fernet）</span><br>
 │   ├── <span class="file">ai_writer.py</span>     <span class="note"># DeepSeek AI 辅助写作模块</span><br>
-│   └── <span class="file">title_rules.py</span>   <span class="note"># 各职称级别材料规则配置</span><br>
+│   └── <span class="dir">industries/</span>      <span class="note"># 各行业规则插件目录（新增行业只需加文件）</span><br>
+│       ├── <span class="file">__init__.py</span>  <span class="note"># 按 industry 字段动态加载对应模块</span><br>
+│       ├── <span class="file">construction.py</span> <span class="note"># 住建行业：材料规则 + 工程规模引擎</span><br>
+│       └── <span class="file">education.py</span>    <span class="note"># 教育行业（预留，以后添加）</span><br>
 │<br>
 └── <span class="dir">automation/</span><br>
     ├── <span class="file">browser.py</span>       <span class="note"># Playwright 浏览器封装（登录）</span><br>
@@ -533,13 +535,17 @@ PyInstaller>=6.0</code></pre>
   <div class="flow">
     <div class="flow-step">① 填写申报人基本信息</div>
     <div class="flow-arrow">→</div>
-    <div class="flow-step">② 选择职称级别 + 专业</div>
+    <div class="flow-step">② 选择申报行业<br/>+ 评委会</div>
     <div class="flow-arrow">→</div>
-    <div class="flow-step">③ 选择本地存储根目录</div>
+    <div class="flow-step">③ 选择职称级别<br/>+ 专业方向</div>
     <div class="flow-arrow">→</div>
-    <div class="flow-step">④ 自动生成文件夹结构</div>
+    <div class="flow-step">④ 选择本地存储目录</div>
     <div class="flow-arrow">→</div>
-    <div class="flow-step">⑤ 保存到数据库</div>
+    <div class="flow-step">⑤ 自动生成文件夹<br/>+ 保存数据库</div>
+  </div>
+
+  <div class="callout callout-blue">
+    行业选定后，系统自动加载该行业对应的材料规则、文件夹结构和完整性检查标准。切换行业只需修改 <code>industry</code> 字段，其余逻辑框架不变。
   </div>
 
   <!-- ─ 目录生成 ─ -->
@@ -855,6 +861,8 @@ def read_diploma(image_path: str) -> dict:
     <tr><td>title_type</td><td>TEXT</td><td>职称类型（工程师/建筑师/城市规划师）</td></tr>
     <tr><td>specialty</td><td>TEXT</td><td>申报专业方向</td></tr>
     <tr><td>apply_year</td><td>INTEGER</td><td>申报年度</td></tr>
+    <tr><td>industry</td><td>TEXT</td><td>申报行业（住房城乡建设 / 教育 / 卫生健康 / …），对应登录后行业下拉选项</td></tr>
+    <tr><td>committee</td><td>TEXT</td><td>评委会名称（广西住建行业高级职称评委会 / …），对应登录后评委会下拉选项</td></tr>
     <tr><td>folder_path</td><td>TEXT</td><td>本地文件夹根路径</td></tr>
     <tr><td>status</td><td>TEXT</td><td>建档中 / 材料齐全 / 已提交 / 已评审</td></tr>
     <tr><td>check_result</td><td>TEXT</td><td>最近一次完整性检查结果（JSON）</td></tr>
@@ -1022,11 +1030,31 @@ async def login(account: str, password: str):
 
         # 等待跳转成功
         await page.wait_for_url("**/index**", timeout=10000)
-        return page  # 返回已登录的 page 对象</code></pre>
+        return page  # 返回已登录的 page 对象
+
+async def select_industry_and_committee(page, industry: str, committee: str):
+    """登录后选择行业和评委会（所有行业共用同一网站）"""
+    # 选择申报行业下拉
+    await page.select_option('#industry-select', label=industry)
+    await page.wait_for_timeout(500)
+    # 选择评委会下拉（行业选完后评委会列表动态加载）
+    await page.select_option('#committee-select', label=committee)
+    await page.click('#confirm-btn')
+    await page.wait_for_load_state('networkidle')</code></pre>
 
   <div class="callout callout-green">
-    ✅ 登录页无验证码，直接账号密码提交即可。首次使用时先手动登录确认账号密码正确，再录入系统。
+    ✅ 所有行业共用同一申报网站 gxrczc.com，登录后通过下拉菜单切换行业和评委会。
+    系统从 <code>projects.industry</code> 和 <code>projects.committee</code> 字段读取对应值自动选择，<strong>无需为不同行业单独维护登录逻辑</strong>。
   </div>
+
+  <h3>多行业扩展说明</h3>
+  <table>
+    <tr><th>申报行业</th><th>industry 字段值</th><th>对应规则文件</th><th>状态</th></tr>
+    <tr><td>住房城乡建设行业</td><td><code>住房城乡建设</code></td><td><code>industries/construction.py</code></td><td>✅ 已实现</td></tr>
+    <tr><td>教育行业</td><td><code>教育</code></td><td><code>industries/education.py</code></td><td>⏳ 预留接口</td></tr>
+    <tr><td>卫生健康行业</td><td><code>卫生健康</code></td><td><code>industries/medical.py</code></td><td>⏳ 预留接口</td></tr>
+    <tr><td>其他行业</td><td>自定义</td><td>新增对应文件即可</td><td>⏳ 预留接口</td></tr>
+  </table>
 
   <h2 id="form-map">表单字段映射</h2>
   <p>以下字段映射需在首次开发时，通过浏览器开发者工具查看申报系统的实际 HTML 元素名称后补充完整。</p>
