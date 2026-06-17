@@ -3,6 +3,27 @@
 {% block page_title %}工作台{% endblock %}
 {% block content %}
 
+<!-- 截止日期预警 -->
+{% if warnings %}
+<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+  {% for w in warnings %}
+  <div class="alert alert-{{ 'danger' if w.level == 'danger' else 'warning' }}"
+       style="display:flex;align-items:center;gap:12px;padding:10px 16px">
+    <span style="font-size:18px">{{ '🚨' if w.level == 'danger' else '⚠️' }}</span>
+    <div>
+      <strong>{{ w.batch.year }}年 {{ w.batch.committee or w.batch.industry }} · {{ w.batch.level }}</strong>
+      — {{ w.label }}
+      <span style="color:{{ '#dc2626' if w.level == 'danger' else '#b45309' }};font-weight:600">
+        {{ w.text }}
+      </span>
+      （{{ w.batch.deadline if w.label == '评审截止' else w.batch.submit_deadline }}）
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- 统计卡片 -->
 <div class="stat-row">
   <div class="stat-card">
     <div class="stat-label">申报人数</div>
@@ -24,26 +45,104 @@
     <div class="stat-num" style="color:#d97706">{{ stats.pending_fees | int }}</div>
     <div class="stat-sub">元</div>
   </div>
+  <div class="stat-card">
+    <div class="stat-label">进行中批次</div>
+    <div class="stat-num" style="color:#2563eb">{{ stats.active_batches }}</div>
+    <div class="stat-sub">个</div>
+  </div>
 </div>
 
-<div class="card">
-  <div class="section-title">最近批次</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+
+  <!-- 最近申报人 -->
+  <div class="card">
+    <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>最近申报人</span>
+      <a href="{{ url_for('applicants.list_page') }}" style="font-size:12px;color:#2563eb">全部 →</a>
+    </div>
+    {% if recent_applicants %}
+    <table>
+      <tbody>
+        {% for a in recent_applicants %}
+        <tr>
+          <td><a href="{{ url_for('applicants.detail', aid=a.id) }}" style="color:#1e293b;font-weight:500">{{ a.name }}</a></td>
+          <td class="text-muted" style="font-size:12px">{{ a.work_unit or '—' }}</td>
+          <td>
+            {% if a.title_level %}
+            <span class="badge badge-blue">{{ a.title_level }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted" style="padding:12px 0">暂无申报人</p>
+    {% endif %}
+  </div>
+
+  <!-- 最近项目 -->
+  <div class="card">
+    <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+      <span>最近项目</span>
+      <a href="{{ url_for('projects.list_page') }}" style="font-size:12px;color:#2563eb">全部 →</a>
+    </div>
+    {% if recent_projects %}
+    <table>
+      <tbody>
+        {% for p in recent_projects %}
+        <tr>
+          <td style="font-weight:500">{{ p.applicant_name or '—' }}</td>
+          <td>
+            {% if p.apply_level %}
+            <span class="badge badge-blue">{{ p.apply_level }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% set s = p.status or '准备中' %}
+            {% if s == '已通过' %}
+            <span class="badge badge-green">{{ s }}</span>
+            {% elif s == '未通过' %}
+            <span class="badge badge-red">{{ s }}</span>
+            {% else %}
+            <span class="badge badge-gray">{{ s }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted" style="padding:12px 0">暂无项目</p>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- 最近批次 -->
+<div class="card" style="margin-top:16px">
+  <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+    <span>当前批次</span>
+    <a href="{{ url_for('batches.list_page') }}" style="font-size:12px;color:#2563eb">管理批次 →</a>
+  </div>
   {% if batches %}
   <table>
     <thead>
-      <tr>
-        <th>年度</th><th>行业</th><th>评委会</th><th>级别</th><th>截止日期</th><th>备注</th>
-      </tr>
+      <tr><th>年度</th><th>评委会</th><th>级别</th><th>材料截止</th><th>评审截止</th><th>状态</th></tr>
     </thead>
     <tbody>
       {% for b in batches %}
       <tr>
         <td>{{ b.year }}</td>
-        <td>{{ b.industry }}</td>
-        <td>{{ b.committee }}</td>
-        <td>{{ b.level }}</td>
+        <td>{{ b.committee or b.industry or '—' }}</td>
+        <td>{{ b.level or '—' }}</td>
+        <td>{{ b.submit_deadline or '—' }}</td>
         <td>{{ b.deadline or '—' }}</td>
-        <td>{{ b.note or '—' }}</td>
+        <td>
+          {% if b.status == '进行中' %}<span class="badge badge-blue">进行中</span>
+          {% elif b.status == '已结束' %}<span class="badge badge-gray">已结束</span>
+          {% else %}<span class="badge badge-gray">{{ b.status or '—' }}</span>{% endif %}
+        </td>
       </tr>
       {% endfor %}
     </tbody>
@@ -55,13 +154,16 @@
   {% endif %}
 </div>
 
+<!-- 快捷操作 -->
 <div class="card" style="margin-top:16px">
   <div class="section-title">快捷操作</div>
   <div style="display:flex;gap:12px;flex-wrap:wrap;padding-top:4px">
-    <a href="{{ url_for('applicants.new_page') }}" class="btn btn-primary">➕ 新增申报人</a>
+    <a href="{{ url_for('applicants.list_page') }}" class="btn btn-primary">📷 扫描证件新增</a>
+    <a href="{{ url_for('applicants.new_page') }}" class="btn btn-outline">✏️ 手动新增申报人</a>
     <a href="{{ url_for('projects.new_page') }}" class="btn btn-outline">📁 新增项目</a>
     <a href="{{ url_for('batches.list_page') }}" class="btn btn-outline">📅 管理批次</a>
     <a href="{{ url_for('auto_fill.index_page') }}" class="btn btn-outline">🤖 自动填报</a>
+    <a href="{{ url_for('ai_writer.index_page') }}" class="btn btn-outline">✨ AI写作</a>
   </div>
 </div>
 

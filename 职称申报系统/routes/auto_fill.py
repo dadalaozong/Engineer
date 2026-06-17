@@ -32,19 +32,17 @@ def start_fill():
             for line in filler.run(applicant_id, project_id):
                 yield f"data: {line}\n\n"
         except ImportError:
-            import time
+            import json
             logs = [
-                "[INFO] 自动填报模块未安装",
-                "[INFO] 请安装 selenium 和 webdriver_manager",
-                "[INFO] pip install selenium webdriver-manager",
-                "[INFO] 模拟运行中...",
-                f"[INFO] 申报人ID: {applicant_id}",
-                f"[INFO] 项目ID: {project_id}",
-                f"[INFO] 无头模式: {headless}",
-                "[OK] 模拟完成",
+                {"level": "warn",  "msg": "自动填报模块未安装（需要 selenium）"},
+                {"level": "info",  "msg": "pip install selenium webdriver-manager"},
+                {"level": "info",  "msg": "模拟运行中..."},
+                {"level": "info",  "msg": f"申报人ID: {applicant_id} / 项目ID: {project_id}"},
+                {"level": "info",  "msg": f"无头模式: {headless}"},
+                {"level": "ok",    "msg": "模拟完成"},
             ]
             for log in logs:
-                yield f"data: {log}\n\n"
+                yield f"data: {json.dumps(log, ensure_ascii=False)}\n\n"
         except Exception as e:
             yield f"data: [ERROR] {e}\n\n"
         yield "data: [DONE]\n\n"

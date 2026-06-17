@@ -163,6 +163,9 @@ function startFill() {
               stepCount++;
               document.getElementById("fill-progress").style.width =
                 Math.min(stepCount / TOTAL_STEPS * 100, 100) + "%";
+            } else if (d.level) {
+              const colorMap = {ok:"#4ade80", warn:"#fbbf24", info:"#94a3b8", error:"#f87171"};
+              logLine(d.msg, colorMap[d.level] || "#94a3b8");
             }
             if (d.done) {
               logLine("═".repeat(50));

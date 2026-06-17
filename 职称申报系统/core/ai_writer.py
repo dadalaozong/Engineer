@@ -38,7 +38,48 @@ _PROMPTS = {
 }
 
 
-class AIWriter:
+def stream_write(doc_type: str, fields: dict):
+    """Module-level streaming entry point for routes/ai_writer.py."""
+    from config import CONFIG
+    api_key = CONFIG.get("ai_api_key", "")
+    model   = CONFIG.get("ai_model", "deepseek-chat")
+    base_url = CONFIG.get("ai_base_url", "https://api.deepseek.com")
+    if not api_key:
+        raise ValueError("AI API Key 未配置，请在系统设置中填写")
+
+    # Build info string from fields
+    info_lines = []
+    label_map = {
+        "name": "姓名", "work_unit": "工作单位", "education": "学历",
+        "major": "专业", "title_level": "现有职称", "apply_level": "申报级别",
+        "industry": "行业", "project_name": "代表性工程", "scale": "工程规模",
+        "role": "担任职务", "start_date": "开工日期", "end_date": "竣工日期",
+        "description": "项目描述", "work_start_year": "参加工作年份",
+        "graduation_year": "毕业年份", "school": "毕业院校",
+    }
+    for k, v in fields.items():
+        if v:
+            label = label_map.get(k, k)
+            info_lines.append(f"{label}：{v}")
+    info = "\n".join(info_lines)
+
+    from openai import OpenAI
+    client = OpenAI(api_key=api_key, base_url=base_url)
+    prompt_key = doc_type if doc_type in _PROMPTS else "work_summary"
+    stream = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": _PROMPTS[prompt_key].format(info=info)}],
+        temperature=0.7,
+        max_tokens=3000,
+        stream=True,
+    )
+    for chunk in stream:
+        delta = chunk.choices[0].delta.content
+        if delta:
+            yield delta
+
+
+
     def __init__(self, api_key: str, model: str = "deepseek-chat"):
         from openai import OpenAI
         self._client = OpenAI(
