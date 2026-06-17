@@ -124,3 +124,77 @@ def scale_judge():
 def checker_page():
     projects = list_projects()
     return render_template("projects/checker.html", projects=projects)
+
+# Material checklists per apply level
+_MATERIALS = {
+    "工程师": [
+        {"name": "职称申报表", "required": True},
+        {"name": "身份证复印件", "required": True},
+        {"name": "学历证书复印件", "required": True},
+        {"name": "学位证书复印件", "required": False},
+        {"name": "现职称证书复印件", "required": True},
+        {"name": "工程技术工作总结", "required": True},
+        {"name": "代表性工程业绩证明", "required": True},
+        {"name": "继续教育证明", "required": True},
+        {"name": "专业技术人员年度考核表", "required": True},
+    ],
+    "高级工程师": [
+        {"name": "职称申报表", "required": True},
+        {"name": "身份证复印件", "required": True},
+        {"name": "学历证书复印件", "required": True},
+        {"name": "学位证书复印件", "required": False},
+        {"name": "现职称证书复印件", "required": True},
+        {"name": "工程技术工作总结", "required": True},
+        {"name": "代表性工程业绩证明", "required": True},
+        {"name": "业绩工程施工合同", "required": True},
+        {"name": "业绩工程竣工验收报告", "required": True},
+        {"name": "论文或著作证明", "required": False},
+        {"name": "获奖证书复印件", "required": False},
+        {"name": "继续教育证明", "required": True},
+        {"name": "专业技术人员年度考核表", "required": True},
+    ],
+    "正高级工程师": [
+        {"name": "职称申报表", "required": True},
+        {"name": "身份证复印件", "required": True},
+        {"name": "学历证书复印件", "required": True},
+        {"name": "学位证书复印件", "required": True},
+        {"name": "现职称证书复印件", "required": True},
+        {"name": "工程技术工作总结", "required": True},
+        {"name": "代表性工程业绩证明", "required": True},
+        {"name": "业绩工程施工合同", "required": True},
+        {"name": "业绩工程竣工验收报告", "required": True},
+        {"name": "核心期刊论文", "required": True},
+        {"name": "获奖证书复印件", "required": True},
+        {"name": "继续教育证明", "required": True},
+        {"name": "专业技术人员年度考核表", "required": True},
+        {"name": "专家推荐信", "required": False},
+    ],
+}
+
+@bp.route("/checker/scan", methods=["POST"])
+def checker_scan():
+    import os
+    data = request.get_json(silent=True) or {}
+    pid = data.get("project_id")
+    if not pid:
+        return jsonify({"materials": [], "scan": {}, "folder": None})
+    project = get_project(pid)
+    if not project:
+        return jsonify({"materials": [], "scan": {}, "folder": None})
+
+    level = project.get("apply_level", "")
+    materials = _MATERIALS.get(level, _MATERIALS.get("工程师", []))
+    folder = project.get("folder_path", "")
+    scan = {}
+
+    if folder and os.path.isdir(folder):
+        try:
+            files = os.listdir(folder)
+            files_lower = [f.lower() for f in files]
+            for m in materials:
+                name = m["name"]
+                scan[name] = any(name in f or name.replace("复印件","") in f for f in files)
+        except Exception:
+            pass
+
+    return jsonify({"materials": materials, "scan": scan, "folder": folder})
