@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}工程规模判断{% endblock %}
+{% block page_title %}工程规模判断{% endblock %}
+{% block content %}
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px">
+  <div class="card">
+    <div class="section-title">输入工程指标</div>
+    <div class="form-group">
+      <label class="form-label">专业类别</label>
+      <select class="form-control" id="specialty">
+        <option value="">请选择专业</option>
+        {% for name in specialties %}
+        <option value="{{ name }}">{{ name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div id="indicators-area" style="display:none">
+      <div id="indicators-form"></div>
+      <button class="btn btn-primary" onclick="judgeScale()" style="margin-top:8px;width:100%">
+        📊 判断规模
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">判断结果</div>
+    <div id="result-area" style="text-align:center;padding:40px 0;color:#64748b">
+      请先选择专业并填写指标
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+const SPECIALTY_INDICATORS = {
+  "房屋建筑工程": ["建筑面积(万㎡)","工程造价(万元)","建筑高度(m)","地下层数(层)"],
+  "市政公用工程": ["管道长度(km)","管径(mm)","道路长度(km)","桥梁跨度(m)","工程造价(万元)"],
+  "装饰装修工程": ["装饰面积(万㎡)","工程造价(万元)"],
+  "机电安装工程": ["设备容量(kW)","工程造价(万元)"],
+  "公路工程":     ["公路长度(km)","桥梁长度(m)","工程造价(万元)"],
+};
+
+const keyMap = {
+  "建筑面积(万㎡)": "建筑面积", "工程造价(万元)": "工程造价",
+  "建筑高度(m)": "建筑高度", "地下层数(层)": "地下层数",
+  "管道长度(km)": "管道长度", "管径(mm)": "管径",
+  "道路长度(km)": "道路长度", "桥梁跨度(m)": "桥梁跨度",
+  "装饰面积(万㎡)": "装饰面积", "设备容量(kW)": "设备容量",
+  "公路长度(km)": "公路长度", "桥梁长度(m)": "桥梁长度",
+};
+
+document.getElementById("specialty").addEventListener("change", function() {
+  const sp = this.value;
+  const area = document.getElementById("indicators-area");
+  const form = document.getElementById("indicators-form");
+  if (!sp) { area.style.display="none"; return; }
+  const inds = SPECIALTY_INDICATORS[sp] || [];
+  form.innerHTML = inds.map(ind => `
+    <div class="form-group">
+      <label class="form-label">${ind}</label>
+      <input class="form-control" id="ind_${ind}" placeholder="不填写则忽略该指标">
+    </div>
+  `).join("");
+  area.style.display = "block";
+});
+
+function judgeScale() {
+  const sp = document.getElementById("specialty").value;
+  if (!sp) return;
+  const inds = SPECIALTY_INDICATORS[sp] || [];
+  const indicators = {};
+  inds.forEach(ind => {
+    const v = document.getElementById("ind_" + ind)?.value.trim();
+    if (v) indicators[keyMap[ind] || ind] = v;
+  });
+  fetch("/projects/scale/judge", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({specialty: sp, indicators})
+  }).then(r => r.json()).then(data => {
+    const area = document.getElementById("result-area");
+    area.innerHTML = `
+      <div style="font-size:48px;margin-bottom:12px">
+        ${ data.level.includes("大") ? "🏗️" : data.level.includes("中") ? "🏠" : "🏚️" }
+      </div>
+      <div style="font-size:28px;font-weight:700;color:${data.color}">${data.level}</div>
+      ${ data.matched ? `<div style="margin-top:8px;color:#64748b;font-size:13px">匹配指标：${data.matched}</div>` : "" }
+      ${ data.message ? `<div style="margin-top:8px;color:#64748b;font-size:12px">${data.message}</div>` : "" }
+    `;
+  });
+}
+</script>
+{% endblock %}

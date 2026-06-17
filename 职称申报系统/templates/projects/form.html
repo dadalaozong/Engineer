@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% set is_edit = project and project.get('id') %}
+{% block title %}{{ '编辑' if is_edit else '新增' }}项目{% endblock %}
+{% block page_title %}{{ '编辑' if is_edit else '新增' }}项目{% endblock %}
+{% block content %}
+
+{% set v = project or {} %}
+{% set action = url_for('projects.update', pid=v.get('id')) if is_edit else url_for('projects.create') %}
+
+<div class="card" style="max-width:800px">
+  <form method="post" action="{{ action }}">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">申报人 <span style="color:#dc2626">*</span></label>
+        <select class="form-control" name="applicant_id" required>
+          <option value="">请选择</option>
+          {% for a in applicants %}
+          <option value="{{ a.id }}" {{ 'selected' if v.get('applicant_id')|string == a.id|string }}>
+            {{ a.name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">申报批次</label>
+        <select class="form-control" name="batch_id">
+          <option value="">不关联批次</option>
+          {% for b in batches %}
+          <option value="{{ b.id }}" {{ 'selected' if v.get('batch_id')|string == b.id|string }}>
+            {{ b.year }} · {{ b.committee }} · {{ b.level }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">行业</label>
+        <select class="form-control" name="industry">
+          {% for ind in ['','建筑工程','市政公用工程','装饰装修工程','机电安装工程','公路工程'] %}
+          <option value="{{ ind }}" {{ 'selected' if v.get('industry') == ind }}>{{ ind or '请选择' }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">评委会</label>
+        <input class="form-control" name="committee" value="{{ v.get('committee','') }}"
+               placeholder="如：广西建筑工程职称评审委员会">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">申报级别</label>
+        <select class="form-control" name="apply_level">
+          {% for lvl in ['','工程师','高级工程师','正高级工程师'] %}
+          <option value="{{ lvl }}" {{ 'selected' if v.get('apply_level') == lvl }}>{{ lvl or '请选择' }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">工程规模</label>
+        <input class="form-control" name="scale" value="{{ v.get('scale','') }}"
+               placeholder="大型/中型/小型">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">材料文件夹路径</label>
+      <input class="form-control" name="folder_path" value="{{ v.get('folder_path','') }}"
+             placeholder="如：D:\职称材料\张三_高级工程师">
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注</label>
+      <textarea class="form-control" name="note">{{ v.get('note','') }}</textarea>
+    </div>
+    <div class="modal-footer" style="margin-top:8px">
+      <a href="{{ url_for('projects.list_page') }}" class="btn btn-outline">取消</a>
+      <button class="btn btn-primary" type="submit">💾 保存</button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

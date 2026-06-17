@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}申报批次{% endblock %}
+{% block page_title %}申报批次管理{% endblock %}
+{% block content %}
+
+<div class="toolbar">
+  <div class="toolbar-right">
+    <button class="btn btn-primary" onclick="openModal('add-modal')">➕ 新增批次</button>
+  </div>
+</div>
+
+<div class="table-card">
+  <div class="table-header">
+    <span class="table-header-title">批次列表（共 {{ rows|length }} 个）</span>
+  </div>
+  <table>
+    <thead>
+      <tr><th>年度</th><th>行业</th><th>评委会</th><th>级别</th><th>截止日期</th><th>备注</th><th>操作</th></tr>
+    </thead>
+    <tbody>
+      {% for b in rows %}
+      <tr>
+        <td>{{ b.year }}</td>
+        <td>{{ b.industry or '—' }}</td>
+        <td>{{ b.committee or '—' }}</td>
+        <td>{{ b.level or '—' }}</td>
+        <td>{{ b.deadline or '—' }}</td>
+        <td>{{ b.note or '—' }}</td>
+        <td>
+          <button class="btn btn-sm btn-outline"
+            onclick="openEditModal({{ b.id }},'{{ b.year }}','{{ b.industry or '' }}','{{ b.committee or '' }}','{{ b.level or '' }}','{{ b.deadline or '' }}','{{ b.note or '' }}')">编辑</button>
+          <button class="btn btn-sm btn-danger"
+            onclick="confirmDelete('{{ url_for('batches.delete', bid=b.id) }}', '{{ b.year }}年批次')">删除</button>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-muted" style="text-align:center;padding:24px">暂无批次</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Add Modal -->
+<div id="add-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-title">新增批次</div>
+    <form method="post" action="{{ url_for('batches.create') }}">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">年度</label>
+          <input class="form-control" name="year" placeholder="如：2024" required></div>
+        <div class="form-group"><label class="form-label">行业</label>
+          <input class="form-control" name="industry" placeholder="如：建筑工程"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">评委会</label>
+          <input class="form-control" name="committee"></div>
+        <div class="form-group"><label class="form-label">级别</label>
+          <input class="form-control" name="level" placeholder="如：高级工程师"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">截止日期</label>
+          <input class="form-control" name="deadline" type="date"></div>
+        <div class="form-group"><label class="form-label">备注</label>
+          <input class="form-control" name="note"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('add-modal')">取消</button>
+        <button class="btn btn-primary" type="submit">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="edit-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-title">编辑批次</div>
+    <form id="edit-form" method="post">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">年度</label>
+          <input class="form-control" name="year" id="e-year" required></div>
+        <div class="form-group"><label class="form-label">行业</label>
+          <input class="form-control" name="industry" id="e-industry"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">评委会</label>
+          <input class="form-control" name="committee" id="e-committee"></div>
+        <div class="form-group"><label class="form-label">级别</label>
+          <input class="form-control" name="level" id="e-level"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">截止日期</label>
+          <input class="form-control" name="deadline" id="e-deadline" type="date"></div>
+        <div class="form-group"><label class="form-label">备注</label>
+          <input class="form-control" name="note" id="e-note"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal('edit-modal')">取消</button>
+        <button class="btn btn-primary" type="submit">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+function openEditModal(id, year, industry, committee, level, deadline, note) {
+  document.getElementById("edit-form").action = `/batches/${id}/edit`;
+  document.getElementById("e-year").value = year;
+  document.getElementById("e-industry").value = industry;
+  document.getElementById("e-committee").value = committee;
+  document.getElementById("e-level").value = level;
+  document.getElementById("e-deadline").value = deadline;
+  document.getElementById("e-note").value = note;
+  openModal("edit-modal");
+}
+</script>
+{% endblock %}

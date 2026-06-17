@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block title %}自动填报{% endblock %}
+{% block page_title %}自动填报{% endblock %}
+{% block content %}
+
+<div style="display:grid;grid-template-columns:360px 1fr;gap:20px;height:calc(100vh - 140px)">
+  <!-- Left config panel -->
+  <div style="display:flex;flex-direction:column;gap:14px;overflow-y:auto">
+    <div class="card">
+      <div class="section-title">选择填报目标</div>
+      <div class="form-group">
+        <label class="form-label">申报人</label>
+        <select class="form-control" id="sel-applicant" onchange="loadProjects()">
+          <option value="">-- 选择申报人 --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">申报项目</label>
+        <select class="form-control" id="sel-project" onchange="showProjectInfo()">
+          <option value="">-- 选择项目 --</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card" id="proj-info-card" style="display:none">
+      <div class="section-title">项目信息</div>
+      <table style="font-size:12px">
+        <tbody>
+          <tr><td style="color:#64748b;padding:3px 8px 3px 0">行业</td><td id="pi-industry">—</td></tr>
+          <tr><td style="color:#64748b;padding:3px 8px 3px 0">评委会</td><td id="pi-committee">—</td></tr>
+          <tr><td style="color:#64748b;padding:3px 8px 3px 0">级别</td><td id="pi-level">—</td></tr>
+          <tr><td style="color:#64748b;padding:3px 8px 3px 0">规模</td><td id="pi-scale">—</td></tr>
+          <tr><td style="color:#64748b;padding:3px 8px 3px 0">材料路径</td><td id="pi-folder" style="word-break:break-all">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="section-title">填报选项</div>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+        <input type="checkbox" id="chk-headless"> 无头模式（后台运行）
+      </label>
+    </div>
+
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1;height:40px" id="btn-start" onclick="startFill()">
+        ▶ 开始填报
+      </button>
+      <button class="btn btn-danger" style="flex:1;height:40px" id="btn-stop"
+              disabled onclick="stopFill()">■ 停止</button>
+    </div>
+
+    <div class="progress-wrap"><div class="progress-bar" id="fill-progress" style="width:0%"></div></div>
+  </div>
+
+  <!-- Right log panel -->
+  <div class="card" style="display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div class="section-title" style="margin:0">填报日志</div>
+      <button class="btn btn-sm btn-outline" style="margin-left:auto" onclick="clearLog()">清空</button>
+    </div>
+    <div id="fill-log" class="log-terminal" style="flex:1"></div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+let projectsData = [];
+let stepCount = 0;
+const TOTAL_STEPS = 7;
+
+window.addEventListener("DOMContentLoaded", () => {
+  fetch("/autofill/applicants").then(r => r.json()).then(list => {
+    const sel = document.getElementById("sel-applicant");
+    list.forEach(a => {
+      const opt = document.createElement("option");
+      opt.value = a.id; opt.textContent = a.name;
+      sel.appendChild(opt);
+    });
+  });
+});
+
+function loadProjects() {
+  const aid = document.getElementById("sel-applicant").value;
+  const sel = document.getElementById("sel-project");
+  sel.innerHTML = '<option value="">-- 选择项目 --</option>';
+  projectsData = [];
+  document.getElementById("proj-info-card").style.display = "none";
+  if (!aid) return;
+  fetch(`/autofill/projects?applicant_id=${aid}`).then(r => r.json()).then(list => {
+    projectsData = list;
+    list.forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p.id; opt.textContent = p.label;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+function showProjectInfo() {
+  const pid = parseInt(document.getElementById("sel-project").value);
+  const p   = projectsData.find(x => x.id === pid);
+  const card = document.getElementById("proj-info-card");
+  if (!p) { card.style.display="none"; return; }
+  card.style.display = "block";
+  document.getElementById("pi-industry").textContent  = p.industry  || "—";
+  document.getElementById("pi-committee").textContent = p.committee || "—";
+  document.getElementById("pi-level").textContent     = p.apply_level || "—";
+  document.getElementById("pi-scale").textContent     = p.scale    || "未判断";
+  document.getElementById("pi-folder").textContent    = p.folder_path || "未设置";
+}
+
+function logLine(text, color) {
+  const log = document.getElementById("fill-log");
+  const span = document.createElement("span");
+  span.style.color = color || "#e2e8f0";
+  span.textContent = text + "\n";
+  log.appendChild(span);
+  log.scrollTop = log.scrollHeight;
+}
+
+function clearLog() {
+  document.getElementById("fill-log").innerHTML = "";
+  document.getElementById("fill-progress").style.width = "0%";
+  stepCount = 0;
+}
+
+function startFill() {
+  const aid = document.getElementById("sel-applicant").value;
+  const pid = document.getElementById("sel-project").value;
+  if (!aid || !pid) { alert("请选择申报人和申报项目"); return; }
+  const headless = document.getElementById("chk-headless").checked;
+
+  if (!confirm("确认开始自动填报？请确保已配置正确的网站账号密码，且填报网站正常可访问。")) return;
+
+  document.getElementById("btn-start").disabled = true;
+  document.getElementById("btn-stop").disabled  = false;
+  clearLog();
+  logLine("═".repeat(50));
+  logLine("▶ 开始自动填报");
+  logLine("═".repeat(50));
+
+  fetch("/autofill/start", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({applicant_id: parseInt(aid), project_id: parseInt(pid), headless})
+  }).then(resp => {
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    function pump() {
+      return reader.read().then(({done, value}) => {
+        if (done) { onFillDone(); return; }
+        const text = decoder.decode(value);
+        text.split("\n").forEach(line => {
+          if (!line.startsWith("data: ")) return;
+          try {
+            const d = JSON.parse(line.slice(6));
+            if (d.step) {
+              const color = d.ok ? "#4ade80" : "#f87171";
+              logLine(`${d.icon}  ${d.step}`, color);
+              if (d.msg) logLine(`   └─ ${d.msg}`, "#64748b");
+              stepCount++;
+              document.getElementById("fill-progress").style.width =
+                Math.min(stepCount / TOTAL_STEPS * 100, 100) + "%";
+            }
+            if (d.done) {
+              logLine("═".repeat(50));
+              logLine("✅ 填报完成！请在浏览器中核对后手动点击提交。", "#4ade80");
+              d.summary && d.summary.split("\n").forEach(l => logLine("   " + l, "#64748b"));
+              logLine("═".repeat(50));
+              onFillDone();
+            }
+            if (d.error) {
+              logLine("❌ 错误：" + d.error, "#f87171");
+              onFillDone();
+            }
+          } catch(e) {}
+        });
+        return pump();
+      });
+    }
+    return pump();
+  }).catch(e => { logLine("❌ " + e.message, "#f87171"); onFillDone(); });
+}
+
+function onFillDone() {
+  document.getElementById("btn-start").disabled = false;
+  document.getElementById("btn-stop").disabled  = true;
+}
+
+function stopFill() {
+  fetch("/autofill/stop", {method:"POST"}).then(() => {
+    logLine("■ 用户手动停止", "#f87171");
+    onFillDone();
+  });
+}
+</script>
+{% endblock %}

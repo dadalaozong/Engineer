@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}完整性检查{% endblock %}
+{% block page_title %}材料完整性检查{% endblock %}
+{% block content %}
+
+<div style="display:grid;grid-template-columns:280px 1fr;gap:20px">
+  <div class="card">
+    <div class="section-title">选择项目</div>
+    <select class="form-control" id="proj-select" onchange="scanProject()">
+      <option value="">请选择项目</option>
+      {% for p in projects %}
+      <option value="{{ p.id }}" data-level="{{ p.apply_level }}" data-folder="{{ p.folder_path or '' }}">
+        {{ p.applicant_name or '未知' }} · {{ p.apply_level or '—' }}
+      </option>
+      {% endfor %}
+    </select>
+    <div id="proj-info" style="margin-top:12px;font-size:12px;color:#64748b"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">材料清单</div>
+    <div id="checklist-area" style="color:#64748b;padding:20px 0">请先选择项目</div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+function scanProject() {
+  const sel = document.getElementById("proj-select");
+  const pid = sel.value;
+  const opt = sel.options[sel.selectedIndex];
+  const folder = opt.dataset.folder;
+  const level  = opt.dataset.level;
+  if (!pid) return;
+
+  document.getElementById("proj-info").innerHTML =
+    `级别：${level || "—"}<br>路径：${folder || "未设置"}`;
+
+  fetch("/projects/checker/scan", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({project_id: parseInt(pid)})
+  }).then(r => r.json()).then(data => {
+    const area = document.getElementById("checklist-area");
+    const mats = data.materials || [];
+    const scan = data.scan || {};
+    if (!mats.length) { area.innerHTML = "<p>无材料清单定义</p>"; return; }
+    let total = mats.length, found = 0;
+    const rows = mats.map(m => {
+      const name = typeof m === "string" ? m : m.name;
+      const required = typeof m === "object" ? m.required : true;
+      const exists = scan[name] === true;
+      if (exists) found++;
+      return `<tr>
+        <td>${name}</td>
+        <td>${required ? '<span class="badge badge-red">必须</span>' : '<span class="badge badge-gray">可选</span>'}</td>
+        <td>${exists ? '<span class="badge badge-green">✓ 已找到</span>' : '<span class="badge badge-orange">✗ 缺失</span>'}</td>
+      </tr>`;
+    }).join("");
+    area.innerHTML = `
+      <div style="margin-bottom:12px">
+        <span class="badge badge-${found===total ? 'green' : 'orange'}">
+          完整度 ${found}/${total}
+        </span>
+        ${data.folder ? `<span style="font-size:12px;color:#64748b;margin-left:8px">扫描路径：${data.folder}</span>` : '<span style="font-size:12px;color:#dc2626;margin-left:8px">未设置材料路径，仅显示清单</span>'}
+      </div>
+      <table><thead><tr><th>材料名称</th><th>要求</th><th>状态</th></tr></thead>
+      <tbody>${rows}</tbody></table>`;
+  });
+}
+</script>
+{% endblock %}

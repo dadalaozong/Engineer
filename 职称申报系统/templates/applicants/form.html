@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% set is_edit = applicant and applicant.get('id') %}
+{% block title %}{{ '编辑' if is_edit else '新增' }}申报人{% endblock %}
+{% block page_title %}{{ '编辑' if is_edit else '新增' }}申报人{% endblock %}
+{% block content %}
+
+{% set v = applicant or {} %}
+{% set action = url_for('applicants.update', aid=v.get('id')) if is_edit else url_for('applicants.create') %}
+
+<div class="card" style="max-width:800px">
+  <form method="post" action="{{ action }}">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">姓名 <span style="color:#dc2626">*</span></label>
+        <input class="form-control" name="name" value="{{ v.get('name','') }}" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">身份证号</label>
+        <input class="form-control" name="id_card" value="{{ v.get('id_card','') }}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">电话</label>
+        <input class="form-control" name="phone" value="{{ v.get('phone','') }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">邮箱</label>
+        <input class="form-control" name="email" type="email" value="{{ v.get('email','') }}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">工作单位</label>
+      <input class="form-control" name="work_unit" value="{{ v.get('work_unit','') }}">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">学历</label>
+        <select class="form-control" name="education">
+          {% for edu in ['','大专','本科','硕士','博士'] %}
+          <option value="{{ edu }}" {{ 'selected' if v.get('education') == edu }}>{{ edu or '请选择' }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">专业</label>
+        <input class="form-control" name="major" value="{{ v.get('major','') }}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">现职称等级</label>
+        <select class="form-control" name="title_level">
+          {% for lvl in ['','助理工程师','工程师','高级工程师','正高级工程师'] %}
+          <option value="{{ lvl }}" {{ 'selected' if v.get('title_level') == lvl }}>{{ lvl or '请选择' }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">取得年份</label>
+        <input class="form-control" name="title_year" value="{{ v.get('title_year','') }}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">备注</label>
+      <textarea class="form-control" name="notes">{{ v.get('notes','') }}</textarea>
+    </div>
+    <div class="modal-footer" style="margin-top:8px">
+      <a href="{{ url_for('applicants.list_page') }}" class="btn btn-outline">取消</a>
+      <button class="btn btn-primary" type="submit">💾 保存</button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

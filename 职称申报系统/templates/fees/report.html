@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}费用报表{% endblock %}
+{% block page_title %}费用汇总报表{% endblock %}
+{% block content %}
+
+<div class="stat-row" style="grid-template-columns:repeat(3,1fr)">
+  <div class="stat-card">
+    <div class="stat-label">应收总额</div>
+    <div class="stat-num">{{ total_sum | int }}</div>
+    <div class="stat-sub">元</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">已收</div>
+    <div class="stat-num" style="color:#16a34a">{{ paid_sum | int }}</div>
+    <div class="stat-sub">元</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">待收</div>
+    <div class="stat-num" style="color:#d97706">{{ pending_sum | int }}</div>
+    <div class="stat-sub">元</div>
+  </div>
+</div>
+
+<div class="table-card">
+  <div class="table-header">
+    <span class="table-header-title">费用明细</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>申报人</th><th>级别</th><th>应收(元)</th><th>定金(元)</th>
+        <th>已收(元)</th><th>收款日期</th><th>状态</th><th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in fee_data %}
+      {% set fee = row.fee %}
+      <tr>
+        <td><strong>{{ row.applicant_name or '—' }}</strong></td>
+        <td>{{ row.apply_level or '—' }}</td>
+        <td>{{ fee.get('total', 0) or 0 }}</td>
+        <td>{{ fee.get('deposit', 0) or 0 }}</td>
+        <td>{{ fee.get('paid', 0) or 0 }}</td>
+        <td>{{ fee.get('paid_date', '') or '—' }}</td>
+        <td>
+          {% if row.status == '已结清' %}
+            <span class="badge fee-paid">已结清</span>
+          {% elif row.status == '部分' %}
+            <span class="badge fee-partial">部分收款</span>
+          {% elif row.status == '未付' %}
+            <span class="badge fee-unpaid">未收款</span>
+          {% else %}
+            <span class="badge fee-unset">未设定</span>
+          {% endif %}
+        </td>
+        <td>
+          <button class="btn btn-sm btn-outline"
+            onclick="openFeeModal({{ row.id }},
+              {{ fee.get('total',0) or 0 }},
+              {{ fee.get('deposit',0) or 0 }},
+              {{ fee.get('paid',0) or 0 }},
+              '{{ fee.get('paid_date','') or '' }}',
+              '{{ fee.get('note','') or '' }}')">编辑</button>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" class="text-muted" style="text-align:center;padding:24px">暂无数据</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Fee Edit Modal -->
+<div id="fee-modal" class="modal-overlay hidden">
+  <div class="modal-box" style="width:440px">
+    <div class="modal-title">编辑费用</div>
+    <input type="hidden" id="f-pid">
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">应收金额(元)</label>
+        <input class="form-control" id="f-total" type="number"></div>
+      <div class="form-group"><label class="form-label">定金(元)</label>
+        <input class="form-control" id="f-deposit" type="number"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">已收金额(元)</label>
+        <input class="form-control" id="f-paid" type="number"></div>
+      <div class="form-group"><label class="form-label">收款日期</label>
+        <input class="form-control" id="f-date" type="date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">备注</label>
+      <input class="form-control" id="f-note"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('fee-modal')">取消</button>
+      <button class="btn btn-primary" onclick="saveFee()">保存</button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+function openFeeModal(pid, total, deposit, paid, date, note) {
+  document.getElementById("f-pid").value = pid;
+  document.getElementById("f-total").value = total;
+  document.getElementById("f-deposit").value = deposit;
+  document.getElementById("f-paid").value = paid;
+  document.getElementById("f-date").value = date;
+  document.getElementById("f-note").value = note;
+  openModal("fee-modal");
+}
+function saveFee() {
+  fetch("/fees/upsert", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      project_id: document.getElementById("f-pid").value,
+      total:  document.getElementById("f-total").value,
+      deposit: document.getElementById("f-deposit").value,
+      paid:   document.getElementById("f-paid").value,
+      paid_date: document.getElementById("f-date").value,
+      note:   document.getElementById("f-note").value,
+    })
+  }).then(() => location.reload());
+}
+</script>
+{% endblock %}

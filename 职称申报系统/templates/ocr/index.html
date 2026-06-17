@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}OCR 识别{% endblock %}
+{% block page_title %}OCR 证件识别{% endblock %}
+{% block content %}
+
+{% if not ocr_available %}
+<div class="alert alert-warning">
+  ⚠ PaddleOCR 未安装，OCR功能不可用。请运行：<code>pip install paddlepaddle paddleocr</code>
+</div>
+{% endif %}
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+  <div class="card">
+    <div class="section-title">上传图片</div>
+    <div class="form-group">
+      <label class="form-label">识别类型</label>
+      <select class="form-control" id="ocr-mode">
+        <option value="id_card">身份证</option>
+        <option value="degree">学历证书</option>
+        <option value="title">职称证书</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">选择图片</label>
+      <input class="form-control" type="file" id="ocr-file" accept="image/*">
+    </div>
+    <div id="preview-area" style="margin:8px 0"></div>
+    <button class="btn btn-primary" style="width:100%" onclick="doOcr()" {{ 'disabled' if not ocr_available }}>
+      🔎 开始识别
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="section-title">识别结果</div>
+    <div id="ocr-result" style="color:#64748b;padding:12px 0">识别结果将显示在此处</div>
+    <div id="parsed-result"></div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById("ocr-file").addEventListener("change", function() {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById("preview-area").innerHTML =
+      `<img src="${e.target.result}" style="max-width:100%;max-height:200px;border-radius:6px">`;
+  };
+  reader.readAsDataURL(file);
+});
+
+function doOcr() {
+  const file = document.getElementById("ocr-file").files[0];
+  if (!file) { alert("请先选择图片"); return; }
+  const mode = document.getElementById("ocr-mode").value;
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("mode", mode);
+  document.getElementById("ocr-result").innerHTML = '<div class="spinner"></div> 识别中...';
+  fetch("/ocr/recognize", {method:"POST", body:fd})
+    .then(r => r.json()).then(d => {
+      if (d.error) {
+        document.getElementById("ocr-result").innerHTML = `<span style="color:#dc2626">❌ ${d.error}</span>`;
+        return;
+      }
+      document.getElementById("ocr-result").innerHTML =
+        `<pre style="white-space:pre-wrap;font-size:12px;color:#334155">${d.text || "（无文字）"}</pre>`;
+      const parsed = d.parsed || {};
+      const keys = Object.keys(parsed);
+      if (keys.length) {
+        const rows = keys.map(k => `<tr><td style="color:#64748b">${k}</td><td><strong>${parsed[k]}</strong></td></tr>`).join("");
+        document.getElementById("parsed-result").innerHTML =
+          `<hr class="divider"><div class="section-title" style="font-size:13px">解析字段</div>
+           <table><tbody>${rows}</tbody></table>`;
+      }
+    });
+}
+</script>
+{% endblock %}

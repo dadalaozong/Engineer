@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}项目列表{% endblock %}
+{% block page_title %}项目列表{% endblock %}
+{% block content %}
+
+<div class="toolbar">
+  <form method="get" style="display:flex;gap:8px;align-items:center">
+    <select class="form-control" name="applicant_id" style="min-width:160px"
+            onchange="this.form.submit()">
+      <option value="">全部申报人</option>
+      {% for a in applicants %}
+      <option value="{{ a.id }}" {{ 'selected' if filter_aid == a.id }}>{{ a.name }}</option>
+      {% endfor %}
+    </select>
+    {% if filter_aid %}
+    <a href="{{ url_for('projects.list_page') }}" class="btn btn-outline">清除筛选</a>
+    {% endif %}
+  </form>
+  <div class="toolbar-right">
+    <a href="{{ url_for('projects.new_page') }}" class="btn btn-primary">➕ 新增项目</a>
+  </div>
+</div>
+
+<div class="table-card">
+  <div class="table-header">
+    <span class="table-header-title">项目列表（共 {{ rows|length }} 个）</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>申报人</th><th>行业</th><th>评委会</th><th>申报级别</th>
+        <th>工程规模</th><th>批次</th><th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in rows %}
+      <tr>
+        <td><strong>{{ p.applicant_name or '—' }}</strong></td>
+        <td>{{ p.industry or '—' }}</td>
+        <td>{{ p.committee or '—' }}</td>
+        <td>
+          <span class="badge badge-blue">{{ p.apply_level or '—' }}</span>
+        </td>
+        <td>{{ p.scale or '未判断' }}</td>
+        <td>{{ p.batch_year or '—' }}</td>
+        <td>
+          <a href="{{ url_for('projects.edit_page', pid=p.id) }}" class="btn btn-sm btn-outline">编辑</a>
+          <button class="btn btn-sm btn-danger"
+                  onclick="confirmDelete('{{ url_for('projects.delete', pid=p.id) }}', '项目')">删除</button>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="text-muted" style="text-align:center;padding:24px">暂无项目</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

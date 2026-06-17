@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}AI 辅助写作{% endblock %}
+{% block page_title %}AI 辅助写作{% endblock %}
+{% block content %}
+
+<div style="display:grid;grid-template-columns:320px 1fr;gap:20px;height:calc(100vh - 140px)">
+  <!-- Left panel -->
+  <div style="display:flex;flex-direction:column;gap:14px;overflow-y:auto">
+    <div class="card">
+      <div class="section-title">文档类型</div>
+      <select class="form-control" id="doc-type" onchange="updateFormFields()">
+        {% for key, label in doc_types %}
+        <option value="{{ key }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="card" id="fields-card">
+      <div class="section-title">填写信息</div>
+      <div id="dynamic-fields">
+        <!-- populated by JS -->
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="generate()">
+        ✨ 生成文档
+      </button>
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="card" style="display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div class="section-title" style="margin:0">生成结果</div>
+      <div id="gen-status" style="color:#64748b;font-size:12px"></div>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn btn-sm btn-outline" onclick="copyText()">📋 复制</button>
+        <button class="btn btn-sm btn-outline" onclick="exportDoc()">📥 导出 Word</button>
+        <button class="btn btn-sm btn-outline" onclick="clearOutput()">清空</button>
+      </div>
+    </div>
+    <textarea id="output" style="flex:1;width:100%;border:1px solid #e2e8f0;border-radius:6px;
+      padding:12px;font-size:13px;color:#334155;resize:none;line-height:1.7"
+      placeholder="AI生成的文档内容将显示在此处..."></textarea>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+const FIELDS = {
+  work_summary: [
+    {key:"name", label:"姓名"}, {key:"years", label:"工作年限"},
+    {key:"major_projects", label:"主要工程项目（逗号分隔）"},
+    {key:"specialties", label:"专业方向"}, {key:"achievements", label:"主要业绩"},
+  ],
+  masterwork: [
+    {key:"name", label:"姓名"}, {key:"project_name", label:"工程名称"},
+    {key:"project_type", label:"工程类型"}, {key:"project_scale", label:"工程规模"},
+    {key:"role", label:"担任职务"}, {key:"duration", label:"建设周期"},
+  ],
+  achievement: [
+    {key:"name", label:"姓名"}, {key:"achievement_name", label:"成果名称"},
+    {key:"achievement_type", label:"成果类型"}, {key:"description", label:"成果描述"},
+  ],
+};
+
+function updateFormFields() {
+  const type = document.getElementById("doc-type").value;
+  const flds = FIELDS[type] || [];
+  document.getElementById("dynamic-fields").innerHTML = flds.map(f => `
+    <div class="form-group">
+      <label class="form-label">${f.label}</label>
+      <input class="form-control" id="f_${f.key}" placeholder="${f.label}">
+    </div>
+  `).join("");
+}
+
+function getInfo() {
+  const type = document.getElementById("doc-type").value;
+  const flds = FIELDS[type] || [];
+  const info = {};
+  flds.forEach(f => { info[f.key] = document.getElementById("f_" + f.key)?.value || ""; });
+  return info;
+}
+
+function generate() {
+  const type = document.getElementById("doc-type").value;
+  const info = getInfo();
+  const out  = document.getElementById("output");
+  const stat = document.getElementById("gen-status");
+  out.value = "";
+  stat.innerHTML = '<span class="spinner"></span> 生成中...';
+
+  const es = new EventSource("/ai/generate?" + new URLSearchParams({stub:1}));
+  // Use fetch + ReadableStream for POST
+  es.close();
+
+  fetch("/ai/generate", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({doc_type: type, info})
+  }).then(resp => {
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    function pump() {
+      return reader.read().then(({done, value}) => {
+        if (done) { stat.textContent = "✅ 生成完成"; return; }
+        const text = decoder.decode(value);
+        text.split("\n").forEach(line => {
+          if (!line.startsWith("data: ")) return;
+          const payload = line.slice(6);
+          if (payload === "[DONE]") return;
+          try {
+            const d = JSON.parse(payload);
+            if (d.text) out.value += d.text;
+            if (d.error) stat.textContent = "❌ " + d.error;
+          } catch(e) {}
+        });
+        out.scrollTop = out.scrollHeight;
+        return pump();
+      });
+    }
+    return pump();
+  }).catch(e => { stat.textContent = "❌ " + e.message; });
+}
+
+function copyText() {
+  navigator.clipboard.writeText(document.getElementById("output").value);
+}
+function clearOutput() {
+  document.getElementById("output").value = "";
+  document.getElementById("gen-status").textContent = "";
+}
+function exportDoc() {
+  const type = document.getElementById("doc-type").value;
+  const content = document.getElementById("output").value;
+  if (!content) { alert("请先生成内容"); return; }
+  fetch("/ai/export", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({doc_type: type, content})
+  }).then(r => r.blob()).then(blob => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = type + ".docx";
+    a.click();
+  });
+}
+
+updateFormFields();
+</script>
+{% endblock %}
