@@ -8,6 +8,8 @@ from PyQt5.QtGui import QIcon, QFont
 
 from gui.styles import QSS, SIDEBAR_BG, TEXT_MUTED
 from gui.pages.dashboard import DashboardPage
+from gui.pages.applicants import ApplicantsPage
+from gui.pages.projects import ProjectsPage
 from gui.pages.placeholder import PlaceholderPage
 
 # Nav definition: (group_label, [(icon, label, page_key), ...])
@@ -180,12 +182,27 @@ class MainWindow(QMainWindow):
 
         if key == "dashboard":
             page = DashboardPage()
+        elif key == "applicants":
+            page = ApplicantsPage()
+            page.view_projects.connect(self._open_projects_for_applicant)
+        elif key == "applicant_new":
+            # re-use ApplicantsPage, just open the add dialog immediately
+            page = ApplicantsPage()
+            page.view_projects.connect(self._open_projects_for_applicant)
+        elif key == "projects":
+            page = ProjectsPage()
         else:
             page = PlaceholderPage(PAGE_TITLES.get(key, key))
 
         self._pages[key] = page
         self._stack.addWidget(page)
         return page
+
+    def _open_projects_for_applicant(self, applicant_id: int, name: str):
+        """Switch to projects page filtered by applicant."""
+        page = self._get_or_create_page("projects")
+        self._switch_page("projects")
+        page.set_applicant_filter(applicant_id, name)
 
     def _switch_page(self, key: str):
         if self._current_page == key:
