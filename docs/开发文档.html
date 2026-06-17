@@ -251,6 +251,9 @@
     <li><a href="#folder-spec">文件夹规范</a></li>
     <li><a href="#materials">材料清单规范</a></li>
 
+    <li class="section">业务规则</li>
+    <li><a href="#scale-engine">规模判断引擎</a></li>
+
     <li class="section">自动填报</li>
     <li><a href="#login">登录流程</a></li>
     <li><a href="#form-map">表单字段映射</a></li>
@@ -794,6 +797,228 @@ async def fill_achievements(page, achievements):
 
 async def upload_file(page, selector, file_path):
     await page.set_input_files(selector, file_path)</code></pre>
+
+  <hr />
+
+  <!-- ══════════════ 规模判断引擎 ══════════════ -->
+  <h2 id="scale-engine">核心业务逻辑 · 工程规模判断引擎</h2>
+
+  <div class="callout callout-blue">
+    当录入工程业绩时，系统根据申报人填写的项目指标（面积、层数、合同额等）自动判断项目规模（大型/中型/小型），
+    再与职称评审条件中的业绩要求对比，得出「是否满足申报条件」的结论。
+    数据来源：《注册建造师执业工程规模标准（试行）》。
+  </div>
+
+  <h3>判断流程</h3>
+  <div class="flow">
+    <div class="flow-step">用户录入业绩<br/>（填写项目指标）</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">按专业调用<br/>规模判断函数</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">得到 大/中/小型<br/>自动写入数据库</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">完整性检查时<br/>按规模统计是否达标</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">输出通过/不通过<br/>及缺口说明</div>
+  </div>
+
+  <h3>各专业规模判断标准（来源：建造师执业工程规模标准）</h3>
+
+  <h4>🏠 房屋建筑工程（施工类）</h4>
+  <table>
+    <tr><th>判断指标</th><th>单位</th><th>大型</th><th>中型</th><th>小型</th></tr>
+    <tr><td>建筑物层数</td><td>层</td><td>≥25</td><td>5～25</td><td>&lt;5</td></tr>
+    <tr><td>建筑物高度</td><td>米</td><td>≥100</td><td>15～100</td><td>&lt;15</td></tr>
+    <tr><td>单跨跨度</td><td>米</td><td>≥30</td><td>15～30</td><td>&lt;15</td></tr>
+    <tr><td>单体建筑面积</td><td>㎡</td><td>≥30000</td><td>3000～30000</td><td>&lt;3000</td></tr>
+    <tr><td>住宅小区/建筑群总面积</td><td>㎡</td><td>≥100000</td><td>3000～100000</td><td>&lt;3000</td></tr>
+    <tr><td>单项工程合同额</td><td>万元</td><td>≥3000</td><td>300～3000</td><td>&lt;300</td></tr>
+  </table>
+  <p style="font-size:13px;margin-top:6px">✅ 满足任一指标即可认定为对应规模（取最高级别）</p>
+
+  <h4>🛣️ 市政公用工程（施工类）</h4>
+  <table>
+    <tr><th>判断指标</th><th>单位</th><th>大型</th><th>中型</th><th>小型</th></tr>
+    <tr><td>城市道路（快速路/主干道路基长度）</td><td>km</td><td>≥5</td><td>2～5</td><td>&lt;2</td></tr>
+    <tr><td>城市桥梁（单跨跨度）</td><td>米</td><td>≥40</td><td>20～40</td><td>&lt;20</td></tr>
+    <tr><td>城市隧道（内径宽或高）</td><td>米</td><td>≥5</td><td>3～5</td><td>&lt;3</td></tr>
+    <tr><td>供排水管径</td><td>mm</td><td>≥1500</td><td>800～1500</td><td>&lt;800</td></tr>
+    <tr><td>污水/供水处理厂（日处理量）</td><td>万吨/日</td><td>≥5</td><td>3～5</td><td>&lt;3</td></tr>
+    <tr><td>垃圾填埋场（日处理量）</td><td>吨/日</td><td>≥800</td><td>400～800</td><td>&lt;400</td></tr>
+    <tr><td>单项工程合同额</td><td>万元</td><td>≥3000</td><td>1000～3000</td><td>&lt;1000</td></tr>
+  </table>
+
+  <h4>🎨 装饰装修工程</h4>
+  <table>
+    <tr><th>判断指标</th><th>单位</th><th>大型</th><th>中型</th><th>小型</th></tr>
+    <tr><td>单项工程合同额</td><td>万元</td><td>≥1000</td><td>100～1000</td><td>&lt;100</td></tr>
+    <tr><td>幕墙工程（高度）</td><td>米</td><td>≥60</td><td>—</td><td>&lt;60</td></tr>
+    <tr><td>幕墙工程（面积）</td><td>㎡</td><td>≥6000</td><td>—</td><td>&lt;6000</td></tr>
+  </table>
+
+  <h4>⚙️ 机电安装工程</h4>
+  <table>
+    <tr><th>判断指标</th><th>单位</th><th>大型</th><th>中型</th><th>小型</th></tr>
+    <tr><td>一般机电安装（单项工程造价）</td><td>万元</td><td>&gt;1500</td><td>200～1500</td><td>&lt;200</td></tr>
+    <tr><td>通风空调（建筑面积）</td><td>万㎡</td><td>&gt;2</td><td>1～2</td><td>&lt;1</td></tr>
+    <tr><td>建筑智能化（合同额）</td><td>万元</td><td>&gt;500</td><td>200～500</td><td>&lt;200</td></tr>
+    <tr><td>消防工程（建筑面积）</td><td>万㎡</td><td>&gt;2</td><td>1～2</td><td>&lt;1</td></tr>
+    <tr><td>管道安装（合同额）</td><td>万元</td><td>&gt;1000</td><td>300～1000</td><td>&lt;300</td></tr>
+  </table>
+
+  <h4>🛤️ 公路工程</h4>
+  <table>
+    <tr><th>判断指标</th><th>单位</th><th>大型</th><th>中型</th><th>小型</th></tr>
+    <tr><td>高速公路（任意长度）</td><td>—</td><td>全部</td><td>—</td><td>—</td></tr>
+    <tr><td>桥梁（单跨）</td><td>米</td><td>≥50</td><td>13～50</td><td>&lt;13</td></tr>
+    <tr><td>隧道（长度）</td><td>米</td><td>≥1000</td><td>&lt;1000</td><td>—</td></tr>
+    <tr><td>单项工程合同额</td><td>万元</td><td>&gt;3000</td><td>500～3000</td><td>&lt;500</td></tr>
+  </table>
+
+  <h3>规模判断核心代码（<code>core/scale_engine.py</code>）</h3>
+  <pre><code>"""
+工程规模判断引擎
+输入：专业类型 + 项目各指标数值
+输出：'大型' | '中型' | '小型'
+规则：满足任一大型指标 → 大型；否则满足任一中型指标 → 中型；否则 → 小型
+"""
+
+SCALE_RULES = {
+    "房屋建筑": [
+        # (指标名, 单位, 大型阈值_min, 中型阈值_min)
+        ("层数",         "层",   25,      5),
+        ("高度",         "米",   100,     15),
+        ("单跨跨度",     "米",   30,      15),
+        ("单体建筑面积", "㎡",   30000,   3000),
+        ("总建筑面积",   "㎡",   100000,  3000),
+        ("合同额",       "万元", 3000,    300),
+    ],
+    "市政公用": [
+        ("道路长度",       "km",   5,    2),
+        ("桥梁单跨",       "米",   40,   20),
+        ("隧道内径",       "米",   5,    3),
+        ("供排水管径",     "mm",   1500, 800),
+        ("日处理量_水",    "万吨", 5,    3),
+        ("日处理量_垃圾",  "吨",   800,  400),
+        ("合同额",         "万元", 3000, 1000),
+    ],
+    "装饰装修": [
+        ("合同额",   "万元", 1000, 100),
+        ("幕墙高度", "米",   60,   None),  # None表示无中型
+        ("幕墙面积", "㎡",   6000, None),
+    ],
+    "机电安装": [
+        ("合同额",     "万元", 1500, 200),
+        ("空调面积",   "万㎡", 2,    1),
+        ("智能化合同", "万元", 500,  200),
+        ("管道合同",   "万元", 1000, 300),
+    ],
+    "公路工程": [
+        ("高速公路", "—",   1,    None),   # 1=是高速，直接大型
+        ("桥梁单跨", "米",  50,   13),
+        ("隧道长度", "米",  1000, None),
+        ("合同额",   "万元", 3000, 500),
+    ],
+}
+
+def judge_scale(specialty: str, indicators: dict) -> tuple[str, str]:
+    """
+    返回 (规模等级, 判断依据说明)
+    indicators: {'层数': 28, '合同额': 5000, ...}
+    """
+    rules = SCALE_RULES.get(specialty, [])
+    hit_large, hit_medium = [], []
+
+    for name, unit, large_min, medium_min in rules:
+        val = indicators.get(name)
+        if val is None:
+            continue
+        if val >= large_min:
+            hit_large.append(f"{name}={val}{unit}（≥{large_min}）")
+        elif medium_min and val >= medium_min:
+            hit_medium.append(f"{name}={val}{unit}（≥{medium_min}）")
+
+    if hit_large:
+        return "大型", "满足：" + "、".join(hit_large)
+    if hit_medium:
+        return "中型", "满足：" + "、".join(hit_medium)
+    return "小型", "所有指标均低于中型门槛"</code></pre>
+
+  <h3>完整性检查中的业绩规模校验（<code>core/checker.py</code>）</h3>
+  <pre><code>"""
+中级工程师 业绩要求校验（以设计/施工/监理/项目管理为例）
+"""
+def check_achievements_mid(achievements: list[dict]) -> dict:
+    large = [a for a in achievements if a['scale'] == '大型']
+    medium = [a for a in achievements if a['scale'] == '中型']
+    small  = [a for a in achievements if a['scale'] == '小型']
+
+    # 规则：2中型，或1中+2小，或4小（其中1-12条至少1条）
+    combos = [
+        (len(medium) >= 2,                    "已有中型项目 2 项 ✓"),
+        (len(medium) >= 1 and len(small) >= 2, "已有中型 1 项 + 小型 2 项 ✓"),
+        (len(small) >= 4,                      "已有小型项目 4 项 ✓"),
+    ]
+    passed = any(ok for ok, _ in combos)
+    reason = next((msg for ok, msg in combos if ok), None)
+
+    if not passed:
+        gap = f"当前：大型{len(large)}项、中型{len(medium)}项、小型{len(small)}项。" \
+              f"需补充至少：{_mid_gap(medium, small)}"
+        return {"pass": False, "msg": gap}
+    return {"pass": True, "msg": reason}
+
+
+def check_achievements_high(achievements: list[dict]) -> dict:
+    """
+    高级工程师 业绩要求（设计/施工/监理类）：
+    2大型，或 1大+2中，或 4中型
+    """
+    large  = [a for a in achievements if a['scale'] == '大型']
+    medium = [a for a in achievements if a['scale'] == '中型']
+
+    combos = [
+        (len(large) >= 2,                      "已有大型项目 2 项 ✓"),
+        (len(large) >= 1 and len(medium) >= 2, "已有大型 1 项 + 中型 2 项 ✓"),
+        (len(medium) >= 4,                     "已有中型项目 4 项 ✓"),
+    ]
+    passed = any(ok for ok, _ in combos)
+    reason = next((msg for ok, msg in combos if ok), None)
+
+    if not passed:
+        gap = f"当前：大型{len(large)}项、中型{len(medium)}项。" \
+              f"需补充：{_high_gap(large, medium)}"
+        return {"pass": False, "msg": gap}
+    return {"pass": True, "msg": reason}</code></pre>
+
+  <h3>业绩录入界面的联动设计</h3>
+  <table>
+    <tr><th>用户操作</th><th>系统响应</th></tr>
+    <tr>
+      <td>选择专业类别（下拉）</td>
+      <td>动态显示该专业对应的指标输入字段（如「房屋建筑」显示层数/高度/面积/合同额输入框）</td>
+    </tr>
+    <tr>
+      <td>填写任一指标数值</td>
+      <td>实时调用 <code>judge_scale()</code>，在表单右侧显示「🟢 大型」/「🟡 中型」/「🔴 小型」标签</td>
+    </tr>
+    <tr>
+      <td>保存业绩条目</td>
+      <td>将规模结果（scale 字段）一并存入数据库 achievements 表</td>
+    </tr>
+    <tr>
+      <td>点击「检查材料完整性」</td>
+      <td>读取所有业绩的 scale 字段，按职称级别调用对应 checker 函数，输出是否满足条件及缺口数量</td>
+    </tr>
+  </table>
+
+  <div class="callout callout-orange">
+    ⚠️ 注意：不同业绩类型（设计类、施工/监理类、造价类、咨询检测类）的规模要求数量不同。
+    系统需记录每条业绩的<strong>工作类型</strong>，分组统计后分别校验：<br/>
+    • 设计/施工/监理/项目管理：中级需 2中型以上；高级需 2大型 或 1大+2中 或 4中<br/>
+    • 咨询/检测/质量监督：中级需 5大中型(含1大型)；高级需 10大中型(含5大型)<br/>
+    • 工程造价/招投标：中级需 4中型以上 或 6小型；高级需 6大中型(含2大型) 或 10小型
+  </div>
 
   <hr />
 
