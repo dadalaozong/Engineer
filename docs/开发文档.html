@@ -233,6 +233,20 @@
       background: var(--orange-light);
     }
 
+    /* 代码块（内联 HTML 展示用） */
+    .code-block {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.7;
+      margin: 16px 0;
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+      white-space: pre;
+    }
+
     @media (max-width: 768px) {
       nav { display: none; }
       main { margin-left: 0; padding: 24px 20px; }
@@ -246,7 +260,7 @@
 <nav>
   <div class="logo">
     <h2>职称申报自动化系统</h2>
-    <p>开发文档 v1.0</p>
+    <p>开发文档 v2.0</p>
   </div>
   <ul>
     <li class="section">概览</li>
@@ -255,14 +269,17 @@
     <li><a href="#tech">技术选型</a></li>
 
     <li class="section">核心模块</li>
+    <li><a href="#mod-applicant">M0 · 申报人管理</a></li>
     <li><a href="#mod-project">M1 · 项目管理</a></li>
     <li><a href="#mod-folder">M2 · 目录生成</a></li>
-    <li><a href="#mod-docs">M3 · 材料管理</a></li>
-    <li><a href="#mod-check">M4 · 完整性检查</a></li>
-    <li><a href="#mod-auto">M5 · 自动填报</a></li>
+    <li><a href="#mod-ocr">M3 · OCR 识别</a></li>
+    <li><a href="#mod-docs">M4 · 材料管理</a></li>
+    <li><a href="#mod-check">M5 · 完整性检查</a></li>
+    <li><a href="#mod-auto">M6 · 自动填报</a></li>
 
     <li class="section">数据设计</li>
     <li><a href="#db">数据库表结构</a></li>
+    <li><a href="#encrypt">账号密码加密</a></li>
     <li><a href="#folder-spec">文件夹规范</a></li>
     <li><a href="#materials">材料清单规范</a></li>
 
@@ -289,7 +306,7 @@
 
   <!-- ─ 标题 ─ -->
   <h1>职称申报自动化系统</h1>
-  <p class="subtitle">广西住建行业职称申报 · 本地桌面工具 · 开发文档 v1.0（2026-06）</p>
+  <p class="subtitle">广西住建行业职称申报 · 本地桌面工具 · 开发文档 v2.0（2026-06）</p>
 
   <div class="callout callout-blue">
     本系统面向职称申报中介人员，实现「建档 → 归档 → 查漏 → 一键填报」全流程自动化。
@@ -377,8 +394,12 @@
 │<br>
 ├── <span class="dir">core/</span><br>
 │   ├── <span class="file">folder_builder.py</span> <span class="note"># 按职称级别生成本地文件夹结构</span><br>
-│   ├── <span class="file">checker.py</span>       <span class="note"># 完整性检查逻辑</span><br>
-│   └── <span class="file">title_rules.py</span>   <span class="note"># 各职称级别的材料规则配置</span><br>
+│   ├── <span class="file">ocr_reader.py</span>    <span class="note"># PaddleOCR 识别身份证/毕业证/职称证</span><br>
+│   ├── <span class="file">scale_engine.py</span>  <span class="note"># 工程规模判断引擎</span><br>
+│   ├── <span class="file">checker.py</span>       <span class="note"># 完整性检查逻辑（含规模校验）</span><br>
+│   ├── <span class="file">crypto.py</span>        <span class="note"># 申报网站密码加密/解密（Fernet）</span><br>
+│   ├── <span class="file">ai_writer.py</span>     <span class="note"># DeepSeek AI 辅助写作模块</span><br>
+│   └── <span class="file">title_rules.py</span>   <span class="note"># 各职称级别材料规则配置</span><br>
 │<br>
 └── <span class="dir">automation/</span><br>
     ├── <span class="file">browser.py</span>       <span class="note"># Playwright 浏览器封装（登录）</span><br>
@@ -392,8 +413,12 @@
     <tr><td>桌面 GUI</td><td><code>PyQt5</code></td><td>跨平台、控件丰富、支持文件树/表格/拖放</td></tr>
     <tr><td>数据库</td><td><code>SQLite</code>（内置）</td><td>无需安装，单文件，适合单机工具</td></tr>
     <tr><td>浏览器自动化</td><td><code>Playwright</code></td><td>支持现代 JS 渲染页面，比 Selenium 更稳定</td></tr>
+    <tr><td>OCR 识别</td><td><code>PaddleOCR</code></td><td>百度开源，中文准确率高，支持身份证/毕业证/证书识别，完全本地运行</td></tr>
+    <tr><td>密码加密</td><td><code>cryptography</code>（Fernet）</td><td>对称加密，申报网站密码本地加密存储，防止明文泄露</td></tr>
+    <tr><td>AI 写作</td><td><code>openai</code> SDK + DeepSeek API</td><td>DeepSeek 兼容 OpenAI 格式，中文效果好、价格低</td></tr>
+    <tr><td>Word 文档生成</td><td><code>python-docx</code></td><td>将 AI 生成的代表作说明书保存为 .docx</td></tr>
     <tr><td>Excel 导入/导出</td><td><code>openpyxl</code></td><td>读取申报人 Excel 批量导入</td></tr>
-    <tr><td>图片处理</td><td><code>Pillow</code></td><td>材料文件预览</td></tr>
+    <tr><td>图片处理</td><td><code>Pillow</code></td><td>材料文件预览、图片旋转处理</td></tr>
     <tr><td>PDF 预览</td><td><code>pymupdf (fitz)</code></td><td>在界面内预览 PDF 材料</td></tr>
     <tr><td>打包发布</td><td><code>PyInstaller</code></td><td>打包成 .exe，无需安装 Python</td></tr>
   </table>
@@ -401,6 +426,11 @@
   <pre><code># requirements.txt
 PyQt5>=5.15
 playwright>=1.40
+paddlepaddle>=2.6       # PaddleOCR 依赖
+paddleocr>=2.7
+cryptography>=42.0      # 密码加密
+openai>=1.0             # DeepSeek API（兼容 OpenAI 格式）
+python-docx>=1.1        # AI 生成内容导出为 Word
 openpyxl>=3.1
 Pillow>=10.0
 pymupdf>=1.23
@@ -409,6 +439,80 @@ PyInstaller>=6.0</code></pre>
   <hr />
 
   <!-- ══════════════ 核心模块 ══════════════ -->
+
+  <h2 id="mod-applicant">M0 · 申报人管理（客户档案）</h2>
+
+  <p>系统中「申报人」= 你的客户，每个客户是一条独立档案。系统本身是单机单用户软件（中介自用），不需要登录系统本身，不需要账号权限管理。</p>
+
+  <div class="callout callout-blue">
+    两种"账号"不要混淆：<br/>
+    ① <strong>系统操作者</strong>（你）：直接打开桌面程序，无需登录，无账号概念。<br/>
+    ② <strong>申报人账号</strong>（客户在 gxrczc.com 上的账号）：存在数据库里，供自动登录时调用。
+  </div>
+
+  <h3>新建申报人时需配置的参数</h3>
+  <table>
+    <tr><th>类别</th><th>字段</th><th>来源 / 填写方式</th><th>是否必填</th></tr>
+    <tr>
+      <td rowspan="9"><strong>基本信息</strong></td>
+      <td>姓名</td><td>手动填写 / OCR自动提取（身份证）</td><td>✅ 必填</td>
+    </tr>
+    <tr><td>身份证号</td><td>手动 / OCR</td><td>✅ 必填</td></tr>
+    <tr><td>性别</td><td>OCR自动判断</td><td>✅ 必填</td></tr>
+    <tr><td>出生日期</td><td>OCR自动提取</td><td>✅ 必填</td></tr>
+    <tr><td>民族</td><td>OCR自动提取</td><td>✅ 必填</td></tr>
+    <tr><td>联系电话</td><td>手动填写</td><td>✅ 必填</td></tr>
+    <tr><td>工作单位</td><td>手动填写</td><td>✅ 必填</td></tr>
+    <tr><td>单位类型</td><td>下拉选择（企业/事业/个体）</td><td>✅ 必填</td></tr>
+    <tr><td>参加工作年份</td><td>手动填写</td><td>✅ 必填</td></tr>
+    <tr>
+      <td rowspan="5"><strong>学历信息</strong></td>
+      <td>最高学历</td><td>下拉选择（博士/硕士/本科/大专/中专）</td><td>✅ 必填</td>
+    </tr>
+    <tr><td>毕业院校</td><td>手动 / OCR提取（毕业证）</td><td>✅ 必填</td></tr>
+    <tr><td>所学专业</td><td>手动 / OCR提取</td><td>✅ 必填</td></tr>
+    <tr><td>毕业年份</td><td>手动 / OCR提取</td><td>✅ 必填</td></tr>
+    <tr><td>学位</td><td>下拉选择（无/学士/硕士/博士）</td><td>○ 可选</td></tr>
+    <tr>
+      <td rowspan="3"><strong>现有职称</strong></td>
+      <td>现有职称名称</td><td>手动 / OCR提取（职称证书）</td><td>✅ 必填</td>
+    </tr>
+    <tr><td>取得年份</td><td>手动 / OCR</td><td>✅ 必填</td></tr>
+    <tr><td>发证机构</td><td>手动 / OCR</td><td>○ 可选</td></tr>
+    <tr>
+      <td rowspan="3"><strong>申报网站账号</strong></td>
+      <td>gxrczc.com 用户名</td><td>手动填写（客户提供）</td><td>✅ 必填（用于自动填报）</td>
+    </tr>
+    <tr><td>gxrczc.com 密码</td><td>手动填写，<strong>本地加密存储</strong></td><td>✅ 必填</td></tr>
+    <tr><td>账号验证状态</td><td>系统自动检测（首次登录后标记）</td><td>自动</td></tr>
+    <tr>
+      <td rowspan="2"><strong>本次申报配置</strong></td>
+      <td>申报职称级别</td><td>下拉选择（工程师/高级工程师/正高级…）</td><td>✅ 必填</td>
+    </tr>
+    <tr><td>申报专业方向</td><td>下拉选择（建筑工程/市政工程/给排水…）</td><td>✅ 必填</td></tr>
+    <tr>
+      <td><strong>材料存储</strong></td>
+      <td>本地文件夹根路径</td><td>弹出目录选择框，系统自动在此路径下创建标准文件夹结构</td><td>✅ 必填</td>
+    </tr>
+    <tr>
+      <td><strong>AI 写作</strong></td>
+      <td>是否启用 AI 辅助写作</td><td>开关，默认继承全局 DeepSeek API Key 设置</td><td>○ 可选</td>
+    </tr>
+  </table>
+
+  <h3>申报人列表界面功能</h3>
+  <table>
+    <tr><th>操作</th><th>说明</th></tr>
+    <tr><td>新建申报人</td><td>弹出向导（4步骤），填完后自动建文件夹</td></tr>
+    <tr><td>编辑申报人</td><td>可随时修改任何字段，账号密码单独修改</td></tr>
+    <tr><td>复制申报人</td><td>同一人下一年再申报时，复制基本信息，新建申报项目</td></tr>
+    <tr><td>删除申报人</td><td>二次确认，可选是否同时删除本地文件夹</td></tr>
+    <tr><td>验证账号</td><td>自动试登录 gxrczc.com，确认账号密码有效</td></tr>
+    <tr><td>打开文件夹</td><td>在资源管理器中打开该申报人的材料目录</td></tr>
+    <tr><td>导出客户清单</td><td>导出当前申报人材料需求清单（PDF），发给客户</td></tr>
+  </table>
+
+  <hr />
 
   <h2 id="mod-project">M1 · 项目管理</h2>
   <p>每个「申报项目」对应一个申报人的一次职称申报，是系统的核心数据单元。</p>
@@ -491,8 +595,123 @@ PyInstaller>=6.0</code></pre>
     <tr><td>08_标准规范</td><td>-</td><td>-</td><td>可选</td><td>可选</td><td>可选</td></tr>
   </table>
 
+  <!-- ─ OCR 识别 ─ -->
+  <h2 id="mod-ocr">M3 · OCR 证件识别</h2>
+
+  <p>系统使用 <strong>PaddleOCR</strong>（百度开源，本地运行，不联网）自动识别申报人证件图片，提取关键字段，减少手工录入工作量。</p>
+
+  <div class="callout callout-orange">
+    ⚠️ OCR 为辅助手段，识别结果须人工核对确认后才写入数据库。置信度 &lt; 85% 的字段高亮为黄色，提示重点检查。
+  </div>
+
+  <h3>支持识别的证件类型</h3>
+  <table>
+    <tr><th>证件类型</th><th>可提取字段</th><th>备注</th></tr>
+    <tr>
+      <td>🪪 身份证（正面）</td>
+      <td>姓名、性别、民族、出生日期、身份证号、住址</td>
+      <td>PaddleOCR 内置身份证模型，准确率 &gt;95%</td>
+    </tr>
+    <tr>
+      <td>🎓 毕业证书</td>
+      <td>姓名、院校、专业、学历层次、毕业年份、证书编号</td>
+      <td>通用文字识别，关键字段用正则匹配提取</td>
+    </tr>
+    <tr>
+      <td>📜 职称证书</td>
+      <td>姓名、职称名称、专业、级别、发证年份、发证机构</td>
+      <td>通用文字识别</td>
+    </tr>
+    <tr>
+      <td>🏢 学位证书</td>
+      <td>姓名、学位类型、授予院校、授予年份</td>
+      <td>通用文字识别</td>
+    </tr>
+  </table>
+
+  <h3>OCR 工作流程</h3>
+  <div class="flow">
+    <div class="flow-step">用户上传图片/PDF</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">PaddleOCR 识别<br/>（本地运行）</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">正则提取<br/>结构化字段</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">界面展示结果<br/>低信度字段标黄</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">人工确认 / 修改</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">写入数据库</div>
+  </div>
+
+  <h3>核心代码（<code>core/ocr_reader.py</code>）</h3>
+  <pre><code>from paddleocr import PaddleOCR
+import re
+
+ocr = PaddleOCR(use_angle_cls=True, lang="ch", show_log=False)
+
+def read_id_card(image_path: str) -> dict:
+    """识别身份证正面，返回结构化字段 + 置信度"""
+    result = ocr.ocr(image_path, cls=True)
+    texts = [(line[1][0], line[1][1]) for line in result[0]]  # (text, confidence)
+
+    fields = {}
+    for text, conf in texts:
+        if re.search(r"姓\s*名", text):
+            next_text = _next_value(texts, text)
+            fields["name"] = {"value": next_text, "conf": conf}
+        elif re.search(r"公民身份号码|身份证号", text):
+            id_match = re.search(r"\d{17}[\dX]", text)
+            if id_match:
+                fields["id_number"] = {"value": id_match.group(), "conf": conf}
+        elif re.search(r"出生", text):
+            date_match = re.search(r"(\d{4})年(\d{1,2})月(\d{1,2})日", text)
+            if date_match:
+                fields["birth_date"] = {"value": f"{date_match.group(1)}-{date_match.group(2):0>2}-{date_match.group(3):0>2}", "conf": conf}
+        elif re.search(r"民族", text):
+            fields["ethnicity"] = {"value": text.replace("民族", "").strip(), "conf": conf}
+        elif re.search(r"性别", text):
+            gender = "男" if "男" in text else "女" if "女" in text else ""
+            fields["gender"] = {"value": gender, "conf": conf}
+    return fields
+
+def read_diploma(image_path: str) -> dict:
+    """识别毕业证，返回姓名、院校、专业、学历、年份"""
+    result = ocr.ocr(image_path, cls=True)
+    full_text = " ".join([line[1][0] for line in result[0]])
+    fields = {}
+
+    # 院校
+    school = re.search(r"([一-龥]+(?:大学|学院|学校))", full_text)
+    if school:
+        fields["school"] = {"value": school.group(1), "conf": 0.9}
+
+    # 学历层次
+    for edu in ["博士研究生", "硕士研究生", "本科", "专科", "中专"]:
+        if edu in full_text:
+            fields["education"] = {"value": edu.replace("研究生",""), "conf": 0.95}
+            break
+
+    # 毕业年份
+    year = re.search(r"(\d{4})\s*年", full_text)
+    if year:
+        fields["graduation_year"] = {"value": year.group(1), "conf": 0.9}
+
+    return fields</code></pre>
+
+  <h3>置信度颜色规则</h3>
+  <table>
+    <tr><th>置信度</th><th>界面显示</th><th>含义</th></tr>
+    <tr><td>≥ 90%</td><td><span style="color:#16a34a;font-weight:700">🟢 绿色</span></td><td>识别可靠，可直接确认</td></tr>
+    <tr><td>85%～90%</td><td><span style="color:#2563eb;font-weight:700">🔵 蓝色</span></td><td>识别较好，建议核对</td></tr>
+    <tr><td>&lt; 85%</td><td><span style="color:#ea580c;font-weight:700">🟡 黄色高亮</span></td><td>识别不确定，<strong>必须人工核对</strong></td></tr>
+    <tr><td>未识别到</td><td><span style="color:#dc2626;font-weight:700">🔴 红色空值</span></td><td>未提取到，需手动填写</td></tr>
+  </table>
+
+  <hr />
+
   <!-- ─ 材料管理 ─ -->
-  <h2 id="mod-docs">M3 · 材料管理</h2>
+  <h2 id="mod-docs">M4 · 材料管理</h2>
 
   <p>在 GUI 界面中展示当前申报项目的文件夹树，支持以下操作：</p>
   <ul style="margin:10px 0 16px 20px; line-height:2; color:var(--text-sub); font-size:14px;">
@@ -504,7 +723,7 @@ PyInstaller>=6.0</code></pre>
   </ul>
 
   <!-- ─ 完整性检查 ─ -->
-  <h2 id="mod-check">M4 · 完整性检查</h2>
+  <h2 id="mod-check">M5 · 完整性检查</h2>
 
   <p>点击「检查材料完整性」，系统逐条扫描文件夹并输出报告。</p>
 
@@ -541,7 +760,7 @@ PyInstaller>=6.0</code></pre>
 ❌ 未通过：4 项需处理后才可提交申报</code></pre>
 
   <!-- ─ 自动填报 ─ -->
-  <h2 id="mod-auto">M5 · 自动填报</h2>
+  <h2 id="mod-auto">M6 · 自动填报</h2>
 
   <p>点击「启动网上填报」后，系统自动打开浏览器，完成从登录到提交的全流程。</p>
 
@@ -690,6 +909,53 @@ PyInstaller>=6.0</code></pre>
     <tr><td>publish_date</td><td>DATE</td><td>发表/出版日期</td></tr>
     <tr><td>cn_issn</td><td>TEXT</td><td>CN号或ISSN号</td></tr>
     <tr><td>isbn</td><td>TEXT</td><td>ISBN号（著作）</td></tr>
+  </table>
+
+  <hr />
+
+  <!-- ══════════════ 账号密码加密存储 ══════════════ -->
+  <h2 id="encrypt">账号密码加密存储</h2>
+
+  <p>申报人在 gxrczc.com 的登录密码属于敏感信息，<strong>不能明文存储在 SQLite 数据库中</strong>。
+  使用 Python <code>cryptography</code> 库的 Fernet 对称加密方案，加密密钥存储在系统本地，与数据库文件分开保存。</p>
+
+  <div class="callout callout-blue">
+    <strong>安全原则：</strong>密钥文件（<code>~/.zcsbxt/secret.key</code>）与数据库文件（<code>~/.zcsbxt/data.db</code>）分开存放。
+    即使数据库被复制走，没有密钥文件也无法解密密码。
+  </div>
+
+  <h3>加密方案代码（<code>core/crypto.py</code>）</h3>
+  <pre><code>from cryptography.fernet import Fernet
+from pathlib import Path
+
+KEY_PATH = Path.home() / ".zcsbxt" / "secret.key"
+
+def get_or_create_key() -> bytes:
+    """获取或初始化加密密钥（首次运行自动生成）"""
+    if KEY_PATH.exists():
+        return KEY_PATH.read_bytes()
+    KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    key = Fernet.generate_key()
+    KEY_PATH.write_bytes(key)
+    return key
+
+_fernet = Fernet(get_or_create_key())
+
+def encrypt_password(plain_text: str) -> str:
+    """加密密码，返回可存入数据库的字符串"""
+    return _fernet.encrypt(plain_text.encode()).decode()
+
+def decrypt_password(cipher_text: str) -> str:
+    """解密密码，返回明文（仅在登录时调用）"""
+    return _fernet.decrypt(cipher_text.encode()).decode()</code></pre>
+
+  <h3>使用方式</h3>
+  <table>
+    <tr><th>场景</th><th>操作</th></tr>
+    <tr><td>新建/修改申报人密码</td><td>调用 <code>encrypt_password()</code>，将密文存入 <code>applicants.login_password</code></td></tr>
+    <tr><td>启动自动填报前</td><td>调用 <code>decrypt_password()</code> 取出明文，传给 Playwright 登录函数</td></tr>
+    <tr><td>界面展示</td><td>密码框始终显示 <code>••••••</code>，不在界面任何位置显示明文</td></tr>
+    <tr><td>数据库备份</td><td>如需迁移，需同时复制 <code>secret.key</code> 文件，否则密码无法解密</td></tr>
   </table>
 
   <hr />
@@ -1264,53 +1530,67 @@ PROMPT_SUMMARY = """
   <h2 id="roadmap">开发计划</h2>
 
   <table class="status-table">
-    <tr><th>阶段</th><th>内容</th><th>预计工时</th><th>状态</th></tr>
+    <tr><th>阶段</th><th>内容</th><th>涉及模块</th><th>预计工时</th><th>状态</th></tr>
     <tr>
       <td>第一阶段</td>
-      <td>数据库设计 + 申报人基本信息录入界面 + 项目列表</td>
-      <td>1天</td>
-      <td class="todo">开发中</td>
+      <td>数据库初始化 + 申报人管理界面（新建/编辑/列表）+ 账号密码加密存储</td>
+      <td>M0 · 申报人管理</td>
+      <td>1.5天</td>
+      <td class="todo">待开始</td>
     </tr>
     <tr>
       <td>第二阶段</td>
-      <td>文件夹自动生成 + 材料管理界面（文件树）</td>
+      <td>OCR 证件识别（身份证 / 毕业证 / 职称证）+ 新建向导集成 OCR 快速填入</td>
+      <td>M3 · OCR 识别</td>
       <td>1天</td>
       <td class="later">待开始</td>
     </tr>
     <tr>
       <td>第三阶段</td>
-      <td>工程业绩 / 获奖 / 论文录入表单</td>
+      <td>项目列表主界面 + 文件夹自动生成 + 材料管理文件树</td>
+      <td>M1 · M2 · M4</td>
       <td>1天</td>
       <td class="later">待开始</td>
     </tr>
     <tr>
       <td>第四阶段</td>
-      <td>完整性检查模块</td>
-      <td>0.5天</td>
-      <td class="later">待开始</td>
-    </tr>
-    <tr>
-      <td>第五阶段</td>
-      <td>Playwright 登录 + 基本信息自动填报</td>
+      <td>工程业绩录入（含实时规模判断）/ 获奖 / 论文 录入表单</td>
+      <td>规模引擎</td>
       <td>1天</td>
       <td class="later">待开始</td>
     </tr>
     <tr>
+      <td>第五阶段</td>
+      <td>完整性检查模块（按职称级别校验文件夹 + 数据库录入）</td>
+      <td>M5 · 完整性检查</td>
+      <td>0.5天</td>
+      <td class="later">待开始</td>
+    </tr>
+    <tr>
       <td>第六阶段</td>
-      <td>业绩 / 获奖 / 论文自动填报 + 文件上传</td>
-      <td>1-2天</td>
+      <td>DeepSeek AI 辅助写作（代表作 / 业绩描述 / 工作总结）+ 导出 Word</td>
+      <td>AI 写作模块</td>
+      <td>1天</td>
       <td class="later">待开始</td>
     </tr>
     <tr>
       <td>第七阶段</td>
-      <td>联调测试 + 打包 .exe</td>
-      <td>0.5天</td>
+      <td>Playwright 登录 + 基本信息 + 业绩 / 获奖 / 论文自动填报 + 文件上传</td>
+      <td>M6 · 自动填报</td>
+      <td>2天</td>
+      <td class="later">待开始</td>
+    </tr>
+    <tr>
+      <td>第八阶段</td>
+      <td>联调测试 + 异常处理完善 + PyInstaller 打包 .exe</td>
+      <td>全模块</td>
+      <td>1天</td>
       <td class="later">待开始</td>
     </tr>
   </table>
 
   <div class="callout callout-blue">
-    💡 开发顺序：数据库 → GUI → 文件管理 → 完整性检查 → 自动填报。每个阶段完成后可独立使用，不需要等全部完成。
+    💡 每个阶段完成后即可独立使用对应功能，不必等全部完成。建议顺序：先把数据录得进去（阶段1-4），再查漏（阶段5），再用 AI 写材料（阶段6），最后再做自动填报（阶段7）。
   </div>
 
   <!-- ─ 运行说明 ─ -->
@@ -1337,7 +1617,7 @@ python -m playwright install chromium</code></pre>
   <hr />
 
   <p style="text-align:center; color:var(--gray); font-size:13px; margin-top:32px;">
-    职称申报自动化系统 · 开发文档 v1.0 · 2026-06 · 广西住建行业职称申报专用
+    职称申报自动化系统 · 开发文档 v2.0 · 2026-06 · 广西住建行业职称申报专用
   </p>
 
 </main>
