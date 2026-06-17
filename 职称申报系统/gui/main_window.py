@@ -19,6 +19,7 @@ from gui.pages.checker import CheckerPage
 from gui.pages.ai_writer_page import AIWriterPage
 from gui.pages.img_proc_page import ImgProcPage
 from gui.pages.settings_page import SettingsPage
+from gui.pages.auto_fill_page import AutoFillPage
 from gui.pages.placeholder import PlaceholderPage
 
 # Nav definition: (group_label, [(icon, label, page_key), ...])
@@ -44,6 +45,9 @@ NAV_STRUCTURE = [
         ("✨", "AI 写作",      "ai_writer"),
         ("🖼", "图像处理",     "img_proc"),
     ]),
+    ("自动填报", [
+        ("🤖", "自动填报",     "auto_fill"),
+    ]),
     ("系统", [
         ("⚙️",  "系统设置",    "settings"),
     ]),
@@ -61,6 +65,7 @@ PAGE_TITLES = {
     "docs":          "材料目录管理",
     "ocr":           "OCR 证件识别",
     "ai_writer":     "AI 辅助写作",
+    "auto_fill":     "自动填报",
     "img_proc":      "图像处理",
     "settings":      "系统设置",
 }
@@ -218,6 +223,8 @@ class MainWindow(QMainWindow):
             page = AIWriterPage()
         elif key == "img_proc":
             page = ImgProcPage()
+        elif key == "auto_fill":
+            page = AutoFillPage()
         elif key == "settings":
             page = SettingsPage()
         else:
