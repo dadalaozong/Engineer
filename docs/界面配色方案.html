@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>职称申报系统 — 界面配色方案</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f0f2f5; }
+
+/* ===== HOME PAGE ===== */
+#home { min-height: 100vh; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 48px 24px; }
+#home h1 { color: #f8fafc; font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+#home p { color: #94a3b8; font-size: 14px; margin-bottom: 40px; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; max-width: 1400px; width: 100%; }
+.scheme-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; overflow: hidden; cursor: pointer; transition: transform .2s, box-shadow .2s; }
+.scheme-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.4); }
+.card-preview { height: 160px; position: relative; display: flex; overflow: hidden; }
+.preview-sidebar { width: 56px; height: 100%; display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 8px; }
+.preview-dot { width: 8px; height: 8px; border-radius: 50%; opacity: .7; }
+.preview-line { width: 32px; height: 4px; border-radius: 2px; opacity: .4; background: #fff; }
+.preview-main { flex: 1; display: flex; flex-direction: column; }
+.preview-topbar { height: 28px; display: flex; align-items: center; padding: 0 10px; gap: 6px; }
+.preview-tag { height: 12px; border-radius: 3px; opacity: .7; }
+.preview-content { flex: 1; padding: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; align-content: start; }
+.preview-widget { border-radius: 4px; height: 28px; opacity: .5; }
+.preview-table { grid-column: 1/-1; height: 40px; border-radius: 4px; opacity: .35; background: rgba(255,255,255,.2); }
+.card-info { padding: 16px; }
+.card-info h3 { color: #f1f5f9; font-size: 15px; margin-bottom: 4px; }
+.card-info p { color: #64748b; font-size: 12px; line-height: 1.5; }
+.card-badge { display: inline-block; margin-top: 8px; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+
+/* ===== LAYOUT SHARED ===== */
+.layout { display: none; height: 100vh; overflow: hidden; }
+.layout.active { display: flex; }
+
+/* topbar back button */
+.back-btn { position: fixed; top: 12px; left: 12px; z-index: 999; background: rgba(0,0,0,.5); color: #fff; border: none; border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 13px; }
+.back-btn:hover { background: rgba(0,0,0,.7); }
+
+/* sidebar shared */
+.sidebar { width: 220px; min-width: 220px; height: 100vh; display: flex; flex-direction: column; overflow-y: auto; }
+.sidebar-logo { padding: 20px 16px 14px; font-size: 15px; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,.08); display: flex; align-items: center; gap: 8px; }
+.sidebar-logo span { font-size: 20px; }
+.nav-group { padding: 16px 0 4px; }
+.nav-label { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; padding: 0 16px 6px; opacity: .5; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; font-size: 13px; cursor: pointer; border-radius: 6px; margin: 1px 8px; transition: background .15s; }
+.nav-item .ico { font-size: 15px; width: 18px; text-align: center; }
+.nav-item.active { font-weight: 600; }
+
+/* main area */
+.main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { height: 54px; min-height: 54px; display: flex; align-items: center; padding: 0 20px; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,.08); }
+.topbar-title { font-size: 16px; font-weight: 600; }
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
+.btn { padding: 7px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 500; }
+.content { flex: 1; overflow-y: auto; padding: 20px; }
+
+/* stat cards */
+.stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+.stat-card { border-radius: 8px; padding: 16px; }
+.stat-label { font-size: 12px; opacity: .7; margin-bottom: 6px; }
+.stat-num { font-size: 26px; font-weight: 700; }
+.stat-sub { font-size: 11px; opacity: .6; margin-top: 3px; }
+
+/* deadline row */
+.deadline-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+.dl-card { border-radius: 8px; padding: 14px 16px; }
+.dl-committee { font-size: 12px; opacity: .75; margin-bottom: 4px; }
+.dl-name { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.dl-badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+
+/* table */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; border-bottom: 2px solid rgba(0,0,0,.1); }
+.data-table td { padding: 10px 12px; border-bottom: 1px solid rgba(0,0,0,.06); }
+.status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.table-card { border-radius: 8px; overflow: hidden; }
+.table-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid rgba(0,0,0,.06); }
+.table-title { font-size: 14px; font-weight: 600; }
+
+
+/* =================== SCHEME 1: AdminLTE =================== */
+#s1 .sidebar { background: #343a40; }
+#s1 .sidebar-logo { color: #fff; background: #2c3136; }
+#s1 .nav-label { color: #adb5bd; }
+#s1 .nav-item { color: #c2c7d0; }
+#s1 .nav-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+#s1 .nav-item.active { background: #007bff; color: #fff; }
+#s1 .main-area { background: #f4f6f9; }
+#s1 .topbar { background: #fff; color: #343a40; }
+#s1 .content { }
+#s1 .stat-card { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.12); color: #343a40; border-left: 4px solid; }
+#s1 .stat-card:nth-child(1) { border-color: #007bff; }
+#s1 .stat-card:nth-child(2) { border-color: #28a745; }
+#s1 .stat-card:nth-child(3) { border-color: #ffc107; }
+#s1 .stat-card:nth-child(4) { border-color: #dc3545; }
+#s1 .dl-card { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); color: #343a40; }
+#s1 .dl-badge.green { background: #d4edda; color: #155724; }
+#s1 .dl-badge.orange { background: #fff3cd; color: #856404; }
+#s1 .dl-badge.red { background: #f8d7da; color: #721c24; }
+#s1 .table-card { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+#s1 .table-title { color: #343a40; }
+#s1 .data-table th { color: #6c757d; background: #f8f9fa; }
+#s1 .data-table td { color: #343a40; }
+#s1 .status-badge.paid { background: #d4edda; color: #155724; }
+#s1 .status-badge.partial { background: #fff3cd; color: #856404; }
+#s1 .status-badge.unpaid { background: #f8d7da; color: #721c24; }
+#s1 .btn-primary { background: #007bff; color: #fff; }
+#s1 .btn-outline { background: transparent; border: 1px solid #dee2e6; color: #6c757d; }
+#s1 .topbar-title { color: #343a40; }
+#s1 .topbar-actions .user-tag { color: #6c757d; font-size: 13px; }
+
+/* =================== SCHEME 2: 深海蓝 Ocean =================== */
+#s2 .sidebar { background: #0a1628; }
+#s2 .sidebar-logo { color: #e0f2fe; background: rgba(0,0,0,.3); }
+#s2 .nav-label { color: #38bdf8; }
+#s2 .nav-item { color: #94a3b8; }
+#s2 .nav-item:hover { background: rgba(56,189,248,.1); color: #e0f2fe; }
+#s2 .nav-item.active { background: linear-gradient(90deg,rgba(6,182,212,.25),transparent); color: #22d3ee; border-left: 3px solid #22d3ee; }
+#s2 .main-area { background: #0f172a; }
+#s2 .topbar { background: #0d2240; color: #e0f2fe; border-bottom-color: rgba(56,189,248,.15); }
+#s2 .content { }
+#s2 .stat-card { background: linear-gradient(135deg,#0d2240,#0a1628); border: 1px solid rgba(56,189,248,.15); color: #e2e8f0; }
+#s2 .stat-num { color: #22d3ee; }
+#s2 .dl-card { background: #0d2240; border: 1px solid rgba(56,189,248,.15); color: #e2e8f0; }
+#s2 .dl-badge.green { background: rgba(16,185,129,.2); color: #6ee7b7; }
+#s2 .dl-badge.orange { background: rgba(245,158,11,.2); color: #fcd34d; }
+#s2 .dl-badge.red { background: rgba(239,68,68,.2); color: #fca5a5; }
+#s2 .table-card { background: #0d2240; border: 1px solid rgba(56,189,248,.12); }
+#s2 .table-title { color: #e0f2fe; }
+#s2 .data-table th { color: #38bdf8; background: rgba(56,189,248,.05); }
+#s2 .data-table td { color: #cbd5e1; border-bottom-color: rgba(56,189,248,.08); }
+#s2 .status-badge.paid { background: rgba(16,185,129,.2); color: #34d399; }
+#s2 .status-badge.partial { background: rgba(245,158,11,.2); color: #fbbf24; }
+#s2 .status-badge.unpaid { background: rgba(239,68,68,.2); color: #f87171; }
+#s2 .btn-primary { background: #0ea5e9; color: #fff; }
+#s2 .btn-outline { background: transparent; border: 1px solid rgba(56,189,248,.3); color: #38bdf8; }
+#s2 .topbar-title { color: #e0f2fe; }
+
+/* =================== SCHEME 3: 墨绿专业 Forest =================== */
+#s3 .sidebar { background: #0d2116; }
+#s3 .sidebar-logo { color: #d1fae5; background: rgba(0,0,0,.2); }
+#s3 .nav-label { color: #6ee7b7; }
+#s3 .nav-item { color: #a7f3d0; }
+#s3 .nav-item:hover { background: rgba(110,231,183,.1); color: #d1fae5; }
+#s3 .nav-item.active { background: rgba(16,185,129,.2); color: #34d399; border-left: 3px solid #10b981; }
+#s3 .main-area { background: #f0fdf4; }
+#s3 .topbar { background: #fff; color: #14532d; border-bottom-color: #bbf7d0; }
+#s3 .stat-card { background: #fff; border: 1px solid #bbf7d0; color: #14532d; }
+#s3 .stat-num { color: #059669; }
+#s3 .dl-card { background: #fff; border: 1px solid #bbf7d0; color: #14532d; }
+#s3 .dl-badge.green { background: #d1fae5; color: #065f46; }
+#s3 .dl-badge.orange { background: #fef3c7; color: #92400e; }
+#s3 .dl-badge.red { background: #fee2e2; color: #991b1b; }
+#s3 .table-card { background: #fff; border: 1px solid #bbf7d0; }
+#s3 .table-title { color: #14532d; }
+#s3 .data-table th { color: #059669; background: #f0fdf4; }
+#s3 .data-table td { color: #166534; border-bottom-color: #dcfce7; }
+#s3 .status-badge.paid { background: #d1fae5; color: #065f46; }
+#s3 .status-badge.partial { background: #fef3c7; color: #92400e; }
+#s3 .status-badge.unpaid { background: #fee2e2; color: #991b1b; }
+#s3 .btn-primary { background: #059669; color: #fff; }
+#s3 .btn-outline { background: transparent; border: 1px solid #6ee7b7; color: #059669; }
+#s3 .topbar-title { color: #14532d; }
+
+/* =================== SCHEME 4: 暖棕商务 Warm Business =================== */
+#s4 .sidebar { background: #1c1007; }
+#s4 .sidebar-logo { color: #fef3c7; background: rgba(0,0,0,.25); }
+#s4 .nav-label { color: #fbbf24; }
+#s4 .nav-item { color: #d97706; }
+#s4 .nav-item:hover { background: rgba(251,191,36,.1); color: #fef3c7; }
+#s4 .nav-item.active { background: rgba(245,158,11,.2); color: #fbbf24; border-left: 3px solid #f59e0b; }
+#s4 .main-area { background: #fffbeb; }
+#s4 .topbar { background: #fff; color: #78350f; border-bottom-color: #fde68a; }
+#s4 .stat-card { background: #fff; border: 1px solid #fde68a; color: #78350f; }
+#s4 .stat-num { color: #d97706; }
+#s4 .dl-card { background: #fff; border: 1px solid #fde68a; color: #78350f; }
+#s4 .dl-badge.green { background: #d1fae5; color: #065f46; }
+#s4 .dl-badge.orange { background: #fef3c7; color: #92400e; }
+#s4 .dl-badge.red { background: #fee2e2; color: #991b1b; }
+#s4 .table-card { background: #fff; border: 1px solid #fde68a; }
+#s4 .table-title { color: #78350f; }
+#s4 .data-table th { color: #d97706; background: #fffbeb; }
+#s4 .data-table td { color: #92400e; border-bottom-color: #fef3c7; }
+#s4 .status-badge.paid { background: #d1fae5; color: #065f46; }
+#s4 .status-badge.partial { background: #fef3c7; color: #92400e; }
+#s4 .status-badge.unpaid { background: #fee2e2; color: #991b1b; }
+#s4 .btn-primary { background: #f59e0b; color: #fff; }
+#s4 .btn-outline { background: transparent; border: 1px solid #fde68a; color: #d97706; }
+#s4 .topbar-title { color: #78350f; }
+
+/* =================== SCHEME 5: 紫夜 Purple Night =================== */
+#s5 .sidebar { background: #130a2e; }
+#s5 .sidebar-logo { color: #f3e8ff; background: rgba(0,0,0,.3); }
+#s5 .nav-label { color: #c084fc; }
+#s5 .nav-item { color: #a78bfa; }
+#s5 .nav-item:hover { background: rgba(192,132,252,.1); color: #f3e8ff; }
+#s5 .nav-item.active { background: rgba(168,85,247,.2); color: #d946ef; border-left: 3px solid #a855f7; }
+#s5 .main-area { background: #0f0720; }
+#s5 .topbar { background: #1e0d40; color: #f3e8ff; border-bottom-color: rgba(168,85,247,.2); }
+#s5 .stat-card { background: linear-gradient(135deg,#1e0d40,#130a2e); border: 1px solid rgba(168,85,247,.2); color: #e9d5ff; }
+#s5 .stat-num { color: #c084fc; }
+#s5 .dl-card { background: #1e0d40; border: 1px solid rgba(168,85,247,.2); color: #e9d5ff; }
+#s5 .dl-badge.green { background: rgba(16,185,129,.2); color: #6ee7b7; }
+#s5 .dl-badge.orange { background: rgba(245,158,11,.2); color: #fcd34d; }
+#s5 .dl-badge.red { background: rgba(239,68,68,.2); color: #fca5a5; }
+#s5 .table-card { background: #1e0d40; border: 1px solid rgba(168,85,247,.15); }
+#s5 .table-title { color: #f3e8ff; }
+#s5 .data-table th { color: #c084fc; background: rgba(168,85,247,.05); }
+#s5 .data-table td { color: #d8b4fe; border-bottom-color: rgba(168,85,247,.1); }
+#s5 .status-badge.paid { background: rgba(16,185,129,.2); color: #34d399; }
+#s5 .status-badge.partial { background: rgba(245,158,11,.2); color: #fbbf24; }
+#s5 .status-badge.unpaid { background: rgba(239,68,68,.2); color: #f87171; }
+#s5 .btn-primary { background: #a855f7; color: #fff; }
+#s5 .btn-outline { background: transparent; border: 1px solid rgba(168,85,247,.4); color: #c084fc; }
+#s5 .topbar-title { color: #f3e8ff; }
+
+/* =================== SCHEME 6: 石板灰 Slate Pro =================== */
+#s6 .sidebar { background: #1e293b; }
+#s6 .sidebar-logo { color: #f1f5f9; background: rgba(0,0,0,.2); }
+#s6 .nav-label { color: #64748b; }
+#s6 .nav-item { color: #94a3b8; }
+#s6 .nav-item:hover { background: rgba(255,255,255,.06); color: #f1f5f9; }
+#s6 .nav-item.active { background: rgba(37,99,235,.25); color: #60a5fa; border-left: 3px solid #2563eb; }
+#s6 .main-area { background: #f8fafc; }
+#s6 .topbar { background: #fff; color: #1e293b; border-bottom-color: #e2e8f0; }
+#s6 .stat-card { background: #fff; border: 1px solid #e2e8f0; color: #1e293b; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+#s6 .stat-num { color: #2563eb; }
+#s6 .dl-card { background: #fff; border: 1px solid #e2e8f0; color: #1e293b; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+#s6 .dl-badge.green { background: #dcfce7; color: #166534; }
+#s6 .dl-badge.orange { background: #fef9c3; color: #854d0e; }
+#s6 .dl-badge.red { background: #fee2e2; color: #991b1b; }
+#s6 .table-card { background: #fff; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+#s6 .table-title { color: #1e293b; }
+#s6 .data-table th { color: #64748b; background: #f8fafc; }
+#s6 .data-table td { color: #334155; border-bottom-color: #f1f5f9; }
+#s6 .status-badge.paid { background: #dcfce7; color: #166534; }
+#s6 .status-badge.partial { background: #fef9c3; color: #854d0e; }
+#s6 .status-badge.unpaid { background: #fee2e2; color: #991b1b; }
+#s6 .btn-primary { background: #2563eb; color: #fff; }
+#s6 .btn-outline { background: transparent; border: 1px solid #e2e8f0; color: #64748b; }
+#s6 .topbar-title { color: #1e293b; }
+</style>
+</head>
+<body>
+
+<!-- ===== HOME ===== -->
+<div id="home">
+  <h1>职称申报系统 — 界面配色方案</h1>
+  <p>深色侧边栏布局 · 6 种配色风格 · 点击预览完整界面</p>
+  <div class="card-grid">
+
+    <!-- Card 1 AdminLTE -->
+    <div class="scheme-card" onclick="show('s1')">
+      <div class="card-preview" style="background:#f4f6f9;">
+        <div class="preview-sidebar" style="background:#343a40;">
+          <div class="preview-dot" style="background:#007bff;"></div>
+          <div class="preview-line"></div><div class="preview-line"></div><div class="preview-line"></div>
+        </div>
+        <div class="preview-main">
+          <div class="preview-topbar" style="background:#fff; border-bottom:1px solid #dee2e6;">
+            <div class="preview-tag" style="background:#007bff;width:40px;"></div>
+            <div class="preview-tag" style="background:#6c757d;width:24px;margin-left:auto;"></div>
+          </div>
+          <div class="preview-content">
+            <div class="preview-widget" style="background:#fff;border-left:3px solid #007bff;"></div>
+            <div class="preview-widget" style="background:#fff;border-left:3px solid #28a745;"></div>
+            <div class="preview-widget" style="background:#fff;border-left:3px solid #ffc107;"></div>
+            <div class="preview-table"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-info">
+        <h3>AdminLTE 经典风</h3>
+        <p>Bootstrap AdminLTE 风格。深灰侧边栏 #343a40，蓝色强调 #007bff，白色内容区，彩色左边框统计卡片。最接近传统后台管理系统审美，上手门槛低。</p>
+        <span class="card-badge" style="background:#cfe2ff;color:#084298;">Bootstrap 经典</span>
+      </div>
+    </div>
+
+    <!-- Card 2 深海蓝 -->
+    <div class="scheme-card" onclick="show('s2')">
+      <div class="card-preview" style="background:#0f172a;">
+        <div class="preview-sidebar" style="background:#0a1628;">
+          <div class="preview-dot" style="background:#22d3ee;"></div>
+          <div class="preview-line"></div><div class="preview-line"></div><div class="preview-line"></div>
+        </div>
+        <div class="preview-main">
+          <div class="preview-topbar" style="background:#0d2240;">
+            <div class="preview-tag" style="background:#22d3ee;width:40px;"></div>
+          </div>
+          <div class="preview-content">
+            <div class="preview-widget" style="background:#0d2240;border:1px solid rgba(56,189,248,.2);"></div>
+            <div class="preview-widget" style="background:#0d2240;border:1px solid rgba(56,189,248,.2);"></div>
+            <div class="preview-widget" style="background:#0d2240;border:1px solid rgba(56,189,248,.2);"></div>
+            <div class="preview-table" style="background:#0d2240;border:1px solid rgba(56,189,248,.15);"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-info">
+        <h3>深海蓝 Ocean Dark</h3>
+        <p>深邃海洋主题。极深蓝底 #0a1628，青色强调 #22d3ee，全暗色界面。适合长时间使用，视觉疲劳度低，科技感强烈。</p>
+        <span class="card-badge" style="background:#0d2240;color:#22d3ee;">深色全沉浸</span>
+      </div>
+    </div>
+
+    <!-- Card 3 墨绿 -->
+    <div class="scheme-card" onclick="show('s3')">
+      <div class="card-preview" style="background:#f0fdf4;">
+        <div class="preview-sidebar" style="background:#0d2116;">
+          <div class="preview-dot" style="background:#10b981;"></div>
+          <div class="preview-line"></div><div class="preview-line"></div><div class="preview-line"></div>
+        </div>
+        <div class="preview-main">
+          <div class="preview-topbar" style="background:#fff;border-bottom:1px solid #bbf7d0;">
+            <div class="preview-tag" style="background:#059669;width:40px;"></div>
+          </div>
+          <div class="preview-content">
+            <div class="preview-widget" style="background:#fff;border:1px solid #bbf7d0;"></div>
+            <div class="preview-widget" style="background:#fff;border:1px solid #bbf7d0;"></div>
+            <div class="preview-widget" style="background:#fff;border:1px solid #bbf7d0;"></div>
+            <div class="preview-table" style="background:#fff;border:1px solid #bbf7d0;opacity:.6;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-info">
+        <h3>墨绿专业 Forest Pro</h3>
+        <p>深墨绿侧边栏 #0d2116，翠绿强调 #059669，白色浅绿内容区。稳重专业的自然系配色，适合政务/行政类系统，显得可信赖。</p>
+        <span class="card-badge" style="background:#d1fae5;color:#065f46;">政务稳重感</span>
+      </div>
+    </div>
+
+    <!-- Card 4 暖棕 -->
+    <div class="scheme-card" onclick="show('s4')">
+      <div class="card-preview" style="background:#fffbeb;">
+        <div class="preview-sidebar" style="background:#1c1007;">
+          <div class="preview-dot" style="background:#f59e0b;"></div>
+          <div class="preview-line"></div><div class="preview-line"></div><div class="preview-line"></div>
+        </div>
+        <div class="preview-main">
+          <div class="preview-topbar" style="background:#fff;border-bottom:1px solid #fde68a;">
+            <div class="preview-tag" style="background:#f59e0b;width:40px;"></div>
+          </div>
+          <div class="preview-content">
+            <div class="preview-widget" style="background:#fff;border:1px solid #fde68a;"></div>
+            <div class="preview-widget" style="background:#fff;border:1px solid #fde68a;"></div>
+            <div class="preview-widget" style="background:#fff;border:1px solid #fde68a;"></div>
+            <div class="preview-table" style="background:#fff;border:1px solid #fde68a;opacity:.6;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-info">
+        <h3>暖棕商务 Warm Business</h3>
+        <p>深棕木质侧边栏 #1c1007，琥珀强调 #f59e0b，奶白内容区。温暖商务感，独树一帜，在大量蓝绿系后台中辨识度极高。</p>
+        <span class="card-badge" style="background:#fef3c7;color:#92400e;">独特商务感</span>
+      </div>
+    </div>
+
+    <!-- Card 5 紫夜 -->
+    <div class="scheme-card" onclick="show('s5')">
+      <div class="card-preview" style="background:#0f0720;">
+        <div class="preview-sidebar" style="background:#130a2e;">
+          <div class="preview-dot" style="background:#a855f7;"></div>
+          <div class="preview-line"></div><div class="preview-line"></div><div class="preview-line"></div>
+        </div>
+        <div class="preview-main">
+          <div class="preview-topbar" style="background:#1e0d40;">
+            <div class="preview-tag" style="background:#a855f7;width:40px;"></div>
+          </div>
+          <div class="preview-content">
+            <div class="preview-widget" style="background:#1e0d40;border:1px solid rgba(168,85,247,.25);"></div>
+            <div class="preview-widget" style="background:#1e0d40;border:1px solid rgba(168,85,247,.25);"></div>
+            <div class="preview-widget" style="background:#1e0d40;border:1px solid rgba(168,85,247,.25);"></div>
+            <div class="preview-table" style="background:#1e0d40;border:1px solid rgba(168,85,247,.2);opacity:.7;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-info">
+        <h3>紫夜 Purple Night</h3>
+        <p>极深紫底 #130a2e，紫色强调 #a855f7，全暗色界面。神秘高级感，视觉冲击力强，适合追求个性化风格的用户。</p>
+        <span class="card-badge" style="background:#2e1065;color:#c084fc;">个性暗黑</span>
+      </div>
+    </div>
+
+    <!-- Card 6 石板灰 -->
+    <div class="scheme-card" onclick="show('s6')">
+      <div class="card-preview" style="background:#f8fafc;">
+        <div class="preview-sidebar" style="background:#1e293b;">
+          <div class="preview-dot" style="background:#2563eb;"></div>
+          <div class="preview-line"></div><div class="preview-line"></div><div class="preview-line"></div>
+        </div>
+        <div class="preview-main">
+          <div class="preview-topbar" style="background:#fff;border-bottom:1px solid #e2e8f0;">
+            <div class="preview-tag" style="background:#2563eb;width:40px;"></div>
+          </div>
+          <div class="preview-content">
+            <div class="preview-widget" style="background:#fff;border:1px solid #e2e8f0;"></div>
+            <div class="preview-widget" style="background:#fff;border:1px solid #e2e8f0;"></div>
+            <div class="preview-widget" style="background:#fff;border:1px solid #e2e8f0;"></div>
+            <div class="preview-table" style="background:#fff;border:1px solid #e2e8f0;opacity:.6;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-info">
+        <h3>石板灰 Slate Pro</h3>
+        <p>深石板灰侧边栏 #1e293b，宝蓝强调 #2563eb，纯白内容区。现代极简风格，专业克制，是方案 A 原始设计的精致版本。</p>
+        <span class="card-badge" style="background:#dbeafe;color:#1e40af;">现代极简</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== SCHEME LAYOUTS ===== -->
+
+<!-- Shared nav data as template -->
+<script>
+const NAV = [
+  {group:'申报人管理', items:[{ico:'👤',label:'申报人列表'},{ico:'➕',label:'新增申报人'}]},
+  {group:'项目管理', items:[{ico:'📁',label:'项目列表',active:true},{ico:'📊',label:'工程规模判断'}]},
+  {group:'批次管理', items:[{ico:'📅',label:'申报批次'},{ico:'⏰',label:'截止日期'}]},
+  {group:'材料管理', items:[{ico:'📄',label:'材料目录'},{ico:'🔍',label:'完整性检查'}]},
+  {group:'AI写作', items:[{ico:'✨',label:'AI辅助写作'},{ico:'🖼',label:'图像处理'}]},
+  {group:'系统', items:[{ico:'⚙️',label:'系统设置'}]},
+];
+
+function buildSidebar(schemeId, logoText) {
+  const sidebar = document.querySelector(`#${schemeId} .sidebar`);
+  let html = `<div class="sidebar-logo"><span>📋</span>${logoText}</div>`;
+  NAV.forEach(g => {
+    html += `<div class="nav-group"><div class="nav-label">${g.group}</div>`;
+    g.items.forEach(i => {
+      html += `<div class="nav-item${i.active?' active':''}"><span class="ico">${i.ico}</span>${i.label}</div>`;
+    });
+    html += `</div>`;
+  });
+  sidebar.innerHTML = html;
+}
+
+const STATS = [
+  {label:'本批次申报人数', num:'47', sub:'↑ 较上批次 +8'},
+  {label:'材料完整率', num:'89%', sub:'5人待完善'},
+  {label:'已收费用', num:'¥94,000', sub:'定金未结 ¥8,000'},
+  {label:'即将截止批次', num:'2', sub:'最近 12 天'},
+];
+const DEADLINES = [
+  {committee:'广西建设系统评委会', name:'2024年度高级工程师', days:47, cls:'green'},
+  {committee:'广西建设系统评委会', name:'2024年度中级工程师', days:28, cls:'orange'},
+  {committee:'广西市政公用评委会', name:'2024年度高级工程师', days:12, cls:'red'},
+];
+const ROWS = [
+  {name:'张建国', industry:'建筑工程', committee:'高级工程师', level:'高级', fee:'paid', feeLabel:'已结清'},
+  {name:'李梅华', industry:'市政公用', committee:'中级工程师', level:'中级', fee:'partial', feeLabel:'定金已付'},
+  {name:'王志远', industry:'装饰装修', committee:'高级工程师', level:'高级', fee:'unpaid', feeLabel:'未付'},
+  {name:'陈秀英', industry:'机电安装', committee:'中级工程师', level:'中级', fee:'paid', feeLabel:'已结清'},
+  {name:'刘大鹏', industry:'建筑工程', committee:'高级工程师', level:'高级', fee:'partial', feeLabel:'定金已付'},
+];
+
+function buildContent(schemeId) {
+  const content = document.querySelector(`#${schemeId} .content`);
+  // stats
+  let html = `<div class="stat-row">`;
+  STATS.forEach(s => {
+    html += `<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-num">${s.num}</div><div class="stat-sub">${s.sub}</div></div>`;
+  });
+  html += `</div>`;
+  // deadlines
+  html += `<div class="deadline-row">`;
+  DEADLINES.forEach(d => {
+    const label = d.cls==='green' ? `距截止 ${d.days} 天` : d.cls==='orange' ? `⚠ 还剩 ${d.days} 天` : `🔴 紧急 ${d.days} 天`;
+    html += `<div class="dl-card"><div class="dl-committee">${d.committee}</div><div class="dl-name">${d.name}</div><span class="dl-badge ${d.cls}">${label}</span></div>`;
+  });
+  html += `</div>`;
+  // table
+  html += `<div class="table-card">
+    <div class="table-header">
+      <span class="table-title">申报人列表</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline">导出</button>
+        <button class="btn btn-primary">新增申报人</button>
+      </div>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>姓名</th><th>行业</th><th>申报系列</th><th>级别</th><th>材料完整</th><th>费用状态</th></tr></thead>
+      <tbody>`;
+  ROWS.forEach(r => {
+    html += `<tr><td>${r.name}</td><td>${r.industry}</td><td>${r.committee}</td><td>${r.level}</td><td>✅ 完整</td><td><span class="status-badge ${r.fee}">${r.feeLabel}</span></td></tr>`;
+  });
+  html += `</tbody></table></div>`;
+  content.innerHTML = html;
+}
+
+function buildTopbar(schemeId, title) {
+  const tb = document.querySelector(`#${schemeId} .topbar`);
+  tb.innerHTML = `<span class="topbar-title">${title}</span><div class="topbar-actions"><span class="user-tag">管理员</span></div>`;
+}
+
+function initScheme(id, logoText, title) {
+  buildSidebar(id, logoText);
+  buildTopbar(id, title);
+  buildContent(id);
+}
+
+function show(id) {
+  document.getElementById('home').style.display = 'none';
+  document.querySelectorAll('.layout').forEach(el => el.classList.remove('active'));
+  if (id === 'home') {
+    document.getElementById('home').style.display = 'flex';
+  } else {
+    document.getElementById(id).classList.add('active');
+    document.getElementById('back-btn').style.display = 'block';
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  initScheme('s1','职称申报系统','项目管理');
+  initScheme('s2','职称申报系统','项目管理');
+  initScheme('s3','职称申报系统','项目管理');
+  initScheme('s4','职称申报系统','项目管理');
+  initScheme('s5','职称申报系统','项目管理');
+  initScheme('s6','职称申报系统','项目管理');
+});
+</script>
+
+<button class="back-btn" id="back-btn" style="display:none" onclick="show('home')">← 返回方案列表</button>
+
+<!-- S1 AdminLTE -->
+<div class="layout" id="s1">
+  <div class="sidebar"></div>
+  <div class="main-area">
+    <div class="topbar"></div>
+    <div class="content"></div>
+  </div>
+</div>
+
+<!-- S2 深海蓝 -->
+<div class="layout" id="s2">
+  <div class="sidebar"></div>
+  <div class="main-area">
+    <div class="topbar"></div>
+    <div class="content"></div>
+  </div>
+</div>
+
+<!-- S3 墨绿 -->
+<div class="layout" id="s3">
+  <div class="sidebar"></div>
+  <div class="main-area">
+    <div class="topbar"></div>
+    <div class="content"></div>
+  </div>
+</div>
+
+<!-- S4 暖棕 -->
+<div class="layout" id="s4">
+  <div class="sidebar"></div>
+  <div class="main-area">
+    <div class="topbar"></div>
+    <div class="content"></div>
+  </div>
+</div>
+
+<!-- S5 紫夜 -->
+<div class="layout" id="s5">
+  <div class="sidebar"></div>
+  <div class="main-area">
+    <div class="topbar"></div>
+    <div class="content"></div>
+  </div>
+</div>
+
+<!-- S6 石板灰 -->
+<div class="layout" id="s6">
+  <div class="sidebar"></div>
+  <div class="main-area">
+    <div class="topbar"></div>
+    <div class="content"></div>
+  </div>
+</div>
+
+</body>
+</html>

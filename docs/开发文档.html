@@ -291,6 +291,9 @@
     <li><a href="#form-map">表单字段映射</a></li>
     <li><a href="#fill-flow">填报流程</a></li>
 
+    <li class="section">图像处理</li>
+    <li><a href="#img-api">第三方图像API配置</a></li>
+
     <li class="section">AI 辅助写作</li>
     <li><a href="#ai-write">DeepSeek 接入设计</a></li>
     <li><a href="#ai-prompts">Prompt 模板</a></li>
@@ -405,6 +408,7 @@
 │   ├── <span class="file">checker.py</span>       <span class="note"># 完整性检查逻辑（含规模校验）</span><br>
 │   ├── <span class="file">crypto.py</span>        <span class="note"># 申报网站密码加密/解密（Fernet）</span><br>
 │   ├── <span class="file">ai_writer.py</span>     <span class="note"># DeepSeek AI 辅助写作模块</span><br>
+│   ├── <span class="file">img_processor.py</span> <span class="note"># 第三方图像处理API封装（remove.bg / Clipdrop等）</span><br>
 │   └── <span class="dir">industries/</span>      <span class="note"># 各行业规则插件目录（新增行业只需加文件）</span><br>
 │       ├── <span class="file">__init__.py</span>  <span class="note"># 按 industry 字段动态加载对应模块</span><br>
 │       ├── <span class="file">construction.py</span> <span class="note"># 住建行业：材料规则 + 工程规模引擎</span><br>
@@ -1386,6 +1390,138 @@ def check_achievements_high(achievements: list[dict]) -> dict:
 
   <hr />
 
+  <!-- ══════════════ 第三方图像处理API ══════════════ -->
+  <h2 id="img-api">第三方图像处理 API 配置接口</h2>
+
+  <p>系统预留第三方图像处理API接口，默认不启用。所有API配置均在「系统设置」页面手动填写，需要时启用对应服务，API Key 本地加密存储，与申报网站密码使用相同的 Fernet 加密方案。</p>
+
+  <div class="info-box">
+    大部分图片增强需求（亮度/对比度/纠偏）由系统内置的 Pillow + OpenCV 本地处理，免费无限次。第三方API仅用于本地无法完成的高级处理（如证件照抠图换底色）。
+  </div>
+
+  <h3>支持的API对比</h3>
+  <table>
+    <tr><th>API服务</th><th>适用场景</th><th>计费方式</th><th>免费额度</th><th>接入难度</th></tr>
+    <tr>
+      <td>remove.bg</td>
+      <td>证件照抠图、去背景、换底色</td>
+      <td>按张计费（约$0.2/张）</td>
+      <td>每月50张免费</td>
+      <td>⭐ 极简单</td>
+    </tr>
+    <tr>
+      <td>Clipdrop（Stability AI）</td>
+      <td>图片清晰化、去水印、背景替换</td>
+      <td>按次计费</td>
+      <td>有免费额度</td>
+      <td>⭐⭐ 简单</td>
+    </tr>
+    <tr>
+      <td>阿里云图像处理</td>
+      <td>图片增强、智能裁剪、格式转换</td>
+      <td>按量计费，国内便宜</td>
+      <td>每月一定免费额度</td>
+      <td>⭐⭐ 简单</td>
+    </tr>
+    <tr>
+      <td>腾讯云图像处理</td>
+      <td>图片质量增强、超分辨率</td>
+      <td>按量计费，国内便宜</td>
+      <td>每月一定免费额度</td>
+      <td>⭐⭐ 简单</td>
+    </tr>
+  </table>
+
+  <h3>核心代码（core/img_processor.py）</h3>
+  <pre><code>"""
+第三方图像处理API封装
+所有API默认禁用，在系统设置中手动配置启用
+"""
+import requests
+from pathlib import Path
+from PIL import Image, ImageEnhance, ImageFilter
+import cv2, numpy as np
+from core.crypto import encrypt_password, decrypt_password
+from config import load_config
+
+class ImageProcessor:
+    def __init__(self):
+        cfg = load_config()
+        self.img_apis = cfg.get("img_apis", {})
+
+    # ── 本地处理（免费，优先使用）──────────────────────
+    def enhance_scan(self, image_path: str, output_path: str):
+        """扫描件增强：提升亮度、对比度、锐化"""
+        img = Image.open(image_path)
+        img = ImageEnhance.Contrast(img).enhance(1.8)
+        img = ImageEnhance.Brightness(img).enhance(1.2)
+        img = img.filter(ImageFilter.SHARPEN)
+        img.save(output_path)
+
+    def deskew(self, image_path: str, output_path: str):
+        """自动纠偏：修正歪斜扫描件"""
+        img = cv2.imread(image_path)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        coords = np.column_stack(np.where(gray &lt; 200))
+        angle = cv2.minAreaRect(coords)[-1]
+        if angle &lt; -45: angle = 90 + angle
+        (h, w) = img.shape[:2]
+        M = cv2.getRotationMatrix2D((w//2, h//2), -angle, 1.0)
+        rotated = cv2.warpAffine(img, M, (w, h), borderMode=cv2.BORDER_REPLICATE)
+        cv2.imwrite(output_path, rotated)
+
+    # ── remove.bg：证件照抠图换底色 ───────────────────
+    def remove_background(self, image_path: str, output_path: str,
+                          bg_color: str = "white") -&gt; bool:
+        """调用 remove.bg API 去除背景，bg_color: 'white'/'blue'/'red'"""
+        api_cfg = self.img_apis.get("remove_bg", {})
+        if not api_cfg.get("enabled"):
+            raise RuntimeError("remove.bg 未启用，请在系统设置中配置API Key")
+        api_key = decrypt_password(api_cfg["api_key"])
+        with open(image_path, "rb") as f:
+            resp = requests.post(
+                "https://api.remove.bg/v1.0/removebg",
+                files={"image_file": f},
+                data={"size": "auto", "bg_color": bg_color},
+                headers={"X-Api-Key": api_key},
+            )
+        if resp.status_code == 200:
+            Path(output_path).write_bytes(resp.content)
+            return True
+        raise RuntimeError(f"remove.bg 调用失败：{resp.status_code} {resp.text}")
+
+    # ── Clipdrop：图片超清化 ───────────────────────────
+    def upscale_image(self, image_path: str, output_path: str) -&gt; bool:
+        """调用 Clipdrop API 提升图片分辨率（超分辨率）"""
+        api_cfg = self.img_apis.get("clipdrop", {})
+        if not api_cfg.get("enabled"):
+            raise RuntimeError("Clipdrop 未启用，请在系统设置中配置API Key")
+        api_key = decrypt_password(api_cfg["api_key"])
+        with open(image_path, "rb") as f:
+            resp = requests.post(
+                "https://clipdrop-api.co/image-upscaling/v1/upscale",
+                files={"image_file": (Path(image_path).name, f, "image/jpeg")},
+                headers={"x-api-key": api_key},
+            )
+        if resp.status_code == 200:
+            Path(output_path).write_bytes(resp.content)
+            return True
+        raise RuntimeError(f"Clipdrop 调用失败：{resp.status_code}")</code></pre>
+
+  <h3>UI 集成要点</h3>
+  <ul style="line-height:2;padding-left:20px;">
+    <li>系统设置页新增「图像处理API」标签页，每个API服务有独立的启用开关 + API Key输入框（密码框）</li>
+    <li>OCR识别界面：上传图片后自动运行本地增强（enhance_scan），无需手动触发</li>
+    <li>材料管理界面：右键图片文件 → 「图片增强」（本地）/ 「去除背景」（需remove.bg）</li>
+    <li>所有API调用失败时显示具体错误提示，不影响系统其他功能正常使用</li>
+  </ul>
+
+  <div class="callout callout-orange">
+    API Key 请勿分享给他人，系统使用 Fernet 加密存储，与申报网站密码共用同一密钥文件（~/.zcsbxt/secret.key）。
+  </div>
+
+  <hr />
+
   <!-- ══════════════ DeepSeek AI 辅助写作 ══════════════ -->
   <h2 id="ai-write">AI 辅助写作 · DeepSeek 接入设计</h2>
 
@@ -1512,6 +1648,27 @@ def save_config(cfg: dict):
 cfg = load_config()
 writer = AIWriter(api_key=cfg.get("deepseek_api_key", ""))
   </div>
+
+  <pre><code># 图像处理API配置示例（config.json 中的结构）
+{
+  "deepseek_api_key": "sk-xxx",
+  "img_apis": {
+    "remove_bg": {
+      "enabled": false,
+      "api_key": ""
+    },
+    "clipdrop": {
+      "enabled": false,
+      "api_key": ""
+    },
+    "aliyun_img": {
+      "enabled": false,
+      "access_key_id": "",
+      "access_key_secret": "",
+      "region": "cn-shanghai"
+    }
+  }
+}</code></pre>
 
   <h3>UI 集成要点</h3>
   <ul style="line-height:2;padding-left:20px;">
