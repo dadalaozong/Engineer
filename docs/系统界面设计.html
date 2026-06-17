@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>职称申报系统 · 界面设计方案</title>
+<style>
+:root{
+  --blue:#2563eb;--blue-bg:#eff6ff;--blue-bd:#bfdbfe;
+  --green:#16a34a;--green-bg:#f0fdf4;--green-bd:#bbf7d0;
+  --red:#dc2626;--red-bg:#fef2f2;--red-bd:#fecaca;
+  --orange:#d97706;--orange-bg:#fffbeb;--orange-bd:#fde68a;
+  --gray:#6b7280;--gray-bg:#f9fafb;--border:#e5e7eb;
+  --text:#111827;--sub:#4b5563;--sidebar:#1e293b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;color:var(--text);background:#f1f5f9}
+
+/* ── 导航页 ── */
+.nav-page{padding:32px 24px}
+.nav-page h1{font-size:22px;font-weight:800;margin-bottom:6px}
+.nav-page p{color:var(--sub);margin-bottom:28px;font-size:13px}
+.screen-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:900px}
+.screen-card{background:#fff;border-radius:12px;padding:20px;cursor:pointer;border:2px solid transparent;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);transition:.2s}
+.screen-card:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 4px 12px rgba(37,99,235,.15)}
+.screen-card .num{font-size:11px;font-weight:700;color:var(--gray);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+.screen-card .name{font-size:15px;font-weight:700;margin-bottom:6px}
+.screen-card .desc{font-size:12.5px;color:var(--sub);line-height:1.6}
+.screen-card .icon{font-size:28px;margin-bottom:10px}
+
+/* ── 模拟窗口外壳 ── */
+.page{display:none;height:100vh;flex-direction:column}
+.page.active{display:flex}
+.win-bar{background:var(--sidebar);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.win-bar .dots{display:flex;gap:6px}
+.win-bar .dot{width:12px;height:12px;border-radius:50%}
+.dot-r{background:#ef4444}.dot-y{background:#f59e0b}.dot-g{background:#22c55e}
+.win-bar .title{font-size:13px;font-weight:600;opacity:.8;margin-left:8px}
+.win-bar .back{margin-left:auto;font-size:12px;background:rgba(255,255,255,.1);
+  padding:4px 12px;border-radius:6px;cursor:pointer;color:#fff;border:none}
+.win-bar .back:hover{background:rgba(255,255,255,.2)}
+
+/* ── 应用布局 ── */
+.app-layout{display:flex;flex:1;overflow:hidden}
+.sidebar{width:200px;background:var(--sidebar);color:#cbd5e1;padding:16px 0;flex-shrink:0;overflow-y:auto}
+.sidebar .logo{padding:0 16px 16px;border-bottom:1px solid #334155;margin-bottom:8px}
+.sidebar .logo h2{font-size:13px;font-weight:700;color:#f1f5f9}
+.sidebar .logo p{font-size:11px;color:#64748b;margin-top:2px}
+.sidebar-item{padding:8px 16px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;
+  border-left:3px solid transparent;color:#94a3b8}
+.sidebar-item:hover{background:#334155;color:#e2e8f0}
+.sidebar-item.active{background:#1d4ed8;color:#fff;border-left-color:#60a5fa}
+.sidebar-sep{font-size:10px;padding:12px 16px 4px;color:#475569;letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+
+/* ── 主内容 ── */
+.main{flex:1;overflow-y:auto;background:#f1f5f9;padding:24px}
+.page-title{font-size:18px;font-weight:800;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--sub);margin-bottom:20px}
+
+/* ── 通用卡片 ── */
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:16px}
+.card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.card-head h3{font-size:14px;font-weight:700}
+.card-body{padding:16px 18px}
+
+/* ── 按钮 ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;
+  font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.15s}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#1d4ed8}
+.btn-green{background:var(--green);color:#fff}
+.btn-green:hover{background:#15803d}
+.btn-outline{background:#fff;color:var(--text);border:1px solid var(--border)}
+.btn-outline:hover{background:#f9fafb}
+.btn-red{background:var(--red);color:#fff}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-group{display:flex;gap:8px;margin-top:12px}
+
+/* ── 表格 ── */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{background:#f8fafc;text-align:left;padding:9px 12px;border-bottom:2px solid var(--border);
+  font-weight:700;color:var(--sub);font-size:12px}
+.data-table td{padding:10px 12px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+.data-table tr:hover td{background:#fafbff}
+
+/* ── 状态徽章 ── */
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
+.badge-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.badge-orange{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-bd)}
+.badge-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+.badge-blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd)}
+.badge-gray{background:var(--gray-bg);color:var(--gray);border:1px solid var(--border)}
+
+/* ── 表单 ── */
+.form-row{display:grid;gap:12px;margin-bottom:14px}
+.form-row.col2{grid-template-columns:1fr 1fr}
+.form-row.col3{grid-template-columns:1fr 1fr 1fr}
+.form-group label{display:block;font-size:12px;font-weight:700;color:var(--sub);margin-bottom:5px}
+.form-group input,.form-group select,.form-group textarea{
+  width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:7px;
+  font-size:13px;font-family:inherit;color:var(--text);background:#fff}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.form-group textarea{min-height:70px;resize:vertical}
+.form-group .hint{font-size:11.5px;color:var(--gray);margin-top:4px}
+
+/* ── OCR 识别区 ── */
+.ocr-zone{border:2px dashed var(--border);border-radius:10px;padding:20px;
+  text-align:center;cursor:pointer;transition:.2s;background:#fafafa}
+.ocr-zone:hover{border-color:var(--blue);background:var(--blue-bg)}
+.ocr-zone .upload-icon{font-size:36px;margin-bottom:8px}
+.ocr-zone p{font-size:13px;color:var(--sub)}
+.ocr-zone small{font-size:11.5px;color:var(--gray)}
+
+.ocr-result{background:#f0fdf4;border:1px solid var(--green-bd);border-radius:10px;padding:14px 16px;margin-top:12px}
+.ocr-result h4{color:var(--green);font-size:13px;font-weight:700;margin-bottom:10px}
+.ocr-field{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.ocr-field label{font-size:12px;color:var(--sub);width:70px;flex-shrink:0;font-weight:600}
+.ocr-field input{flex:1;padding:5px 8px;border:1px solid var(--green-bd);border-radius:6px;
+  font-size:13px;background:#fff}
+.ocr-confidence{font-size:11px;padding:2px 6px;border-radius:4px;flex-shrink:0}
+.conf-high{background:#dcfce7;color:#15803d}
+.conf-low{background:#fef9c3;color:#854d0e}
+
+/* ── 进度条 ── */
+.progress-bar{background:#e2e8f0;border-radius:99px;height:8px;overflow:hidden;margin:6px 0}
+.progress-fill{height:100%;border-radius:99px;background:var(--green);transition:.5s}
+.progress-fill.warn{background:var(--orange)}
+.progress-fill.danger{background:var(--red)}
+
+/* ── 文件夹树 ── */
+.file-tree{font-family:monospace;font-size:12.5px;background:#1e293b;
+  border-radius:8px;padding:14px 16px;color:#94a3b8;line-height:1.9;max-height:260px;overflow-y:auto}
+.ft-dir{color:#7dd3fc;cursor:pointer}
+.ft-file{color:#a5f3fc;cursor:pointer}
+.ft-file:hover{color:#fff}
+.ft-miss{color:#f87171}
+.ft-ok{color:#86efac}
+
+/* ── 检查清单 ── */
+.check-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f1f5f9}
+.check-item:last-child{border:none}
+.check-icon{font-size:16px;flex-shrink:0;width:20px;text-align:center}
+.check-text{flex:1;font-size:13px}
+.check-text .sub{font-size:11.5px;color:var(--gray);margin-top:2px}
+
+/* ── 规模徽章 ── */
+.scale-large{background:#dcfce7;color:#15803d;border:1px solid #bbf7d0;
+  font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
+.scale-medium{background:#fef9c3;color:#854d0e;border:1px solid #fde68a;
+  font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
+.scale-small{background:#fee2e2;color:#991b1b;border:1px solid #fecaca;
+  font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px}
+
+/* ── 步骤条 ── */
+.steps{display:flex;gap:0;margin-bottom:24px}
+.step{flex:1;text-align:center;position:relative}
+.step::after{content:'';position:absolute;top:14px;right:0;left:50%;height:2px;background:#e2e8f0;z-index:0}
+.step:last-child::after{display:none}
+.step-circle{width:28px;height:28px;border-radius:50%;background:#e2e8f0;color:#94a3b8;
+  font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 6px;position:relative;z-index:1}
+.step.done .step-circle{background:var(--green);color:#fff}
+.step.active .step-circle{background:var(--blue);color:#fff}
+.step-label{font-size:11.5px;color:var(--gray)}
+.step.active .step-label{color:var(--blue);font-weight:700}
+.step.done .step-label{color:var(--green)}
+
+/* ── 浏览器预览 ── */
+.browser-frame{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.browser-bar{background:#f1f5f9;padding:8px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.browser-dots{display:flex;gap:5px}
+.browser-dots span{width:10px;height:10px;border-radius:50%}
+.browser-addr{flex:1;background:#fff;border:1px solid var(--border);border-radius:6px;
+  padding:4px 10px;font-size:12px;color:var(--sub)}
+.browser-content{padding:16px;min-height:200px;background:#fff}
+
+/* ── 自动填报进度 ── */
+.fill-step{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9}
+.fill-step:last-child{border:none}
+.fill-icon{font-size:14px;width:20px;text-align:center;flex-shrink:0}
+.fill-text{flex:1;font-size:13px}
+.fill-status{font-size:11.5px;padding:2px 8px;border-radius:4px;font-weight:600}
+.fs-done{background:#dcfce7;color:#15803d}
+.fs-doing{background:#dbeafe;color:#1d4ed8}
+.fs-wait{background:#f1f5f9;color:#94a3b8}
+
+@media(max-width:600px){.screen-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     导航首页
+══════════════════════════════════════════ -->
+<div class="page active" id="page-nav">
+  <div class="win-bar">
+    <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+    <span class="title">职称申报自动化系统 · 界面设计方案</span>
+  </div>
+  <div class="nav-page">
+    <h1>🖥️ 系统界面设计预览</h1>
+    <p>点击下方任意界面卡片，查看该界面的交互设计。确认设计后，开始写代码。</p>
+    <div class="screen-grid">
+      <div class="screen-card" onclick="show('page-list')">
+        <div class="icon">📋</div>
+        <div class="num">界面 01</div>
+        <div class="name">项目列表（主界面）</div>
+        <div class="desc">所有申报人一览，状态跟踪，入口操作</div>
+      </div>
+      <div class="screen-card" onclick="show('page-new')">
+        <div class="icon">➕</div>
+        <div class="num">界面 02</div>
+        <div class="name">新建申报项目</div>
+        <div class="desc">4步向导：基本信息 → 职称选择 → 目录生成</div>
+      </div>
+      <div class="screen-card" onclick="show('page-ocr')">
+        <div class="icon">🔍</div>
+        <div class="num">界面 03</div>
+        <div class="name">OCR 证件识别</div>
+        <div class="desc">上传身份证/毕业证，自动提取字段，人工确认</div>
+      </div>
+      <div class="screen-card" onclick="show('page-detail')">
+        <div class="icon">📁</div>
+        <div class="num">界面 04</div>
+        <div class="name">项目详情 · 材料管理</div>
+        <div class="desc">文件夹树 + 材料上传 + 快速预览</div>
+      </div>
+      <div class="screen-card" onclick="show('page-ach')">
+        <div class="icon">🏗️</div>
+        <div class="num">界面 05</div>
+        <div class="name">工程业绩录入</div>
+        <div class="desc">填写项目指标，实时自动判断规模等级</div>
+      </div>
+      <div class="screen-card" onclick="show('page-check')">
+        <div class="icon">✅</div>
+        <div class="num">界面 06</div>
+        <div class="name">材料完整性检查</div>
+        <div class="desc">逐项扫描，输出通过/缺失/不足的详细报告</div>
+      </div>
+      <div class="screen-card" onclick="show('page-fill')">
+        <div class="icon">🤖</div>
+        <div class="num">界面 07</div>
+        <div class="name">自动填报</div>
+        <div class="desc">预览所有待填数据，确认后启动浏览器自动提交</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     界面01 · 项目列表
+══════════════════════════════════════════ -->
+<div class="page" id="page-list">
+  <div class="win-bar">
+    <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+    <span class="title">职称申报系统</span>
+    <button class="back" onclick="show('page-nav')">← 返回设计导航</button>
+  </div>
+  <div class="app-layout">
+    <div class="sidebar">
+      <div class="logo"><h2>职称申报系统</h2><p>广西住建行业 2026</p></div>
+      <div class="sidebar-sep">主菜单</div>
+      <div class="sidebar-item active">📋 申报项目</div>
+      <div class="sidebar-item">👥 申报人管理</div>
+      <div class="sidebar-sep">工具</div>
+      <div class="sidebar-item">📐 规模查询</div>
+      <div class="sidebar-item">⚙️ 系统设置</div>
+    </div>
+    <div class="main">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <div class="page-title">申报项目管理</div>
+          <div class="page-sub">共 8 个项目 · 3 个材料齐全 · 2 个已提交</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <input style="padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;width:200px" placeholder="搜索姓名…"/>
+          <button class="btn btn-primary" onclick="show('page-new')">➕ 新建项目</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body" style="padding:0">
+          <table class="data-table">
+            <thead>
+              <tr><th>姓名</th><th>申报职称</th><th>专业方向</th><th>材料状态</th><th>申报状态</th><th>创建日期</th><th>操作</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>张三</strong><br/><span style="font-size:11px;color:var(--gray)">1501234…</span></td>
+                <td>高级工程师</td><td>建筑工程</td>
+                <td><span class="badge badge-green">✅ 材料齐全</span></td>
+                <td><span class="badge badge-blue">待提交</span></td>
+                <td>2026-06-10</td>
+                <td>
+                  <button class="btn btn-outline btn-sm" onclick="show('page-detail')">📁 详情</button>
+                  <button class="btn btn-green btn-sm" onclick="show('page-fill')">🤖 填报</button>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>李四</strong><br/><span style="font-size:11px;color:var(--gray)">1502345…</span></td>
+                <td>工程师</td><td>市政工程</td>
+                <td><span class="badge badge-red">❌ 缺 3 项</span></td>
+                <td><span class="badge badge-gray">建档中</span></td>
+                <td>2026-06-12</td>
+                <td>
+                  <button class="btn btn-outline btn-sm" onclick="show('page-detail')">📁 详情</button>
+                  <button class="btn btn-outline btn-sm" onclick="show('page-check')">✅ 检查</button>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>王五</strong><br/><span style="font-size:11px;color:var(--gray)">1503456…</span></td>
+                <td>高级工程师</td><td>市政工程</td>
+                <td><span class="badge badge-orange">⚠️ 待核查</span></td>
+                <td><span class="badge badge-gray">建档中</span></td>
+                <td>2026-06-14</td>
+                <td>
+                  <button class="btn btn-outline btn-sm" onclick="show('page-detail')">📁 详情</button>
+                  <button class="btn btn-outline btn-sm" onclick="show('page-check')">✅ 检查</button>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>赵六</strong><br/><span style="font-size:11px;color:var(--gray)">1504567…</span></td>
+                <td>工程师</td><td>装饰装修</td>
+                <td><span class="badge badge-green">✅ 材料齐全</span></td>
+                <td><span class="badge badge-green">✅ 已提交</span></td>
+                <td>2026-06-08</td>
+                <td>
+                  <button class="btn btn-outline btn-sm">📄 查看</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 统计卡片 -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:4px">
+        <div class="card" style="margin:0"><div class="card-body" style="text-align:center">
+          <div style="font-size:28px;font-weight:800;color:var(--blue)">8</div>
+          <div style="font-size:12px;color:var(--sub)">总项目数</div>
+        </div></div>
+        <div class="card" style="margin:0"><div class="card-body" style="text-align:center">
+          <div style="font-size:28px;font-weight:800;color:var(--red)">3</div>
+          <div style="font-size:12px;color:var(--sub)">材料不齐</div>
+        </div></div>
+        <div class="card" style="margin:0"><div class="card-body" style="text-align:center">
+          <div style="font-size:28px;font-weight:800;color:var(--orange)">3</div>
+          <div style="font-size:12px;color:var(--sub)">待提交</div>
+        </div></div>
+        <div class="card" style="margin:0"><div class="card-body" style="text-align:center">
+          <div style="font-size:28px;font-weight:800;color:var(--green)">2</div>
+          <div style="font-size:12px;color:var(--sub)">已提交</div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     界面02 · 新建项目向导
+══════════════════════════════════════════ -->
+<div class="page" id="page-new">
+  <div class="win-bar">
+    <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+    <span class="title">新建申报项目</span>
+    <button class="back" onclick="show('page-nav')">← 返回设计导航</button>
+  </div>
+  <div class="app-layout">
+    <div class="sidebar">
+      <div class="logo"><h2>职称申报系统</h2><p>广西住建行业 2026</p></div>
+      <div class="sidebar-sep">主菜单</div>
+      <div class="sidebar-item">📋 申报项目</div>
+      <div class="sidebar-item active">➕ 新建项目</div>
+    </div>
+    <div class="main">
+      <div class="page-title">新建申报项目</div>
+      <div class="page-sub">完成以下 4 步，系统自动创建本地文件夹并建档</div>
+
+      <!-- 步骤条 -->
+      <div class="steps">
+        <div class="step done"><div class="step-circle">✓</div><div class="step-label">选择职称</div></div>
+        <div class="step active"><div class="step-circle">2</div><div class="step-label">基本信息</div></div>
+        <div class="step"><div class="step-circle">3</div><div class="step-label">账号密码</div></div>
+        <div class="step"><div class="step-circle">4</div><div class="step-label">目录生成</div></div>
+      </div>
+
+      <!-- 第1步内容（已完成，显示摘要） -->
+      <div class="card">
+        <div class="card-head" style="background:#f0fdf4">
+          <span style="color:var(--green)">✅</span>
+          <h3 style="color:var(--green)">第1步 · 申报职称已选择</h3>
+          <span style="margin-left:auto;font-size:12px;color:var(--sub)">职称：<strong>高级工程师</strong> &nbsp;|&nbsp; 专业：<strong>建筑工程</strong> &nbsp;|&nbsp; 年度：<strong>2026</strong></span>
+        </div>
+      </div>
+
+      <!-- 第2步：基本信息 -->
+      <div class="card">
+        <div class="card-head"><span>👤</span><h3>第2步 · 申报人基本信息</h3>
+          <span style="margin-left:auto;font-size:12px;color:var(--orange)">💡 可从身份证OCR自动填入</span>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:16px">
+            <div style="flex:1">
+              <div class="form-row col3">
+                <div class="form-group"><label>姓名 *</label><input value="张三"/></div>
+                <div class="form-group"><label>性别 *</label>
+                  <select><option>男</option><option>女</option></select></div>
+                <div class="form-group"><label>民族 *</label>
+                  <select><option>汉族</option><option>壮族</option><option>其他</option></select></div>
+              </div>
+              <div class="form-row col2">
+                <div class="form-group"><label>身份证号 *</label><input value="450102198503120012"/></div>
+                <div class="form-group"><label>出生日期 *</label><input type="date" value="1985-03-12"/></div>
+              </div>
+              <div class="form-row col2">
+                <div class="form-group"><label>联系电话 *</label><input value="13900001234"/></div>
+                <div class="form-group"><label>工作单位 *</label><input value="广西某建设集团有限公司"/></div>
+              </div>
+              <div class="form-row col3">
+                <div class="form-group"><label>最高学历 *</label>
+                  <select><option>本科</option><option>硕士</option><option>博士</option><option>大专</option></select></div>
+                <div class="form-group"><label>毕业院校 *</label><input value="广西大学"/></div>
+                <div class="form-group"><label>所学专业 *</label><input value="土木工程"/></div>
+              </div>
+              <div class="form-row col3">
+                <div class="form-group"><label>毕业年份 *</label><input value="2008"/></div>
+                <div class="form-group"><label>现有职称 *</label>
+                  <select><option>工程师</option><option>助理工程师</option></select></div>
+                <div class="form-group"><label>取得职称年份 *</label><input value="2015"/></div>
+              </div>
+            </div>
+            <!-- 身份证OCR快捷 -->
+            <div style="width:180px;flex-shrink:0">
+              <div style="font-size:12px;font-weight:700;color:var(--sub);margin-bottom:8px">📷 快速识别</div>
+              <div class="ocr-zone" style="padding:14px 10px" onclick="show('page-ocr')">
+                <div class="upload-icon">🪪</div>
+                <p style="font-size:12px">上传身份证<br/>自动填写</p>
+              </div>
+              <div style="margin-top:8px">
+                <div class="ocr-zone" style="padding:14px 10px" onclick="show('page-ocr')">
+                  <div class="upload-icon">🎓</div>
+                  <p style="font-size:12px">上传毕业证<br/>自动填写</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-outline">← 上一步</button>
+            <button class="btn btn-primary">下一步 →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第3步预览 -->
+      <div class="card" style="opacity:.5">
+        <div class="card-head"><span>🔐</span><h3>第3步 · 申报系统账号（待填写）</h3></div>
+      </div>
+      <div class="card" style="opacity:.5">
+        <div class="card-head"><span>📁</span><h3>第4步 · 本地目录生成（待操作）</h3></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     界面03 · OCR 识别
+══════════════════════════════════════════ -->
+<div class="page" id="page-ocr">
+  <div class="win-bar">
+    <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+    <span class="title">OCR 证件识别</span>
+    <button class="back" onclick="show('page-nav')">← 返回设计导航</button>
+  </div>
+  <div class="app-layout">
+    <div class="sidebar">
+      <div class="logo"><h2>职称申报系统</h2><p>广西住建行业 2026</p></div>
+      <div class="sidebar-item active">🔍 OCR 识别</div>
+    </div>
+    <div class="main">
+      <div class="page-title">证件 OCR 自动识别</div>
+      <div class="page-sub">上传证件图片，系统自动提取关键字段，你检查确认后保存</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+        <!-- 身份证识别 -->
+        <div class="card">
+          <div class="card-head"><span>🪪</span><h3>身份证识别</h3>
+            <span class="badge badge-blue" style="margin-left:auto">已识别</span></div>
+          <div class="card-body">
+            <!-- 图片预览 -->
+            <div style="background:#1e293b;border-radius:8px;height:100px;display:flex;align-items:center;
+              justify-content:center;margin-bottom:12px;color:#94a3b8;font-size:13px">
+              🪪 &nbsp; 身份证图片预览区
+            </div>
+            <div class="ocr-result">
+              <h4>✅ 识别结果（可修改后保存）</h4>
+              <div class="ocr-field">
+                <label>姓名</label>
+                <input value="张三"/>
+                <span class="ocr-confidence conf-high">99%</span>
+              </div>
+              <div class="ocr-field">
+                <label>身份证号</label>
+                <input value="450102198503120012"/>
+                <span class="ocr-confidence conf-high">98%</span>
+              </div>
+              <div class="ocr-field">
+                <label>性别</label>
+                <input value="男"/>
+                <span class="ocr-confidence conf-high">99%</span>
+              </div>
+              <div class="ocr-field">
+                <label>民族</label>
+                <input value="汉"/>
+                <span class="ocr-confidence conf-high">99%</span>
+              </div>
+              <div class="ocr-field">
+                <label>出生日期</label>
+                <input value="1985-03-12"/>
+                <span class="ocr-confidence conf-high">97%</span>
+              </div>
+              <div class="ocr-field">
+                <label>住址</label>
+                <input value="广西南宁市青秀区…"/>
+                <span class="ocr-confidence conf-low">82%</span>
+              </div>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-outline btn-sm">重新上传</button>
+              <button class="btn btn-green btn-sm">✅ 确认保存到申报人信息</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 毕业证识别 -->
+        <div class="card">
+          <div class="card-head"><span>🎓</span><h3>毕业证 / 学位证识别</h3>
+            <span class="badge badge-orange" style="margin-left:auto">待上传</span></div>
+          <div class="card-body">
+            <div class="ocr-zone" style="height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+              <div class="upload-icon" style="font-size:28px;margin:0 0 6px">🎓</div>
+              <p>点击上传毕业证图片或PDF</p>
+              <small>支持 JPG / PNG / PDF，最大 10MB</small>
+            </div>
+            <div style="margin-top:12px;background:#f8fafc;border-radius:8px;padding:12px;
+              color:var(--sub);font-size:12.5px;line-height:1.8">
+              识别后将自动提取：<br/>
+              • 毕业院校名称<br/>
+              • 所学专业<br/>
+              • 学历层次（本科/硕士…）<br/>
+              • 毕业年份
+            </div>
+            <div class="btn-group" style="margin-top:12px">
+              <button class="btn btn-primary btn-sm">📂 选择文件</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 职称证书识别 -->
+        <div class="card">
+          <div class="card-head"><span>📜</span><h3>职称证书识别</h3>
+            <span class="badge badge-blue" style="margin-left:auto">已识别</span></div>
+          <div class="card-body">
+            <div style="background:#1e293b;border-radius:8px;height:80px;display:flex;align-items:center;
+              justify-content:center;margin-bottom:12px;color:#94a3b8;font-size:13px">
+              📜 &nbsp; 职称证书预览区
+            </div>
+            <div class="ocr-result">
+              <h4>✅ 识别结果</h4>
+              <div class="ocr-field">
+                <label>职称名称</label>
+                <input value="工程师"/>
+                <span class="ocr-confidence conf-high">96%</span>
+              </div>
+              <div class="ocr-field">
+                <label>专业方向</label>
+                <input value="建筑工程"/>
+                <span class="ocr-confidence conf-high">94%</span>
+              </div>
+              <div class="ocr-field">
+                <label>发证年份</label>
+                <input value="2015"/>
+                <span class="ocr-confidence conf-high">98%</span>
+              </div>
+              <div class="ocr-field">
+                <label>发证单位</label>
+                <input value="广西壮族自治区人力…"/>
+                <span class="ocr-confidence conf-low">79%</span>
+              </div>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-green btn-sm">✅ 确认保存</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 识别说明 -->
+        <div class="card">
+          <div class="card-head"><span>💡</span><h3>识别说明 &amp; 注意事项</h3></div>
+          <div class="card-body">
+            <div style="font-size:13px;line-height:2;color:var(--sub)">
+              <strong style="color:var(--text)">识别准确率参考：</strong><br/>
+              🪪 身份证 → 通常 95% 以上<br/>
+              🎓 毕业证 → 80～95%（字迹清晰时）<br/>
+              📜 职称证书 → 85～95%<br/><br/>
+              <strong style="color:var(--text)">⚠️ 请务必检查：</strong><br/>
+              • 身份证号每一位数字<br/>
+              • 出生日期年月日<br/>
+              • 置信度低于 85% 的字段（黄色标注）<br/>
+              • 发证单位等长文本字段<br/><br/>
+              <strong style="color:var(--text)">不支持OCR的材料：</strong><br/>
+              社保证明、考核表、继续教育证明等材料<strong>只需上传文件</strong>，无需识别内容。
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     界面04 · 项目详情 · 材料管理
+══════════════════════════════════════════ -->
+<div class="page" id="page-detail">
+  <div class="win-bar">
+    <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+    <span class="title">张三 · 高级工程师 · 项目详情</span>
+    <button class="back" onclick="show('page-nav')">← 返回设计导航</button>
+  </div>
+  <div class="app-layout">
+    <div class="sidebar">
+      <div class="logo"><h2>张三</h2><p>高级工程师 · 建筑工程</p></div>
+      <div class="sidebar-sep">项目菜单</div>
+      <div class="sidebar-item active">📁 材料管理</div>
+      <div class="sidebar-item" onclick="show('page-ach')">🏗️ 工程业绩</div>
+      <div class="sidebar-item">🏆 获奖信息</div>
+      <div class="sidebar-item">📄 论文著作</div>
+      <div class="sidebar-item" onclick="show('page-check')">✅ 完整性检查</div>
+      <div class="sidebar-item" onclick="show('page-fill')">🤖 启动填报</div>
+      <div class="sidebar-sep">操作</div>
+      <div class="sidebar-item" onclick="show('page-list')">← 返回列表</div>
+    </div>
+    <div class="main">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div class="page-title">材料文件管理</div>
+          <div class="page-sub">本地路径：D:\职称申报\张三_高级工程师_建筑工程_2026\</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline">📂 打开文件夹</button>
+          <button class="btn btn-primary">📥 导入文件</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:260px 1fr;gap:16px">
+        <!-- 左：文件夹树 -->
+        <div class="card" style="margin:0">
+          <div class="card-head"><span>📁</span><h3>文件夹结构</h3></div>
+          <div class="card-body" style="padding:10px">
+            <div class="file-tree">
+<span class="ft-dir">📁 张三_高级工程师_建筑工程_2026/</span><br/>
+├── <span class="ft-dir ft-ok">📁 01_基本材料/ ✓</span><br/>
+│&nbsp;&nbsp;&nbsp;├── <span class="ft-file ft-ok">🪪 身份证_张三_正面.jpg</span><br/>
+│&nbsp;&nbsp;&nbsp;├── <span class="ft-file ft-ok">🪪 身份证_张三_反面.jpg</span><br/>
+│&nbsp;&nbsp;&nbsp;├── <span class="ft-file ft-ok">🎓 毕业证_张三_本科.pdf</span><br/>
+│&nbsp;&nbsp;&nbsp;├── <span class="ft-file ft-ok">📜 职称证书_工程师_2015.pdf</span><br/>
+│&nbsp;&nbsp;&nbsp;├── <span class="ft-file ft-ok">🏦 社保证明_202506.pdf</span><br/>
+│&nbsp;&nbsp;&nbsp;├── <span class="ft-file ft-miss">⚠️ 继续教育证明 ← 缺失</span><br/>
+│&nbsp;&nbsp;&nbsp;└── <span class="ft-file ft-ok">📋 年度考核_2023.pdf</span><br/>
+├── <span class="ft-dir ft-ok">📁 02_工程业绩/</span><br/>
+│&nbsp;&nbsp;&nbsp;├── <span class="ft-dir ft-ok">📁 业绩01_某大厦EPC/ ✓</span><br/>
+│&nbsp;&nbsp;&nbsp;└── <span class="ft-dir ft-miss">📁 业绩02_某道路/ ⚠️空</span><br/>
+├── <span class="ft-dir ft-ok">📁 03_获奖证书/ ✓</span><br/>
+├── <span class="ft-dir ft-miss">📁 04_论文著作/ ← 空</span><br/>
+├── <span class="ft-dir ft-miss">📁 05_代表作/ ← 未建</span><br/>
+└── <span class="ft-dir">📁 06_其他材料/</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右：文件预览 -->
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="card" style="margin:0">
+            <div class="card-head">
+              <span>👁️</span><h3>文件预览 · 身份证_张三_正面.jpg</h3>
+              <div style="margin-left:auto;display:flex;gap:6px">
+                <button class="btn btn-outline btn-sm">替换文件</button>
+                <button class="btn btn-red btn-sm">删除</button>
+              </div>
+            </div>
+            <div class="card-body" style="text-align:center">
+              <div style="background:#f1f5f9;border-radius:8px;height:140px;
+                display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:13px">
+                🪪 身份证图片预览（实际显示图片内容）
+              </div>
+            </div>
+          </div>
+
+          <!-- 待补充提示 -->
+          <div class="card" style="margin:0;border:2px solid var(--red-bd)">
+            <div class="card-head" style="background:var(--red-bg)">
+              <span>⚠️</span><h3 style="color:var(--red)">缺失文件提示</h3>
+            </div>
+            <div class="card-body">
+              <div class="check-item">
+                <span class="check-icon">❌</span>
+                <div class="check-text">继续教育完成证明
+                  <div class="sub">请放入 01_基本材料/ 目录，命名：继续教育_张三_2025.pdf</div>
+                </div>
+                <button class="btn btn-primary btn-sm">📥 导入</button>
+              </div>
+              <div class="check-item">
+                <span class="check-icon">❌</span>
+                <div class="check-text">论文著作（至少1篇）
+                  <div class="sub">请放入 04_论文著作/ 目录</div>
+                </div>
+                <button class="btn btn-primary btn-sm">📥 导入</button>
+              </div>
+              <div class="check-item">
+                <span class="check-icon">❌</span>
+                <div class="check-text">代表作材料（高级职称必须）
+                  <div class="sub">请在 05_代表作/ 目录中放入说明文件和证明材料</div>
+                </div>
+                <button class="btn btn-primary btn-sm">📥 导入</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     界面05 · 工程业绩录入
+══════════════════════════════════════════ -->
+<div class="page" id="page-ach">
+  <div class="win-bar">
+    <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+    <span class="title">张三 · 工程业绩录入</span>
+    <button class="back" onclick="show('page-nav')">← 返回设计导航</button>
+  </div>
+  <div class="app-layout">
+    <div class="sidebar">
+      <div class="logo"><h2>张三</h2><p>高级工程师 · 建筑工程</p></div>
+      <div class="sidebar-sep">项目菜单</div>
+      <div class="sidebar-item" onclick="show('page-detail')">📁 材料管理</div>
+      <div class="sidebar-item active">🏗️ 工程业绩</div>
+      <div class="sidebar-item">🏆 获奖信息</div>
+      <div class="sidebar-item">📄 论文著作</div>
+      <div class="sidebar-item" onclick="show('page-check')">✅ 完整性检查</div>
+    </div>
+    <div class="main">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div class="page-title">工程业绩录入</div>
+          <div class="page-sub">已录入 2 项 · 高级工程师需满足：2大型，或1大+2中，或4中型（施工/监理类）</div>
+        </div>
+        <button class="btn btn-primary">➕ 新增业绩</button>
+      </div>
+
+      <!-- 已录入列表 -->
+      <div class="card">
+        <div class="card-head"><span>📋</span><h3>已录入业绩</h3></div>
+        <div class="card-body" style="padding:0">
+          <table class="data-table">
+            <thead><tr><th>#</th><th>项目名称</th><th>工作类型</th><th>本人角色</th><th>规模</th><th>时间</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>01</td>
+                <td><strong>南宁某大厦EPC总承包</strong></td>
+                <td>施工管理</td>
+                <td>项目负责人</td>
+                <td><span class="scale-large">大型</span>
+                  <span style="font-size:11px;color:var(--sub);display:block;margin-top:2px">面积4.2万㎡ ≥3万</span></td>
+                <td>2021.03～2023.08</td>
+                <td><button class="btn btn-outline btn-sm">编辑</button></td>
+              </tr>
+              <tr>
+                <td>02</td>
+                <td><strong>某县城道路改造工程</strong></td>
+                <td>施工管理</td>
+                <td>技术负责人</td>
+                <td><span class="scale-medium">中型</span>
+                  <span style="font-size:11px;color:var(--sub);display:block;margin-top:2px">合同额680万</span></td>
+                <td>2022.06～2023.04</td>
+                <td><button class="btn btn-outline btn-sm">编辑</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 进度提示 -->
+      <div class="card" style="border:2px solid var(--orange-bd)">
+        <div class="card-head" style="background:var(--orange-bg)">
+          <span>📊</span><h3 style="color:var(--orange)">业绩达标情况（施工/监理类）</h3>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;gap:24px;margin-bottom:10px">
+            <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--green)">1</div><div style="font-size:11px;color:var(--sub)">大型项目</div></div>
+            <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--orange)">1</div><div style="font-size:11px;color:var(--sub)">中型项目</div></div>
+            <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--gray)">0</div><div style="font-size:11px;color:var(--sub)">小型项目</div></div>
+          </div>
+          <div style="font-size:13px;color:var(--orange);margin-bottom:6px">
+            ⚠️ 当前：1大型 + 1中型。需要再补充 <strong>1项中型</strong> 才能满足「1大+2中」条件。
+          </div>
+          <div style="font-size:12px;color:var(--sub)">满足条件：✅ 2大型 &nbsp;&nbsp; ⏳ 1大+2中（差1中） &nbsp;&nbsp; ❌ 4中型</div>
+        </div>
+      </div>
+
+      <!-- 新增表单 -->
+      <div class="card">
+        <div class="card-head" style="background:var(--blue-bg)">
+          <span>➕</span><h3 style="color:var(--blue)">新增业绩（第3项）</h3>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+            <span style="font-size:12px;color:var(--sub)">实时规模判断：</span>
+            <span class="scale-medium" id="scale-badge">中型</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="form-row col2">
+            <div class="form-group"><label>项目名称 *</label><input placeholder="如：南宁某住宅小区一期工程"/></div>
+            <div class="form-group"><label>工作类型 *</label>
+              <select>
+                <option>施工管理</option><option>设计</option><option>监理</option>
+                <option>项目管理/全过程</option><option>咨询/检测</option>
+                <option>工程造价/招投标</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row col3">
+            <div class="form-group"><label>本人担任角色 *</label>
+              <select><option>项目负责人</option><option>技术负责人</option><option>主要技术骨干</option><option>主要参加人</option><option>参与完成</option></select>
+            </div>
+            <div class="form-group"><label>开始时间 *</label><input type="month" value="2023-09"/></div>
+            <div class="form-group"><label>完成时间 *</label><input type="month" value="2025-06"/></div>
+          </div>
+
+          <!-- 规模判断输入区 -->
+          <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px">
+            <div style="font-size:12px;font-weight:700;color:var(--sub);margin-bottom:10px">
+              📐 填写以下任一指标，系统自动判断规模（满足任一即可）
+            </div>
+            <div class="form-row col3">
+              <div class="form-group">
+                <label>建筑层数（层）</label>
+                <input type="number" placeholder="如：18" oninput="updateScale(this.value,'floors')"/>
+                <div class="hint">大型≥25层 / 中型5～25层</div>
+              </div>
+              <div class="form-group">
+                <label>单体建筑面积（㎡）</label>
+                <input type="number" placeholder="如：25000" oninput="updateScale(this.value,'area')"/>
+                <div class="hint">大型≥30000 / 中型3000～30000</div>
+              </div>
+              <div class="form-group">
+                <label>单项合同额（万元）</label>
+                <input type="number" placeholder="如：1500" oninput="updateScale(this.value,'contract')"/>
+                <div class="hint">大型≥3000 / 中型300～3000</div>
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--blue);margin-top:4px" id="scale-reason">
+              💡 请填写至少一项指标以判断规模
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group"><label>本人承担的主要工作内容 *</label>
+              <textarea placeholder="简要描述本人在该项目中承担的具体工作，如：担任项目经理，负责现场施工组织、质量管理、进度协调…（100字以内）"></textarea>
+            </div>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-outline">取消</button>
+            <button class="btn btn-primary">💾 保存业绩</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     界面06 · 完整性检查
+══════════════════════════════════════════ -->
+<div class="page" id="page-check">
+  <div class="win-bar">
+    <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+    <span class="title">张三 · 材料完整性检查报告</span>
+    <button class="back" onclick="show('page-nav')">← 返回设计导航</button>
+  </div>
+  <div class="app-layout">
+    <div class="sidebar">
+      <div class="logo"><h2>张三</h2><p>高级工程师 · 建筑工程</p></div>
+      <div class="sidebar-sep">项目菜单</div>
+      <div class="sidebar-item" onclick="show('page-detail')">📁 材料管理</div>
+      <div class="sidebar-item" onclick="show('page-ach')">🏗️ 工程业绩</div>
+      <div class="sidebar-item">🏆 获奖信息</div>
+      <div class="sidebar-item">📄 论文著作</div>
+      <div class="sidebar-item active">✅ 完整性检查</div>
+      <div class="sidebar-item" onclick="show('page-fill')">🤖 启动填报</div>
+    </div>
+    <div class="main">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div class="page-title">材料完整性检查报告</div>
+          <div class="page-sub">检查时间：2026-06-17 14:32 · 高级工程师 · 建筑工程</div>
+        </div>
+        <button class="btn btn-primary">🔄 重新检查</button>
+      </div>
+
+      <!-- 总体结论 -->
+      <div class="card" style="border:2px solid var(--red-bd)">
+        <div class="card-body" style="display:flex;align-items:center;gap:16px;background:var(--red-bg);border-radius:9px">
+          <div style="font-size:40px">❌</div>
+          <div>
+            <div style="font-size:16px;font-weight:800;color:var(--red)">暂不可提交 · 存在 4 项问题</div>
+            <div style="font-size:13px;color:#991b1b;margin-top:4px">请处理下方红色项目后，重新检查，通过后才能启动网上填报</div>
+          </div>
+          <div style="margin-left:auto;text-align:center">
+            <div style="font-size:28px;font-weight:800;color:var(--red)">60%</div>
+            <div style="font-size:11px;color:#991b1b">完成度</div>
+            <div class="progress-bar" style="width:120px"><div class="progress-fill danger" style="width:60%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 分项检查结果 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+        <div class="card" style="margin:0">
+          <div class="card-head"><span>📋</span><h3>基本材料</h3>
+            <span class="badge badge-orange" style="margin-left:auto">5/7 通过</span></div>
+          <div class="card-body">
+            <div class="check-item"><span class="check-icon">✅</span><div class="check-text">身份证正反面</div></div>
+            <div class="check-item"><span class="check-icon">✅</span><div class="check-text">毕业证书</div></div>
+            <div class="check-item"><span class="check-icon">✅</span><div class="check-text">现有职称证书（工程师）</div></div>
+            <div class="check-item"><span class="check-icon">✅</span><div class="check-text">社保缴纳证明</div></div>
+            <div class="check-item"><span class="check-icon">✅</span><div class="check-text">年度考核证明（3年）</div></div>
+            <div class="check-item">
+              <span class="check-icon">❌</span>
+              <div class="check-text" style="color:var(--red)">继续教育完成证明
+                <div class="sub" style="color:var(--red)">未找到文件，请放入 01_基本材料/</div>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="show('page-detail')">去补充</button>
+            </div>
+            <div class="check-item">
+              <span class="check-icon">⚠️</span>
+              <div class="check-text" style="color:var(--orange)">学位证书
+                <div class="sub">本科学历建议提供，未找到文件</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin:0">
+          <div class="card-head"><span>🏗️</span><h3>工程业绩（施工/监理类）</h3>
+            <span class="badge badge-orange" style="margin-left:auto">未达标</span></div>
+          <div class="card-body">
+            <div style="font-size:12.5px;color:var(--sub);margin-bottom:10px">
+              要求：2大型，或1大+2中，或4中型<br/>
+              当前：<strong style="color:var(--green)">大型 1 项</strong> + <strong style="color:var(--orange)">中型 1 项</strong>
+            </div>
+            <div class="check-item"><span class="check-icon">✅</span>
+              <div class="check-text">业绩01 · 某大厦EPC总承包 <span class="scale-large">大型</span>
+                <div class="sub">材料文件齐全</div></div>
+            </div>
+            <div class="check-item"><span class="check-icon">⚠️</span>
+              <div class="check-text" style="color:var(--orange)">业绩02 · 某道路改造工程 <span class="scale-medium">中型</span>
+                <div class="sub" style="color:var(--orange)">文件夹为空，请放入佐证材料</div></div>
+            </div>
+            <div class="check-item">
+              <span class="check-icon">❌</span>
+              <div class="check-text" style="color:var(--red)">还需补充 1 项中型以上业绩
+                <div class="sub" style="color:var(--red)">目前不满足任一达标条件</div>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="show('page-ach')">去添加</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin:0">
+          <div class="card-head"><span>🏆</span><h3>获奖证书</h3>
+            <span class="badge badge-green" style="margin-left:auto">✅ 通过</span></div>
+          <div class="card-body">
+            <div class="check-item"><span class="check-icon">✅</span>
+              <div class="check-text">南宁市优质工程奖（二等奖）<span class="badge badge-gray" style="font-size:10px">市厅级</span>
+                <div class="sub">满足高级工程师获奖要求</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin:0">
+          <div class="card-head"><span>📄</span><h3>论文著作</h3>
+            <span class="badge badge-red" style="margin-left:auto">❌ 缺失</span></div>
+          <div class="card-body">
+            <div class="check-item">
+              <span class="check-icon">❌</span>
+              <div class="check-text" style="color:var(--red)">高级工程师需至少1篇论文或学术著作
+                <div class="sub" style="color:var(--red)">04_论文著作/ 目录为空</div>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="show('page-detail')">去补充</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin:0;border:2px solid var(--red-bd)">
+          <div class="card-head" style="background:var(--red-bg)"><span>⭐</span>
+            <h3 style="color:var(--red)">代表作（必须）</h3>
+            <span class="badge badge-red" style="margin-left:auto">❌ 缺失</span></div>
+          <div class="card-body">
+            <div class="check-item">
+              <span class="check-icon">❌</span>
+              <div class="check-text" style="color:var(--red)">高级/正高级工程师必须指定1项代表作
+                <div class="sub" style="color:var(--red)">05_代表作/ 目录不存在或为空</div>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="show('page-detail')">去建立</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin:0">
+          <div class="card-head"><span>💾</span><h3>录入数据完整性</h3>
+            <span class="badge badge-orange" style="margin-left:auto">部分完成</span></div>
+          <div class="card-body">
+            <div class="check-item"><span class="check-icon">✅</span><div class="check-text">申报人基本信息已录入完整</div></div>
+            <div class="check-item"><span class="check-icon">✅</span><div class="check-text">业绩01 数据已录入</div></div>
+            <div class="check-item"><span class="check-icon">⚠️</span>
+              <div class="check-text" style="color:var(--orange)">业绩02 工作内容描述为空</div></div>
+            <div class="check-item"><span class="check-icon">✅</span><div class="check-text">获奖信息已录入</div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     界面07 · 自动填报
+══════════════════════════════════════════ -->
+<div class="page" id="page-fill">
+  <div class="win-bar">
+    <div class="dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+    <span class="title">张三 · 网上自动填报</span>
+    <button class="back" onclick="show('page-nav')">← 返回设计导航</button>
+  </div>
+  <div class="app-layout">
+    <div class="sidebar">
+      <div class="logo"><h2>张三</h2><p>高级工程师 · 建筑工程</p></div>
+      <div class="sidebar-sep">项目菜单</div>
+      <div class="sidebar-item" onclick="show('page-detail')">📁 材料管理</div>
+      <div class="sidebar-item" onclick="show('page-ach')">🏗️ 工程业绩</div>
+      <div class="sidebar-item" onclick="show('page-check')">✅ 完整性检查</div>
+      <div class="sidebar-item active">🤖 启动填报</div>
+    </div>
+    <div class="main">
+      <div class="page-title">网上自动填报</div>
+      <div class="page-sub">系统将自动登录 my.gxrczc.com，完成表单填写，请先核对以下数据</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+        <!-- 左：待填数据预览 -->
+        <div>
+          <div class="card" style="margin:0 0 14px">
+            <div class="card-head"><span>👤</span><h3>基本信息预览</h3></div>
+            <div class="card-body">
+              <table style="width:100%;font-size:13px;border-collapse:collapse">
+                <tr><td style="color:var(--sub);padding:4px 0;width:90px">姓名</td><td><strong>张三</strong></td></tr>
+                <tr><td style="color:var(--sub);padding:4px 0">身份证号</td><td>450102198503120012</td></tr>
+                <tr><td style="color:var(--sub);padding:4px 0">申报职称</td><td><strong>高级工程师</strong></td></tr>
+                <tr><td style="color:var(--sub);padding:4px 0">专业方向</td><td>建筑工程</td></tr>
+                <tr><td style="color:var(--sub);padding:4px 0">工作单位</td><td>广西某建设集团有限公司</td></tr>
+                <tr><td style="color:var(--sub);padding:4px 0">最高学历</td><td>本科 · 广西大学 · 2008年</td></tr>
+                <tr><td style="color:var(--sub);padding:4px 0">现有职称</td><td>工程师 · 2015年取得</td></tr>
+              </table>
+            </div>
+          </div>
+
+          <div class="card" style="margin:0 0 14px">
+            <div class="card-head"><span>🏗️</span><h3>业绩信息（2条）</h3></div>
+            <div class="card-body" style="font-size:13px">
+              <div style="padding:6px 0;border-bottom:1px solid #f1f5f9">
+                <strong>①</strong> 南宁某大厦EPC总承包 <span class="scale-large">大型</span><br/>
+                <span style="color:var(--sub);font-size:12px">项目负责人 · 2021.03～2023.08 · 4.2万㎡</span>
+              </div>
+              <div style="padding:6px 0">
+                <strong>②</strong> 某县城道路改造工程 <span class="scale-medium">中型</span><br/>
+                <span style="color:var(--sub);font-size:12px">技术负责人 · 2022.06～2023.04 · 680万元</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin:0">
+            <div class="card-head"><span>🔐</span><h3>登录账号</h3></div>
+            <div class="card-body">
+              <div class="form-row col2">
+                <div class="form-group"><label>账号</label><input value="gz_zhang_san"/></div>
+                <div class="form-group"><label>密码</label><input type="password" value="●●●●●●●●"/></div>
+              </div>
+              <div style="font-size:12px;color:var(--sub)">⚠️ 密码本地加密存储，不会上传到任何服务器</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右：填报进度/控制 -->
+        <div>
+          <div class="card" style="margin:0 0 14px">
+            <div class="card-head"><span>🤖</span><h3>填报进度</h3>
+              <span class="badge badge-blue" style="margin-left:auto">进行中</span></div>
+            <div class="card-body">
+              <div class="fill-step">
+                <span class="fill-icon">✅</span>
+                <span class="fill-text">登录 my.gxrczc.com</span>
+                <span class="fill-status fs-done">完成</span>
+              </div>
+              <div class="fill-step">
+                <span class="fill-icon">✅</span>
+                <span class="fill-text">进入个人申报 → 新建申报</span>
+                <span class="fill-status fs-done">完成</span>
+              </div>
+              <div class="fill-step">
+                <span class="fill-icon">✅</span>
+                <span class="fill-text">填写基本信息页</span>
+                <span class="fill-status fs-done">完成</span>
+              </div>
+              <div class="fill-step">
+                <span class="fill-icon">⏳</span>
+                <span class="fill-text">填写工程业绩（第1条/共2条）</span>
+                <span class="fill-status fs-doing">填写中…</span>
+              </div>
+              <div class="fill-step">
+                <span class="fill-icon">○</span>
+                <span class="fill-text">填写获奖信息</span>
+                <span class="fill-status fs-wait">等待</span>
+              </div>
+              <div class="fill-step">
+                <span class="fill-icon">○</span>
+                <span class="fill-text">上传材料文件</span>
+                <span class="fill-status fs-wait">等待</span>
+              </div>
+              <div class="fill-step">
+                <span class="fill-icon">○</span>
+                <span class="fill-text">最终提交（需人工确认）</span>
+                <span class="fill-status fs-wait">待确认</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 浏览器预览框 -->
+          <div class="card" style="margin:0 0 14px">
+            <div class="card-head"><span>🌐</span><h3>浏览器实时画面</h3></div>
+            <div class="card-body" style="padding:0">
+              <div class="browser-frame">
+                <div class="browser-bar">
+                  <div class="browser-dots">
+                    <span style="background:#ef4444"></span>
+                    <span style="background:#f59e0b"></span>
+                    <span style="background:#22c55e"></span>
+                  </div>
+                  <div class="browser-addr">my.gxrczc.com/apply/achievement/add</div>
+                </div>
+                <div class="browser-content">
+                  <div style="font-size:12px;color:var(--sub);margin-bottom:8px">【工程业绩录入】第1条</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px">
+                    <div style="background:#f1f5f9;border-radius:4px;padding:5px 8px">
+                      项目名称：<span style="color:var(--blue)">南宁某大厦EPC总承包</span>
+                      <span style="color:var(--green);font-size:10px"> ← 正在填入</span>
+                    </div>
+                    <div style="background:#f1f5f9;border-radius:4px;padding:5px 8px">
+                      项目类型：<span style="color:var(--blue)">施工管理</span>
+                    </div>
+                  </div>
+                  <div style="margin-top:8px;font-size:11px;color:var(--gray);text-align:center">
+                    （系统正在自动操作，请勿手动操作浏览器）
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 最终提交确认 -->
+          <div class="card" style="margin:0;border:2px solid var(--orange-bd)">
+            <div class="card-head" style="background:var(--orange-bg)">
+              <span>⚠️</span><h3 style="color:var(--orange)">提交前最终确认</h3>
+            </div>
+            <div class="card-body">
+              <div style="font-size:13px;color:var(--sub);margin-bottom:12px;line-height:1.7">
+                所有表单填写完成后，系统将<strong>暂停等待你的确认</strong>，你在浏览器中检查无误后，
+                点击「确认提交」，系统才会点击网站的提交按钮。
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-outline" style="flex:1">⏸️ 暂停</button>
+                <button class="btn btn-red" style="flex:1">⛔ 中止填报</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// 业绩录入 - 实时规模判断
+function updateScale(val, type){
+  const v = parseFloat(val);
+  if(isNaN(v) || v<=0){
+    document.getElementById('scale-badge').className='scale-medium';
+    document.getElementById('scale-badge').textContent='填写指标后判断';
+    document.getElementById('scale-reason').textContent='💡 请填写至少一项指标';
+    return;
+  }
+  let scale='小型', reason='';
+  if(type==='floors'){
+    if(v>=25){scale='大型';reason=`层数${v}层 ≥ 25层`}
+    else if(v>=5){scale='中型';reason=`层数${v}层，5～25层`}
+    else{scale='小型';reason=`层数${v}层 < 5层`}
+  } else if(type==='area'){
+    if(v>=30000){scale='大型';reason=`面积${v}㎡ ≥ 30000㎡`}
+    else if(v>=3000){scale='中型';reason=`面积${v}㎡，3000～30000㎡`}
+    else{scale='小型';reason=`面积${v}㎡ < 3000㎡`}
+  } else if(type==='contract'){
+    if(v>=3000){scale='大型';reason=`合同额${v}万元 ≥ 3000万元`}
+    else if(v>=300){scale='中型';reason=`合同额${v}万元，300～3000万元`}
+    else{scale='小型';reason=`合同额${v}万元 < 300万元`}
+  }
+  const badge=document.getElementById('scale-badge');
+  badge.className=scale==='大型'?'scale-large':scale==='中型'?'scale-medium':'scale-small';
+  badge.textContent=scale;
+  const cls=scale==='大型'?'color:var(--green)':scale==='中型'?'color:var(--orange)':'color:var(--red)';
+  document.getElementById('scale-reason').innerHTML=`<span style="${cls}">✅ 判断依据：${reason}${scale==='大型'?' — 可用于高级职称':scale==='中型'?' — 可用于中级或高级职称':' — 仅可用于初级或中级职称'}</span>`;
+}
+</script>
+</body>
+</html>
