@@ -12,6 +12,8 @@ from gui.pages.applicants import ApplicantsPage
 from gui.pages.projects import ProjectsPage
 from gui.pages.batches import BatchesPage
 from gui.pages.fees_report import FeesReportPage
+from gui.pages.ocr_page import OcrPage
+from gui.pages.doc_manager import DocManagerPage
 from gui.pages.placeholder import PlaceholderPage
 
 # Nav definition: (group_label, [(icon, label, page_key), ...])
@@ -30,7 +32,7 @@ NAV_STRUCTURE = [
     ]),
     ("材料管理", [
         ("📄", "材料目录",     "docs"),
-        ("🔍", "完整性检查",  "checker"),
+        ("🔎", "OCR 识别",    "ocr"),
     ]),
     ("AI 辅助", [
         ("✨", "AI 写作",      "ai_writer"),
@@ -49,8 +51,8 @@ PAGE_TITLES = {
     "scale":         "工程规模判断",
     "batches":       "申报批次管理",
     "fees_report":   "费用汇总报表",
-    "docs":          "材料目录",
-    "checker":       "完整性检查",
+    "docs":          "材料目录管理",
+    "ocr":           "OCR 证件识别",
     "ai_writer":     "AI 辅助写作",
     "img_proc":      "图像处理",
     "settings":      "系统设置",
@@ -197,6 +199,10 @@ class MainWindow(QMainWindow):
             page = BatchesPage()
         elif key == "fees_report":
             page = FeesReportPage()
+        elif key == "docs":
+            page = DocManagerPage()
+        elif key == "ocr":
+            page = OcrPage()
         else:
             page = PlaceholderPage(PAGE_TITLES.get(key, key))
 
