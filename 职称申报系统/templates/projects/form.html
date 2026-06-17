@@ -58,6 +58,14 @@
         </select>
       </div>
       <div class="form-group">
+        <label class="form-label">申报专业</label>
+        <select class="form-control" name="specialty">
+          {% for sp in ['','房屋建筑工程','市政公用工程','装饰装修工程','机电安装工程','公路工程'] %}
+          <option value="{{ sp }}" {{ 'selected' if v.get('specialty') == sp }}>{{ sp or '请选择' }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
         <label class="form-label">工程规模</label>
         <input class="form-control" name="scale" value="{{ v.get('scale','') }}"
                placeholder="大型/中型/小型">
@@ -70,7 +78,7 @@
     </div>
     <div class="form-group">
       <label class="form-label">备注</label>
-      <textarea class="form-control" name="note">{{ v.get('note','') }}</textarea>
+      <textarea class="form-control" name="notes">{{ v.get('notes','') }}</textarea>
     </div>
     <div class="modal-footer" style="margin-top:8px">
       <a href="{{ url_for('projects.list_page') }}" class="btn btn-outline">取消</a>

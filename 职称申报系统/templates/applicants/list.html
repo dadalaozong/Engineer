@@ -43,6 +43,8 @@
         <td>{{ a.education or '—' }}</td>
         <td>{{ a.title_level or '—' }}</td>
         <td>
+          <a href="{{ url_for('applicants.detail', aid=a.id) }}"
+             class="btn btn-sm btn-primary">详情</a>
           <a href="{{ url_for('applicants.edit_page', aid=a.id) }}"
              class="btn btn-sm btn-outline">编辑</a>
           <a href="{{ url_for('projects.list_page', applicant_id=a.id) }}"
@@ -305,6 +307,8 @@ function saveApplicant() {
   const data = {
     name:        name,
     id_card:     document.getElementById("f-id-card").value.trim(),
+    gender:      document.getElementById("f-gender").value,
+    birth_date:  document.getElementById("f-birth").value.trim(),
     phone:       document.getElementById("f-phone").value.trim(),
     email:       "",
     education:   document.getElementById("f-education").value,
@@ -312,7 +316,7 @@ function saveApplicant() {
     work_unit:   document.getElementById("f-work-unit").value.trim(),
     title_level: document.getElementById("f-title-level").value,
     title_year:  document.getElementById("f-title-year").value.trim(),
-    notes:       `出生：${document.getElementById("f-birth").value}  性别：${document.getElementById("f-gender").value}`,
+    notes:       "",
   };
 
   fetch("/applicants/new-json", {
@@ -341,6 +345,7 @@ function saveApplicant() {
       <td>${esc(data.education||"—")}</td>
       <td>${esc(data.title_level||"—")}</td>
       <td>
+        <a href="/applicants/${d.id}" class="btn btn-sm btn-primary">详情</a>
         <a href="/applicants/${d.id}/edit" class="btn btn-sm btn-outline">编辑</a>
         <a href="/projects/?applicant_id=${d.id}" class="btn btn-sm btn-outline">项目</a>
         <button class="btn btn-sm btn-danger"

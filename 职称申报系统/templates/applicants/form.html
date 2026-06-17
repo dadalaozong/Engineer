@@ -7,8 +7,10 @@
 {% set v = applicant or {} %}
 {% set action = url_for('applicants.update', aid=v.get('id')) if is_edit else url_for('applicants.create') %}
 
-<div class="card" style="max-width:800px">
+<div class="card" style="max-width:860px">
   <form method="post" action="{{ action }}">
+
+    <div class="section-title">基本信息</div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">姓名 <span style="color:#dc2626">*</span></label>
@@ -21,6 +23,25 @@
     </div>
     <div class="form-row">
       <div class="form-group">
+        <label class="form-label">性别</label>
+        <select class="form-control" name="gender">
+          <option value="">请选择</option>
+          {% for g in ['男','女'] %}
+          <option value="{{ g }}" {{ 'selected' if v.get('gender') == g }}>{{ g }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">出生日期</label>
+        <input class="form-control" name="birth_date" type="date" value="{{ v.get('birth_date','') }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">民族</label>
+        <input class="form-control" name="ethnicity" value="{{ v.get('ethnicity','') }}" placeholder="汉族">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
         <label class="form-label">电话</label>
         <input class="form-control" name="phone" value="{{ v.get('phone','') }}">
       </div>
@@ -29,10 +50,29 @@
         <input class="form-control" name="email" type="email" value="{{ v.get('email','') }}">
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">工作单位</label>
-      <input class="form-control" name="work_unit" value="{{ v.get('work_unit','') }}">
+
+    <div class="section-title" style="margin-top:16px">工作信息</div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label class="form-label">工作单位</label>
+        <input class="form-control" name="work_unit" value="{{ v.get('work_unit','') }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">单位性质</label>
+        <select class="form-control" name="work_unit_type">
+          <option value="">请选择</option>
+          {% for t in ['国有企业','私营企业','事业单位','机关单位','外资企业','其他'] %}
+          <option value="{{ t }}" {{ 'selected' if v.get('work_unit_type') == t }}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">参加工作年份</label>
+        <input class="form-control" name="work_start_year" value="{{ v.get('work_start_year','') }}" placeholder="2010">
+      </div>
     </div>
+
+    <div class="section-title" style="margin-top:16px">学历信息</div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">学历</label>
@@ -49,6 +89,18 @@
     </div>
     <div class="form-row">
       <div class="form-group">
+        <label class="form-label">毕业院校</label>
+        <input class="form-control" name="school" value="{{ v.get('school','') }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">毕业年份</label>
+        <input class="form-control" name="graduation_year" value="{{ v.get('graduation_year','') }}" placeholder="2015">
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:16px">职称信息</div>
+    <div class="form-row">
+      <div class="form-group">
         <label class="form-label">现职称等级</label>
         <select class="form-control" name="title_level">
           {% for lvl in ['','助理工程师','工程师','高级工程师','正高级工程师'] %}
@@ -58,15 +110,21 @@
       </div>
       <div class="form-group">
         <label class="form-label">取得年份</label>
-        <input class="form-control" name="title_year" value="{{ v.get('title_year','') }}">
+        <input class="form-control" name="title_year" value="{{ v.get('title_year','') }}" placeholder="2018">
       </div>
     </div>
-    <div class="form-group">
+
+    <div class="form-group" style="margin-top:8px">
       <label class="form-label">备注</label>
-      <textarea class="form-control" name="notes">{{ v.get('notes','') }}</textarea>
+      <textarea class="form-control" name="notes" rows="3">{{ v.get('notes','') }}</textarea>
     </div>
-    <div class="modal-footer" style="margin-top:8px">
+
+    <div class="modal-footer" style="margin-top:16px">
+      {% if is_edit %}
+      <a href="{{ url_for('applicants.detail', aid=v.get('id')) }}" class="btn btn-outline">取消</a>
+      {% else %}
       <a href="{{ url_for('applicants.list_page') }}" class="btn btn-outline">取消</a>
+      {% endif %}
       <button class="btn btn-primary" type="submit">💾 保存</button>
     </div>
   </form>
