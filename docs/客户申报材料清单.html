@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>职称申报材料清单 · 广西住建行业</title>
+<style>
+:root{
+  --blue:#2563eb; --blue-bg:#eff6ff; --blue-bd:#bfdbfe;
+  --green:#16a34a; --green-bg:#f0fdf4; --green-bd:#bbf7d0;
+  --red:#dc2626;   --red-bg:#fef2f2;   --red-bd:#fecaca;
+  --orange:#d97706;--orange-bg:#fffbeb;--orange-bd:#fde68a;
+  --gray:#6b7280;  --gray-bg:#f9fafb;  --border:#e5e7eb;
+  --text:#111827;  --sub:#4b5563;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;color:var(--text);background:#f3f4f6;padding:24px 16px}
+
+/* ── 顶部 ── */
+.header{background:var(--blue);color:#fff;border-radius:12px;padding:28px 32px;margin-bottom:24px;position:relative;overflow:hidden}
+.header::after{content:"";position:absolute;right:-40px;top:-40px;width:180px;height:180px;background:rgba(255,255,255,.08);border-radius:50%}
+.header h1{font-size:22px;font-weight:800;margin-bottom:6px}
+.header p{font-size:13px;opacity:.85;line-height:1.7}
+.header .tips{margin-top:14px;background:rgba(255,255,255,.15);border-radius:8px;padding:10px 14px;font-size:12.5px;line-height:1.8}
+
+/* ── 切换标签 ── */
+.tab-bar{display:flex;gap:8px;margin-bottom:20px}
+.tab{flex:1;text-align:center;padding:12px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;border:2px solid transparent;transition:.2s}
+.tab.mid{background:#fff;border-color:var(--blue);color:var(--blue)}
+.tab.high{background:#fff;border-color:var(--green);color:var(--green)}
+.tab.mid.active{background:var(--blue);color:#fff}
+.tab.high.active{background:var(--green);color:#fff}
+
+/* ── 内容区 ── */
+.content{display:none}
+.content.active{display:block}
+
+/* ── 板块卡片 ── */
+.section{background:#fff;border-radius:12px;margin-bottom:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.section-head{padding:14px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.section-head .icon{font-size:20px}
+.section-head .title{font-size:15px;font-weight:700}
+.section-head .badge{margin-left:auto;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px}
+.badge-must{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+.badge-sel{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-bd)}
+.badge-opt{background:var(--gray-bg);color:var(--gray);border:1px solid var(--border)}
+
+/* ── 材料行 ── */
+.item{padding:12px 18px;border-bottom:1px solid #f3f4f6;display:grid;grid-template-columns:18px 1fr;gap:10px;align-items:start}
+.item:last-child{border-bottom:none}
+.item .dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.dot-red{background:var(--red)}
+.dot-orange{background:var(--orange)}
+.dot-gray{background:#d1d5db}
+.item .name{font-weight:600;font-size:13.5px;margin-bottom:3px}
+.item .desc{font-size:12.5px;color:var(--sub);line-height:1.65}
+.item .filename{display:inline-block;margin-top:5px;background:#f1f5f9;border-radius:4px;padding:3px 8px;font-size:12px;font-family:monospace;color:#1e40af;word-break:break-all}
+
+/* ── 文件夹结构 ── */
+.folder-tree{background:#1e293b;border-radius:10px;padding:18px 20px;font-family:monospace;font-size:12.5px;line-height:2;color:#94a3b8;margin:0}
+.fd{color:#7dd3fc}
+.fm{color:#a5f3fc}
+.fr{color:#86efac}  /* required */
+.fo{color:#fcd34d}  /* optional */
+.fc{color:#475569}  /* comment */
+
+/* ── 命名规则说明 ── */
+.rule-box{background:var(--blue-bg);border:1px solid var(--blue-bd);border-radius:10px;padding:16px 18px;margin-bottom:16px}
+.rule-box h3{color:var(--blue);font-size:14px;font-weight:700;margin-bottom:10px}
+.rule-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.rule-table th{background:var(--blue);color:#fff;padding:7px 10px;text-align:left}
+.rule-table td{padding:7px 10px;border-bottom:1px solid var(--blue-bd);vertical-align:top;line-height:1.6}
+.rule-table tr:last-child td{border-bottom:none}
+.rule-table .eg{font-family:monospace;color:var(--blue);font-size:12px}
+
+/* ── 注意事项 ── */
+.notice{background:var(--orange-bg);border:1px solid var(--orange-bd);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;line-height:1.8}
+.notice strong{color:var(--orange)}
+
+/* ── 打印 ── */
+.print-btn{display:block;width:100%;padding:13px;text-align:center;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:20px}
+
+@media print{
+  body{background:#fff;padding:0}
+  .tab-bar,.print-btn{display:none}
+  .content{display:block!important}
+  .section{box-shadow:none;border:1px solid var(--border)}
+}
+</style>
+</head>
+<body>
+
+<!-- 顶部 -->
+<div class="header">
+  <h1>📋 职称申报材料清单</h1>
+  <p>广西壮族自治区工程系列住房城乡建设行业职称评审<br/>
+     本清单依据《广西住建行业高、中、初级职称评审条件（2026年版）》整理</p>
+  <div class="tips">
+    ⚠️ 请按照文件夹结构分类存放，并严格按照命名规范对文件命名，方便中介审核和系统自动识别。<br/>
+    📌 所有材料请提供 <strong>清晰彩色扫描件</strong>，格式为 <strong>PDF 或 JPG</strong>，单个文件不超过 10MB。
+  </div>
+</div>
+
+<!-- 切换按钮 -->
+<div class="tab-bar">
+  <div class="tab mid active" onclick="switchTab('mid')">⚙️ 中级职称（工程师）</div>
+  <div class="tab high" onclick="switchTab('high')">🏅 高级职称（高级工程师）</div>
+</div>
+
+<button class="print-btn" onclick="window.print()">🖨️ 打印 / 保存为PDF</button>
+
+<!-- ════════════════════════════════════════
+     中级职称（工程师）
+════════════════════════════════════════ -->
+<div class="content active" id="content-mid">
+
+  <!-- 学历资历说明 -->
+  <div class="notice">
+    <strong>【申报条件提醒】</strong> 申报工程师（中级）需满足以下学历+年限之一：<br/>
+    • 博士学位 → 可直接申报<br/>
+    • 硕士学位 + 取得助理工程师职称满 2 年<br/>
+    • 本科 / 大专学历 + 取得助理工程师职称满 4 年<br/>
+    • 无职称的：硕士从事本专业满 4 年、本科满 7 年、大专满 9 年
+  </div>
+
+  <!-- 文件命名规则 -->
+  <div class="rule-box">
+    <h3>📐 文件命名规则（请严格遵守）</h3>
+    <table class="rule-table">
+      <tr><th>材料类型</th><th>命名格式</th><th>示例</th></tr>
+      <tr>
+        <td>身份证</td>
+        <td>身份证_姓名_正面.jpg<br/>身份证_姓名_反面.jpg</td>
+        <td class="eg">身份证_张三_正面.jpg<br/>身份证_张三_反面.jpg</td>
+      </tr>
+      <tr>
+        <td>毕业证/学位证</td>
+        <td>毕业证_姓名_学历_学校.pdf</td>
+        <td class="eg">毕业证_张三_本科_广西大学.pdf<br/>学位证_张三_工学学士.pdf</td>
+      </tr>
+      <tr>
+        <td>现有职称证书</td>
+        <td>职称证书_姓名_助理工程师_年份.pdf</td>
+        <td class="eg">职称证书_张三_助理工程师_2019.pdf</td>
+      </tr>
+      <tr>
+        <td>社保证明</td>
+        <td>社保证明_姓名_年月.pdf</td>
+        <td class="eg">社保证明_张三_202506.pdf</td>
+      </tr>
+      <tr>
+        <td>继续教育证明</td>
+        <td>继续教育_姓名_年份.pdf</td>
+        <td class="eg">继续教育_张三_2025.pdf</td>
+      </tr>
+      <tr>
+        <td>年度考核</td>
+        <td>年度考核_姓名_年份.pdf</td>
+        <td class="eg">年度考核_张三_2023.pdf<br/>年度考核_张三_2024.pdf<br/>年度考核_张三_2025.pdf</td>
+      </tr>
+      <tr>
+        <td>工程业绩（每项单独文件夹）</td>
+        <td>文件夹名：业绩01_项目名称<br/>内部文件：合同_项目名.pdf、图纸签字页.pdf、验收证明.pdf</td>
+        <td class="eg">📁 业绩01_南宁某大厦施工监理<br/>
+        &nbsp;&nbsp;合同_南宁某大厦.pdf<br/>
+        &nbsp;&nbsp;图纸签字页.pdf<br/>
+        &nbsp;&nbsp;验收证明.pdf</td>
+      </tr>
+      <tr>
+        <td>论文（选填）</td>
+        <td>论文_序号_题目简称_期刊_年份.pdf</td>
+        <td class="eg">论文01_装配式建筑研究_广西土木_202403.pdf</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 文件夹结构 -->
+  <div class="section">
+    <div class="section-head">
+      <span class="icon">📁</span>
+      <span class="title">文件夹结构（请按此结构建立文件夹）</span>
+    </div>
+    <pre class="folder-tree">
+<span class="fd">张三_工程师_建筑工程_2026/</span>
+│
+├── <span class="fd fr">01_基本材料/</span>               <span class="fc">← 必须全部放齐</span>
+│   ├── <span class="fm fr">身份证_张三_正面.jpg</span>
+│   ├── <span class="fm fr">身份证_张三_反面.jpg</span>
+│   ├── <span class="fm fr">毕业证_张三_本科_广西大学.pdf</span>
+│   ├── <span class="fm fo">学位证_张三_工学学士.pdf</span>   <span class="fc">← 有则提供</span>
+│   ├── <span class="fm fr">职称证书_张三_助理工程师_2019.pdf</span>
+│   ├── <span class="fm fr">社保证明_张三_202506.pdf</span>
+│   ├── <span class="fm fr">继续教育_张三_2025.pdf</span>
+│   ├── <span class="fm fr">年度考核_张三_2023.pdf</span>
+│   ├── <span class="fm fr">年度考核_张三_2024.pdf</span>
+│   └── <span class="fm fr">年度考核_张三_2025.pdf</span>
+│
+├── <span class="fd fr">02_工程业绩/</span>               <span class="fc">← 至少 2 项，其中1项须符合主要条款</span>
+│   ├── <span class="fd">业绩01_南宁某大厦施工监理/</span>
+│   │   ├── <span class="fm">合同_南宁某大厦.pdf</span>
+│   │   ├── <span class="fm">图纸签字页.pdf</span>
+│   │   └── <span class="fm">竣工验收证明.pdf</span>
+│   └── <span class="fd">业绩02_某道路工程项目管理/</span>
+│       ├── <span class="fm">项目合同书.pdf</span>
+│       └── <span class="fm">验收报告.pdf</span>
+│
+├── <span class="fd fo">03_论文著作/</span>               <span class="fc">← 选填（有业绩2项可不提供）</span>
+│   └── <span class="fm">论文01_题目_期刊名_202403.pdf</span>
+│
+└── <span class="fd fo">04_其他材料/</span>               <span class="fc">← 专利证书等其他佐证</span>
+    </pre>
+  </div>
+
+  <!-- 必须材料清单 -->
+  <div class="section">
+    <div class="section-head">
+      <span class="icon">🔴</span>
+      <span class="title">第一部分：基本材料（全部必须）</span>
+      <span class="badge badge-must">缺一不可</span>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">① 身份证</div>
+        <div class="desc">正反面彩色扫描，清晰可读（号码、照片、地址均清晰）</div>
+        <span class="filename">身份证_张三_正面.jpg &nbsp;/&nbsp; 身份证_张三_反面.jpg</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">② 毕业证书</div>
+        <div class="desc">最高学历毕业证，注意学校名称、专业、毕业年份清晰可见</div>
+        <span class="filename">毕业证_张三_本科_广西大学.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">③ 学位证书（有则必须提供）</div>
+        <div class="desc">有学位证书的须提供，硕士/博士尤其重要</div>
+        <span class="filename">学位证_张三_工学学士.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">④ 现有职称证书（助理工程师）</div>
+        <div class="desc">即已有的职称证书，注意取证年份，用于计算资历年限</div>
+        <span class="filename">职称证书_张三_助理工程师_2019.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">⑤ 社会保险缴纳证明</div>
+        <div class="desc">由社保局或单位开具，需包含近12个月记录，加盖公章</div>
+        <span class="filename">社保证明_张三_202506.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">⑥ 继续教育完成证明</div>
+        <div class="desc">住建行业继续教育学时证明，由培训机构或单位出具</div>
+        <span class="filename">继续教育_张三_2025.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">⑦ 近3年年度考核证明（每年一份）</div>
+        <div class="desc">2023、2024、2025年度考核，结果需为"合格"及以上，由单位出具加盖公章</div>
+        <span class="filename">年度考核_张三_2023.pdf &nbsp;/&nbsp; 年度考核_张三_2024.pdf &nbsp;/&nbsp; 年度考核_张三_2025.pdf</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 工程业绩 -->
+  <div class="section">
+    <div class="section-head">
+      <span class="icon">🏗️</span>
+      <span class="title">第二部分：工程业绩（核心材料）</span>
+      <span class="badge badge-must">至少 2 项</span>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">工程项目业绩（每项单独建一个文件夹）</div>
+        <div class="desc">
+          需满足以下规模要求之一：<br/>
+          • <strong>设计/施工/监理/项目管理</strong>：参与 2 项中型，或 1 项中型 + 2 项小型，或 4 项小型工程<br/>
+          • <strong>咨询/检测</strong>：参与 5 项大、中型工程<br/>
+          • <strong>造价/招投标</strong>：参与 4 项中型以上，或 6 项小型工程<br/><br/>
+          每项业绩文件夹内需包含：
+        </div>
+        <span class="filename">合同书或任务书.pdf</span>
+        <br/><span class="filename">图纸签字页 或 施工日志（体现本人参与）.pdf</span>
+        <br/><span class="filename">竣工验收证明 或 结项报告.pdf</span>
+        <div class="desc" style="margin-top:8px">
+          ⚠️ 每项业绩<strong>必须能体现本人参与</strong>（合同上有名字、图纸有签字、或有单位证明）
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 选填材料 -->
+  <div class="section">
+    <div class="section-head">
+      <span class="icon">🟡</span>
+      <span class="title">第三部分：论文 / 技术报告（选填）</span>
+      <span class="badge badge-sel">有2项业绩可不填</span>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-orange"></div>
+      <div>
+        <div class="name">在专业期刊发表的论文</div>
+        <div class="desc">发表在有CN刊号或ISSN刊号的专业期刊上，需提供期刊封面+目录+论文全文</div>
+        <span class="filename">论文01_题目简称_期刊名_202403.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-orange"></div>
+      <div>
+        <div class="name">技术工作总结（替代论文）</div>
+        <div class="desc">结合本人参与项目撰写，不少于 3000 字，需获得单位书面认可盖章</div>
+        <span class="filename">技术总结_张三_XX项目_2025.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-gray"></div>
+      <div>
+        <div class="name">专利证书（加分项）</div>
+        <div class="desc">发明专利1件（排名前3），或实用新型专利2件（第一发明人）</div>
+        <span class="filename">专利_实用新型_张三_专利名称.pdf</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end mid -->
+
+
+<!-- ════════════════════════════════════════
+     高级职称（高级工程师）
+════════════════════════════════════════ -->
+<div class="content" id="content-high">
+
+  <!-- 申报条件 -->
+  <div class="notice">
+    <strong>【申报条件提醒】</strong> 申报高级工程师需满足以下学历+年限之一：<br/>
+    • 博士学位 + 取得工程师职称满 2 年<br/>
+    • 硕士学位 + 取得工程师职称满 5 年<br/>
+    • 本科学历 + 取得工程师职称满 5 年<br/>
+    ⚠️ 高级工程师比中级多三项核心要求：<strong>①获奖证书、②论文/著作、③代表作</strong>
+  </div>
+
+  <!-- 文件命名规则 -->
+  <div class="rule-box">
+    <h3>📐 文件命名规则（请严格遵守）</h3>
+    <table class="rule-table">
+      <tr><th>材料类型</th><th>命名格式</th><th>示例</th></tr>
+      <tr>
+        <td>身份证</td>
+        <td>身份证_姓名_正面/反面.jpg</td>
+        <td class="eg">身份证_张三_正面.jpg</td>
+      </tr>
+      <tr>
+        <td>毕业证/学位证</td>
+        <td>毕业证_姓名_学历_学校.pdf</td>
+        <td class="eg">毕业证_张三_本科_广西大学.pdf</td>
+      </tr>
+      <tr>
+        <td>现有职称证书</td>
+        <td>职称证书_姓名_工程师_年份.pdf</td>
+        <td class="eg">职称证书_张三_工程师_2018.pdf</td>
+      </tr>
+      <tr>
+        <td>社保/继续教育/考核</td>
+        <td>同中级（见上）</td>
+        <td class="eg">社保证明_张三_202506.pdf</td>
+      </tr>
+      <tr>
+        <td>工程业绩</td>
+        <td>文件夹：业绩01_项目名称</td>
+        <td class="eg">📁 业绩01_南宁某大厦EPC总承包</td>
+      </tr>
+      <tr>
+        <td>获奖证书</td>
+        <td>获奖_序号_奖项名称_级别_年份.pdf</td>
+        <td class="eg">获奖01_市级优质工程奖_二等奖_2023.pdf<br/>获奖02_广西科技进步奖_三等奖_2022.pdf</td>
+      </tr>
+      <tr>
+        <td>论文</td>
+        <td>论文_序号_题目简称_期刊名_年月.pdf</td>
+        <td class="eg">论文01_装配式建筑研究_广西土木_202403.pdf</td>
+      </tr>
+      <tr>
+        <td>代表作</td>
+        <td>代表作说明_姓名.docx<br/>代表作证明材料_名称.pdf</td>
+        <td class="eg">代表作说明_张三.docx<br/>代表作证明材料_南宁某大厦.pdf</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 文件夹结构 -->
+  <div class="section">
+    <div class="section-head">
+      <span class="icon">📁</span>
+      <span class="title">文件夹结构（请按此结构建立文件夹）</span>
+    </div>
+    <pre class="folder-tree">
+<span class="fd">张三_高级工程师_建筑工程_2026/</span>
+│
+├── <span class="fd fr">01_基本材料/</span>               <span class="fc">← 必须全部放齐</span>
+│   ├── <span class="fm fr">身份证_张三_正面.jpg</span>
+│   ├── <span class="fm fr">身份证_张三_反面.jpg</span>
+│   ├── <span class="fm fr">毕业证_张三_本科_广西大学.pdf</span>
+│   ├── <span class="fm fo">学位证_张三_工学学士.pdf</span>
+│   ├── <span class="fm fr">职称证书_张三_工程师_2018.pdf</span>
+│   ├── <span class="fm fr">社保证明_张三_202506.pdf</span>
+│   ├── <span class="fm fr">继续教育_张三_2025.pdf</span>
+│   ├── <span class="fm fr">年度考核_张三_2023.pdf</span>
+│   ├── <span class="fm fr">年度考核_张三_2024.pdf</span>
+│   └── <span class="fm fr">年度考核_张三_2025.pdf</span>
+│
+├── <span class="fd fr">02_工程业绩/</span>               <span class="fc">← 满足条款7-15中至少1条</span>
+│   ├── <span class="fd">业绩01_南宁某大厦EPC总承包/</span>
+│   │   ├── <span class="fm">合同书.pdf</span>
+│   │   ├── <span class="fm">图纸签字页.pdf</span>
+│   │   └── <span class="fm">竣工验收证明.pdf</span>
+│   └── <span class="fd">业绩02_某道路工程项目负责人/</span>
+│       ├── <span class="fm">项目合同书.pdf</span>
+│       └── <span class="fm">验收报告.pdf</span>
+│
+├── <span class="fd fr">03_获奖证书/</span>               <span class="fc">← 必须！至少1项获奖</span>
+│   ├── <span class="fm fr">获奖01_市级优质工程奖_二等奖_2023.pdf</span>
+│   └── <span class="fm fo">获奖02_广西科技进步奖_三等奖_2022.pdf</span>
+│
+├── <span class="fd fr">04_论文著作/</span>               <span class="fc">← 必须！至少1篇论文</span>
+│   └── <span class="fm fr">论文01_装配式建筑研究_广西土木_202403.pdf</span>
+│
+├── <span class="fd fr">05_代表作/</span>                  <span class="fc">← 必须！高级职称强制要求</span>
+│   ├── <span class="fm fr">代表作说明_张三.docx</span>      <span class="fc">← 说明为何选此作为代表作</span>
+│   └── <span class="fm fr">代表作证明材料_项目名称.pdf</span>
+│
+├── <span class="fd fo">06_专利证书/</span>               <span class="fc">← 选填</span>
+├── <span class="fd fo">07_科研项目/</span>               <span class="fc">← 选填</span>
+└── <span class="fd fo">08_其他材料/</span>
+    </pre>
+  </div>
+
+  <!-- 必须材料 -->
+  <div class="section">
+    <div class="section-head">
+      <span class="icon">🔴</span>
+      <span class="title">第一部分：基本材料（全部必须）</span>
+      <span class="badge badge-must">缺一不可</span>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">① 身份证（正反面）</div>
+        <div class="desc">彩色清晰扫描，号码、照片、地址可读</div>
+        <span class="filename">身份证_张三_正面.jpg &nbsp;/&nbsp; 身份证_张三_反面.jpg</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">② 毕业证书 + 学位证书</div>
+        <div class="desc">最高学历毕业证，有学位证书的一并提供</div>
+        <span class="filename">毕业证_张三_本科_广西大学.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">③ 工程师职称证书（现有职称）</div>
+        <div class="desc">注意：申报高级工程师，现有职称必须是<strong>工程师</strong>（中级），并已满足资历年限</div>
+        <span class="filename">职称证书_张三_工程师_2018.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">④ 社会保险缴纳证明</div>
+        <div class="desc">近12个月社保记录，社保局官方打印，加盖公章</div>
+        <span class="filename">社保证明_张三_202506.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">⑤ 继续教育完成证明</div>
+        <div class="desc">住建行业继续教育学时证明</div>
+        <span class="filename">继续教育_张三_2025.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">⑥ 近3年年度考核证明（2023、2024、2025 各一份）</div>
+        <div class="desc">考核结果须为"合格"及以上，单位出具，加盖公章</div>
+        <span class="filename">年度考核_张三_2023.pdf &nbsp;/&nbsp; 2024.pdf &nbsp;/&nbsp; 2025.pdf</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 工程业绩 -->
+  <div class="section">
+    <div class="section-head">
+      <span class="icon">🏗️</span>
+      <span class="title">第二部分：工程业绩</span>
+      <span class="badge badge-must">至少 2 项（见条款）</span>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">工程项目业绩（满足以下之一）</div>
+        <div class="desc">
+          <strong>设计/施工/监理/项目管理/全过程管理：</strong><br/>
+          参与完成 2 项大型，或 1 项大型 + 2 项中型，或 4 项中型工程<br/><br/>
+          <strong>咨询/工程检测/质量监督/施工图审查：</strong><br/>
+          参与完成 10 项大、中型工程（其中大型不少于 5 项）<br/><br/>
+          <strong>工程造价/技术经济分析/招投标：</strong><br/>
+          参与完成 6 项大、中型（其中大型不少于 2 项），或 10 项小型工程<br/><br/>
+          每项业绩每个文件夹内需提供：
+        </div>
+        <span class="filename">合同书 或 任务书.pdf</span>
+        <br/><span class="filename">图纸签字页 或 施工现场记录（体现本人参与）.pdf</span>
+        <br/><span class="filename">竣工验收报告 或 结项证明.pdf</span>
+        <div class="desc" style="margin-top:8px;color:var(--red)">
+          ⚠️ 项目负责人需提供印章使用记录或注册师盖章图纸
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 高级特有材料 -->
+  <div class="section">
+    <div class="section-head">
+      <span class="icon">🏆</span>
+      <span class="title">第三部分：获奖证书</span>
+      <span class="badge badge-must">高级职称必须 ≥ 1 项</span>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">科技奖励（符合以下之一）</div>
+        <div class="desc">
+          • 省（部）级科技奖三等奖以上（排名靠前）<br/>
+          • 全国行业协会科技奖或工程类成果奖三等奖以上<br/>
+          • 市（厅）级科技奖一等奖（排名前7位）或二等奖（排名前5位）2项
+        </div>
+        <span class="filename">获奖01_广西科技进步奖_三等奖_2023.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">优质工程奖（符合以下之一）</div>
+        <div class="desc">
+          • 作为主要完成人，获得市（厅）级优质工程奖<br/>
+          • 提供获奖证书 + 单位项目人员名单（向住建部门报备的）
+        </div>
+        <span class="filename">获奖01_南宁市优质工程奖_二等奖_2023.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-orange"></div>
+      <div>
+        <div class="name">优秀设计奖（选填，可替代上述）</div>
+        <div class="desc">省（部）级优秀设计成果奖，或市（厅）级优秀设计一等/二等奖</div>
+        <span class="filename">获奖02_广西优秀工程设计奖_三等奖_2022.pdf</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <span class="icon">📄</span>
+      <span class="title">第四部分：论文 / 著作</span>
+      <span class="badge badge-must">高级职称必须 ≥ 1 篇</span>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">在专业期刊发表的论文（至少1篇）</div>
+        <div class="desc">
+          需满足：有CN刊号或ISSN刊号的公开专业期刊<br/>
+          须为<strong>独著、第一作者或通讯作者</strong><br/>
+          提供：期刊封面 + 目录页 + 正文全文（扫描件或PDF原版）
+        </div>
+        <span class="filename">论文01_装配式建筑施工技术_广西土木建筑_202403.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-orange"></div>
+      <div>
+        <div class="name">学术著作（可替代论文）</div>
+        <div class="desc">须有ISBN书号 + CIP数据核字号，公开出版，本人撰写不少于2万字。教材、论文集不算。</div>
+        <span class="filename">著作_书名_ISBN封面_版权页.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-orange"></div>
+      <div>
+        <div class="name">技术分析报告（可替代论文，在企业或县级以下单位工作者）</div>
+        <div class="desc">不少于3000字的专项技术分析报告/设计方案/工程实验报告等，需获采纳单位书面认可</div>
+        <span class="filename">技术报告_张三_项目名_2025.pdf</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <span class="icon">⭐</span>
+      <span class="title">第五部分：代表作</span>
+      <span class="badge badge-must">高级职称强制要求</span>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">代表作说明文件</div>
+        <div class="desc">
+          指定1项最能体现本人能力水平的标志性业绩成果，说明为何选此作为代表作，本人在其中发挥的作用，取得的成果。<br/>
+          可以是：获奖项目、重要工程业绩、论文、专利、技术报告等任何一种成果。<br/>
+          格式：Word文档，不少于500字。
+        </div>
+        <span class="filename">代表作说明_张三.docx</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-red"></div>
+      <div>
+        <div class="name">代表作对应的证明材料</div>
+        <div class="desc">代表作是什么就提供什么的证明。如选获奖项目为代表作，则提供获奖证书；如选论文则提供论文全文。</div>
+        <span class="filename">代表作证明材料_南宁某大厦项目_验收报告.pdf</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 选填 -->
+  <div class="section">
+    <div class="section-head">
+      <span class="icon">🟡</span>
+      <span class="title">第六部分：加分材料（选填）</span>
+      <span class="badge badge-opt">有则提供</span>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-gray"></div>
+      <div>
+        <div class="name">专利证书</div>
+        <div class="desc">发明专利1件（本人前5名），或实用新型专利4件（第一发明人），须有产业化应用证明</div>
+        <span class="filename">专利01_发明专利_专利名称_授权证书.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-gray"></div>
+      <div>
+        <div class="name">科研项目证明</div>
+        <div class="desc">主持或参与省部级/市厅级科研项目、技术攻关项目的立项、结项文件</div>
+        <span class="filename">科研01_项目名称_立项文件.pdf &nbsp;/&nbsp; 结项验收报告.pdf</span>
+      </div>
+    </div>
+
+    <div class="item">
+      <div class="dot dot-gray"></div>
+      <div>
+        <div class="name">参编标准规范</div>
+        <div class="desc">参与编写国家/行业/地方标准规范，提供标准封面+编制人名单页</div>
+        <span class="filename">标准01_标准名称_编制人名单页.pdf</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end high -->
+
+<!-- JS 切换 -->
+<script>
+function switchTab(type){
+  document.querySelectorAll('.content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('content-'+type).classList.add('active');
+  document.querySelector('.tab.'+type).classList.add('active');
+  window.scrollTo(0,0);
+}
+</script>
+
+</body>
+</html>
