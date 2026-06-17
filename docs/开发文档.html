@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>职称申报自动化系统 · 开发文档</title>
+  <style>
+    :root {
+      --blue: #2563eb;
+      --blue-light: #eff6ff;
+      --green: #16a34a;
+      --green-light: #f0fdf4;
+      --orange: #ea580c;
+      --orange-light: #fff7ed;
+      --red: #dc2626;
+      --gray: #6b7280;
+      --gray-light: #f9fafb;
+      --border: #e5e7eb;
+      --text: #111827;
+      --text-sub: #4b5563;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 15px;
+      color: var(--text);
+      background: #fff;
+      display: flex;
+    }
+
+    /* ── 侧边导航 ── */
+    nav {
+      width: 240px;
+      min-height: 100vh;
+      background: var(--gray-light);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      overflow-y: auto;
+    }
+    nav .logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    nav .logo h2 { font-size: 14px; color: var(--blue); font-weight: 700; line-height: 1.4; }
+    nav .logo p  { font-size: 12px; color: var(--gray); margin-top: 2px; }
+    nav ul { list-style: none; }
+    nav ul li a {
+      display: block;
+      padding: 7px 20px;
+      font-size: 13px;
+      color: var(--text-sub);
+      text-decoration: none;
+      border-left: 3px solid transparent;
+    }
+    nav ul li a:hover { background: #e5e7eb; color: var(--text); }
+    nav ul li.section {
+      padding: 14px 20px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gray);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    nav ul li a.active { border-left-color: var(--blue); color: var(--blue); background: #dbeafe; }
+
+    /* ── 主内容 ── */
+    main {
+      margin-left: 240px;
+      padding: 48px 56px;
+      max-width: 960px;
+      width: 100%;
+    }
+
+    h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    h2 { font-size: 20px; font-weight: 700; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--border); }
+    h3 { font-size: 16px; font-weight: 700; margin: 28px 0 10px; }
+    h4 { font-size: 14px; font-weight: 700; margin: 18px 0 8px; color: var(--text-sub); }
+    p  { line-height: 1.75; color: var(--text-sub); margin-bottom: 12px; }
+    a  { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .subtitle { font-size: 15px; color: var(--gray); margin-bottom: 32px; }
+
+    /* 标签 */
+    .badge {
+      display: inline-block;
+      font-size: 11px; font-weight: 700;
+      padding: 2px 8px; border-radius: 99px;
+      margin-left: 6px; vertical-align: middle;
+    }
+    .badge-blue   { background: #dbeafe; color: var(--blue); }
+    .badge-green  { background: #dcfce7; color: var(--green); }
+    .badge-orange { background: #ffedd5; color: var(--orange); }
+    .badge-red    { background: #fee2e2; color: var(--red); }
+
+    /* 信息块 */
+    .callout {
+      border-left: 4px solid;
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      margin: 16px 0;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .callout-blue   { border-color: var(--blue);   background: var(--blue-light);   color: #1e40af; }
+    .callout-green  { border-color: var(--green);  background: var(--green-light);  color: #15803d; }
+    .callout-orange { border-color: var(--orange); background: var(--orange-light); color: #9a3412; }
+
+    /* 表格 */
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13.5px; }
+    th { background: var(--gray-light); text-align: left; padding: 9px 12px; border: 1px solid var(--border); font-weight: 700; }
+    td { padding: 8px 12px; border: 1px solid var(--border); vertical-align: top; line-height: 1.6; }
+    tr:nth-child(even) td { background: #fafafa; }
+
+    /* 代码 */
+    pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.7;
+      margin: 16px 0;
+    }
+    code { font-family: "JetBrains Mono", "Fira Code", monospace; }
+    p code, li code, td code {
+      background: #f1f5f9;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #be123c;
+    }
+
+    /* 模块卡片 */
+    .module-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 20px 0;
+    }
+    .module-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .module-card .icon { font-size: 24px; margin-bottom: 8px; }
+    .module-card h4 { margin: 0 0 6px; font-size: 15px; color: var(--text); }
+    .module-card p  { font-size: 13px; margin: 0; }
+
+    /* 流程图（纯CSS） */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    .flow-step {
+      background: var(--blue-light);
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--blue);
+      white-space: nowrap;
+    }
+    .flow-arrow {
+      font-size: 18px;
+      color: var(--gray);
+      padding: 0 8px;
+    }
+
+    /* 材料清单 */
+    .checklist { list-style: none; margin: 10px 0; }
+    .checklist li {
+      padding: 5px 0 5px 22px;
+      position: relative;
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: var(--text-sub);
+      border-bottom: 1px dashed #e5e7eb;
+    }
+    .checklist li:before {
+      content: "○";
+      position: absolute; left: 0;
+      color: var(--gray);
+    }
+    .checklist li.required:before { content: "●"; color: var(--blue); }
+    .checklist li.optional:before { content: "◎"; color: var(--orange); }
+
+    /* 文件树 */
+    .filetree {
+      background: #1e293b;
+      color: #94a3b8;
+      padding: 20px 24px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 13px;
+      line-height: 1.9;
+      margin: 16px 0;
+    }
+    .filetree .dir  { color: #7dd3fc; }
+    .filetree .file { color: #a5f3fc; }
+    .filetree .req  { color: #86efac; }
+    .filetree .opt  { color: #fcd34d; }
+    .filetree .note { color: #64748b; }
+
+    /* 分隔线 */
+    hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+    /* 状态矩阵 */
+    .status-table td.done   { color: var(--green);  font-weight: 600; }
+    .status-table td.todo   { color: var(--orange); font-weight: 600; }
+    .status-table td.later  { color: var(--gray);   font-weight: 600; }
+
+    @media (max-width: 768px) {
+      nav { display: none; }
+      main { margin-left: 0; padding: 24px 20px; }
+      .module-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════ 侧边导航 ══════════════════ -->
+<nav>
+  <div class="logo">
+    <h2>职称申报自动化系统</h2>
+    <p>开发文档 v1.0</p>
+  </div>
+  <ul>
+    <li class="section">概览</li>
+    <li><a href="#overview">项目背景与目标</a></li>
+    <li><a href="#arch">系统架构</a></li>
+    <li><a href="#tech">技术选型</a></li>
+
+    <li class="section">核心模块</li>
+    <li><a href="#mod-project">M1 · 项目管理</a></li>
+    <li><a href="#mod-folder">M2 · 目录生成</a></li>
+    <li><a href="#mod-docs">M3 · 材料管理</a></li>
+    <li><a href="#mod-check">M4 · 完整性检查</a></li>
+    <li><a href="#mod-auto">M5 · 自动填报</a></li>
+
+    <li class="section">数据设计</li>
+    <li><a href="#db">数据库表结构</a></li>
+    <li><a href="#folder-spec">文件夹规范</a></li>
+    <li><a href="#materials">材料清单规范</a></li>
+
+    <li class="section">自动填报</li>
+    <li><a href="#login">登录流程</a></li>
+    <li><a href="#form-map">表单字段映射</a></li>
+    <li><a href="#fill-flow">填报流程</a></li>
+
+    <li class="section">交付</li>
+    <li><a href="#roadmap">开发计划</a></li>
+    <li><a href="#run">运行说明</a></li>
+  </ul>
+</nav>
+
+<!-- ══════════════════ 主内容 ══════════════════ -->
+<main>
+
+  <!-- ─ 标题 ─ -->
+  <h1>职称申报自动化系统</h1>
+  <p class="subtitle">广西住建行业职称申报 · 本地桌面工具 · 开发文档 v1.0（2026-06）</p>
+
+  <div class="callout callout-blue">
+    本系统面向职称申报中介人员，实现「建档 → 归档 → 查漏 → 一键填报」全流程自动化。
+    申报对象为<strong>广西壮族自治区工程系列住房城乡建设行业</strong>职称（技术员 / 助理工程师 / 工程师 / 高级工程师 / 正高级工程师）。
+    目标网站：<a href="https://my.gxrczc.com/Login" target="_blank">https://my.gxrczc.com/Login</a>
+  </div>
+
+  <!-- ─ 背景与目标 ─ -->
+  <h2 id="overview">项目背景与目标</h2>
+
+  <h3>痛点</h3>
+  <table>
+    <tr><th>当前问题</th><th>系统解决方式</th></tr>
+    <tr><td>每人材料散乱，靠手动整理文件夹</td><td>新建项目时自动生成标准目录结构</td></tr>
+    <tr><td>容易遗漏材料，提交前才发现</td><td>完整性检查模块，按职称级别校验</td></tr>
+    <tr><td>网上填报重复劳动，同类字段反复输入</td><td>Playwright 自动登录、自动填表</td></tr>
+    <tr><td>申报人信息分散在微信/Excel</td><td>本地 SQLite 数据库统一管理</td></tr>
+  </table>
+
+  <h3>核心目标</h3>
+  <div class="module-grid">
+    <div class="module-card">
+      <div class="icon">📁</div>
+      <h4>标准化建档</h4>
+      <p>新建申报项目，根据职称级别自动生成本地文件夹树，每个材料类型有对应的存放位置。</p>
+    </div>
+    <div class="module-card">
+      <div class="icon">✅</div>
+      <h4>完整性检查</h4>
+      <p>按职称级别的必要材料清单，逐项检查文件夹内是否有对应文件，缺少时高亮提示。</p>
+    </div>
+    <div class="module-card">
+      <div class="icon">🤖</div>
+      <h4>自动化填报</h4>
+      <p>读取数据库中的申报人信息，启动 Playwright 浏览器，自动登录并填写各表单页面。</p>
+    </div>
+    <div class="module-card">
+      <div class="icon">🗂️</div>
+      <h4>多人批量管理</h4>
+      <p>支持同时管理多个申报人，每人独立项目，状态跟踪（建档 / 材料齐全 / 已提交）。</p>
+    </div>
+  </div>
+
+  <!-- ─ 系统架构 ─ -->
+  <h2 id="arch">系统架构</h2>
+
+  <p>本系统为<strong>本地单机桌面应用</strong>，无需服务器，所有数据存储在本地。</p>
+
+  <div class="flow">
+    <div class="flow-step">PyQt5 桌面 GUI</div>
+    <div class="flow-arrow">↕</div>
+    <div class="flow-step">业务逻辑层（Python）</div>
+    <div class="flow-arrow">↕</div>
+    <div class="flow-step">SQLite 数据库</div>
+  </div>
+  <div class="flow" style="margin-top:8px">
+    <div class="flow-step">业务逻辑层</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">本地文件系统</div>
+    <div class="flow-arrow">+</div>
+    <div class="flow-step">Playwright 浏览器</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">gxrczc.com 申报系统</div>
+  </div>
+
+  <h3>代码目录结构</h3>
+  <div class="filetree">
+<span class="dir">职称申报系统/</span><br>
+├── <span class="file">main.py</span>              <span class="note"># 程序入口，启动 PyQt5 窗口</span><br>
+├── <span class="file">config.py</span>            <span class="note"># 全局配置（根目录路径、数据库路径等）</span><br>
+├── <span class="file">requirements.txt</span><br>
+│<br>
+├── <span class="dir">database/</span><br>
+│   ├── <span class="file">db.py</span>            <span class="note"># SQLite 连接与初始化</span><br>
+│   └── <span class="file">models.py</span>        <span class="note"># 数据表定义（Applicant, Project, Achievement…）</span><br>
+│<br>
+├── <span class="dir">gui/</span><br>
+│   ├── <span class="file">main_window.py</span>   <span class="note"># 主窗口：项目列表 + 侧边栏</span><br>
+│   ├── <span class="file">project_dialog.py</span> <span class="note"># 新建/编辑申报项目弹窗</span><br>
+│   ├── <span class="file">applicant_form.py</span> <span class="note"># 申报人基本信息表单</span><br>
+│   ├── <span class="file">achievement_form.py</span><span class="note"># 工程业绩录入</span><br>
+│   ├── <span class="file">award_form.py</span>     <span class="note"># 获奖信息录入</span><br>
+│   ├── <span class="file">doc_manager.py</span>   <span class="note"># 材料文件管理（文件树 + 拖放）</span><br>
+│   └── <span class="file">checklist_panel.py</span><span class="note"># 完整性检查面板</span><br>
+│<br>
+├── <span class="dir">core/</span><br>
+│   ├── <span class="file">folder_builder.py</span> <span class="note"># 按职称级别生成本地文件夹结构</span><br>
+│   ├── <span class="file">checker.py</span>       <span class="note"># 完整性检查逻辑</span><br>
+│   └── <span class="file">title_rules.py</span>   <span class="note"># 各职称级别的材料规则配置</span><br>
+│<br>
+└── <span class="dir">automation/</span><br>
+    ├── <span class="file">browser.py</span>       <span class="note"># Playwright 浏览器封装（登录）</span><br>
+    └── <span class="file">form_filler.py</span>   <span class="note"># 各表单页面的自动填写逻辑</span>
+  </div>
+
+  <!-- ─ 技术选型 ─ -->
+  <h2 id="tech">技术选型</h2>
+  <table>
+    <tr><th>组件</th><th>技术</th><th>选择理由</th></tr>
+    <tr><td>桌面 GUI</td><td><code>PyQt5</code></td><td>跨平台、控件丰富、支持文件树/表格/拖放</td></tr>
+    <tr><td>数据库</td><td><code>SQLite</code>（内置）</td><td>无需安装，单文件，适合单机工具</td></tr>
+    <tr><td>浏览器自动化</td><td><code>Playwright</code></td><td>支持现代 JS 渲染页面，比 Selenium 更稳定</td></tr>
+    <tr><td>Excel 导入/导出</td><td><code>openpyxl</code></td><td>读取申报人 Excel 批量导入</td></tr>
+    <tr><td>图片处理</td><td><code>Pillow</code></td><td>材料文件预览</td></tr>
+    <tr><td>PDF 预览</td><td><code>pymupdf (fitz)</code></td><td>在界面内预览 PDF 材料</td></tr>
+    <tr><td>打包发布</td><td><code>PyInstaller</code></td><td>打包成 .exe，无需安装 Python</td></tr>
+  </table>
+
+  <pre><code># requirements.txt
+PyQt5>=5.15
+playwright>=1.40
+openpyxl>=3.1
+Pillow>=10.0
+pymupdf>=1.23
+PyInstaller>=6.0</code></pre>
+
+  <hr />
+
+  <!-- ══════════════ 核心模块 ══════════════ -->
+
+  <h2 id="mod-project">M1 · 项目管理</h2>
+  <p>每个「申报项目」对应一个申报人的一次职称申报，是系统的核心数据单元。</p>
+
+  <h3>项目列表主界面</h3>
+  <table>
+    <tr><th>列</th><th>说明</th></tr>
+    <tr><td>申报人姓名</td><td>从数据库读取</td></tr>
+    <tr><td>申报职称</td><td>技术员 / 助理工程师 / 工程师 / 高级工程师 / 正高级工程师</td></tr>
+    <tr><td>专业方向</td><td>建筑工程 / 市政工程 / 给排水 / 城乡规划 / 工程造价 等</td></tr>
+    <tr><td>材料状态</td><td>🔴 缺材料 / 🟡 待审查 / 🟢 材料齐全</td></tr>
+    <tr><td>申报状态</td><td>建档中 / 待提交 / 已提交 / 已评审</td></tr>
+    <tr><td>创建日期</td><td>自动记录</td></tr>
+    <tr><td>操作</td><td>编辑 / 打开文件夹 / 启动填报 / 删除</td></tr>
+  </table>
+
+  <h3>新建项目流程</h3>
+  <div class="flow">
+    <div class="flow-step">① 填写申报人基本信息</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">② 选择职称级别 + 专业</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">③ 选择本地存储根目录</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">④ 自动生成文件夹结构</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">⑤ 保存到数据库</div>
+  </div>
+
+  <!-- ─ 目录生成 ─ -->
+  <h2 id="mod-folder">M2 · 目录生成</h2>
+  <p>根据职称级别，自动在本地创建对应的文件夹结构。</p>
+
+  <h3>高级工程师 / 正高级工程师 文件夹结构</h3>
+  <div class="filetree">
+<span class="dir">张三_高级工程师_建筑工程_2026/</span><br>
+├── <span class="dir req">01_基本材料/</span>          <span class="note"># 必须全部放齐</span><br>
+│   ├── <span class="file req">身份证正反面.pdf</span><br>
+│   ├── <span class="file req">毕业证书.pdf</span><br>
+│   ├── <span class="file req">学位证书.pdf</span><br>
+│   ├── <span class="file req">现有职称证书_工程师.pdf</span><br>
+│   ├── <span class="file req">社保缴纳证明.pdf</span><br>
+│   ├── <span class="file req">继续教育完成证明.pdf</span><br>
+│   └── <span class="file req">近3年年度考核证明.pdf</span><br>
+├── <span class="dir req">02_工程业绩/</span>          <span class="note"># 按条款要求数量</span><br>
+│   ├── <span class="dir">业绩01_项目名称/</span><br>
+│   │   ├── <span class="file">合同书或任务书.pdf</span><br>
+│   │   ├── <span class="file">图纸签字页_或_竣工证明.pdf</span><br>
+│   │   └── <span class="file">验收报告.pdf</span><br>
+│   └── <span class="dir">业绩02_项目名称/</span><br>
+├── <span class="dir opt">03_获奖证书/</span>          <span class="note"># 高级必须至少1项</span><br>
+│   └── <span class="file">市级优质工程奖.pdf</span><br>
+├── <span class="dir opt">04_论文著作/</span>          <span class="note"># 高级必须至少1篇</span><br>
+│   ├── <span class="file">论文01_期刊名_题目.pdf</span><br>
+│   └── <span class="file">著作_ISBN页.pdf</span><br>
+├── <span class="dir opt">05_专利证书/</span><br>
+├── <span class="dir req">06_代表作/</span>            <span class="note"># 高级/正高级必须</span><br>
+│   ├── <span class="file req">代表作说明.docx</span><br>
+│   └── <span class="file req">代表作证明材料.pdf</span><br>
+├── <span class="dir opt">07_科研项目/</span><br>
+├── <span class="dir opt">08_标准规范/</span><br>
+└── <span class="dir">09_其他材料/</span><br>
+    ├── <span class="file">单位推荐表.pdf</span><br>
+    └── <span class="file">诚信承诺书.pdf</span>
+  </div>
+
+  <p><span class="badge badge-blue">必须</span> = 系统检查时标红缺失 &nbsp;&nbsp;
+     <span class="badge badge-orange">可选</span> = 按职称条款判断是否需要</p>
+
+  <h3>各职称级别文件夹差异</h3>
+  <table>
+    <tr><th>文件夹</th><th>技术员</th><th>助理工程师</th><th>工程师</th><th>高级工程师</th><th>正高级工程师</th></tr>
+    <tr><td>01_基本材料</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td>02_工程业绩</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    <tr><td>03_获奖证书</td><td>-</td><td>可选</td><td>可选</td><td><strong>必须≥1</strong></td><td><strong>必须≥1</strong></td></tr>
+    <tr><td>04_论文著作</td><td>-</td><td>可选</td><td>可选</td><td><strong>必须≥1</strong></td><td><strong>必须≥1篇核心</strong></td></tr>
+    <tr><td>05_专利证书</td><td>-</td><td>-</td><td>可选</td><td>可选</td><td>可选</td></tr>
+    <tr><td>06_代表作</td><td>-</td><td>-</td><td>-</td><td><strong>必须</strong></td><td><strong>必须</strong></td></tr>
+    <tr><td>07_科研项目</td><td>-</td><td>-</td><td>可选</td><td>可选</td><td>可选</td></tr>
+    <tr><td>08_标准规范</td><td>-</td><td>-</td><td>可选</td><td>可选</td><td>可选</td></tr>
+  </table>
+
+  <!-- ─ 材料管理 ─ -->
+  <h2 id="mod-docs">M3 · 材料管理</h2>
+
+  <p>在 GUI 界面中展示当前申报项目的文件夹树，支持以下操作：</p>
+  <ul style="margin:10px 0 16px 20px; line-height:2; color:var(--text-sub); font-size:14px;">
+    <li>点击文件夹 → 在右侧预览 PDF / 图片</li>
+    <li>「导入文件」按钮 → 选择本机文件复制到对应目录</li>
+    <li>右键文件 → 重命名 / 删除 / 在资源管理器中打开</li>
+    <li>「打开文件夹」按钮 → 打开 Windows 资源管理器</li>
+    <li>工程业绩子目录可手动新增（填写项目名后自动创建子文件夹）</li>
+  </ul>
+
+  <!-- ─ 完整性检查 ─ -->
+  <h2 id="mod-check">M4 · 完整性检查</h2>
+
+  <p>点击「检查材料完整性」，系统逐条扫描文件夹并输出报告。</p>
+
+  <h3>检查逻辑</h3>
+  <table>
+    <tr><th>检查项</th><th>规则</th><th>不通过时</th></tr>
+    <tr><td>01_基本材料</td><td>目录下每个必要文件名模式至少有1个文件</td><td>🔴 标红，列出缺少项</td></tr>
+    <tr><td>02_工程业绩</td><td>子目录数量 ≥ 该职称要求的最少业绩数量</td><td>🔴 提示还需 N 项业绩</td></tr>
+    <tr><td>每项业绩子目录</td><td>目录内至少有1个 PDF 文件</td><td>🟡 提示材料不完整</td></tr>
+    <tr><td>03_获奖证书</td><td>高级/正高级：目录下至少1个文件</td><td>🔴 缺失</td></tr>
+    <tr><td>04_论文著作</td><td>高级：≥1篇；正高级：≥1篇含核心期刊标注</td><td>🔴 缺失</td></tr>
+    <tr><td>06_代表作</td><td>高级/正高级：包含说明文件 + 证明材料</td><td>🔴 缺失</td></tr>
+    <tr><td>数据库录入</td><td>工程业绩表单字段是否已填写完整</td><td>🟡 提示待录入</td></tr>
+  </table>
+
+  <h3>检查结果输出样例</h3>
+  <pre><code>📋 材料完整性检查报告
+申报人：张三  职称：高级工程师  检查时间：2026-06-17
+
+✅ 身份证正反面           已找到 (身份证正反面.pdf)
+✅ 毕业证书               已找到 (毕业证.pdf)
+✅ 学位证书               已找到
+✅ 现有职称证书           已找到
+✅ 社保缴纳证明           已找到
+❌ 继续教育完成证明       【缺失】请放入 01_基本材料/ 目录
+❌ 年度考核证明           【缺失】请放入 01_基本材料/ 目录
+✅ 工程业绩               已录入 3 项（要求至少 2 项大型或 4 项中型）
+⚠️ 业绩02_xx大厦          文件夹内无 PDF 材料
+✅ 获奖证书               已找到 1 项
+❌ 论文著作               【缺失】高级工程师需至少 1 篇论文
+❌ 代表作                 【缺失】高级工程师必须指定代表作
+
+──────────────────────────
+❌ 未通过：4 项需处理后才可提交申报</code></pre>
+
+  <!-- ─ 自动填报 ─ -->
+  <h2 id="mod-auto">M5 · 自动填报</h2>
+
+  <p>点击「启动网上填报」后，系统自动打开浏览器，完成从登录到提交的全流程。</p>
+
+  <div class="callout callout-orange">
+    ⚠️ 在正式自动提交前，系统会弹出「确认提交」对话框，展示所有将填写的内容，<strong>用户手动点击确认</strong>才会执行提交，防止误操作。
+  </div>
+
+  <h3>自动填报步骤</h3>
+  <div class="flow" style="flex-direction:column; align-items:flex-start; gap:6px;">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="flow-step">① 从数据库读取申报人账号密码</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; padding-left:20px;">
+      <div class="flow-arrow">↓</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="flow-step">② Playwright 打开 gxrczc.com 登录页，自动填写账号密码并登录</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; padding-left:20px;">
+      <div class="flow-arrow">↓</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="flow-step">③ 导航到「个人申报」→「新建申报」</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; padding-left:20px;">
+      <div class="flow-arrow">↓</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="flow-step">④ 填写基本信息页（姓名、身份证号、学历、工作单位…）</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; padding-left:20px;">
+      <div class="flow-arrow">↓</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="flow-step">⑤ 逐条填写工程业绩（循环插入每条记录）</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; padding-left:20px;">
+      <div class="flow-arrow">↓</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="flow-step">⑥ 填写获奖信息、论文信息</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; padding-left:20px;">
+      <div class="flow-arrow">↓</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="flow-step">⑦ 上传材料文件（从本地文件夹读取 PDF 上传）</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; padding-left:20px;">
+      <div class="flow-arrow">↓</div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="flow-step" style="background:#fff7ed; border-color:#fed7aa; color:#9a3412;">⑧ 弹窗确认 → 用户手动确认 → 提交</div>
+    </div>
+  </div>
+
+  <hr />
+
+  <!-- ══════════════ 数据库 ══════════════ -->
+  <h2 id="db">数据库表结构</h2>
+
+  <h3>applicants · 申报人基本信息</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+    <tr><td>id</td><td>INTEGER PK</td><td>自增主键</td></tr>
+    <tr><td>name</td><td>TEXT</td><td>姓名</td></tr>
+    <tr><td>id_number</td><td>TEXT</td><td>身份证号</td></tr>
+    <tr><td>gender</td><td>TEXT</td><td>性别</td></tr>
+    <tr><td>birth_date</td><td>DATE</td><td>出生日期</td></tr>
+    <tr><td>ethnicity</td><td>TEXT</td><td>民族</td></tr>
+    <tr><td>phone</td><td>TEXT</td><td>联系电话</td></tr>
+    <tr><td>education</td><td>TEXT</td><td>最高学历（博士/硕士/本科/大专/中专）</td></tr>
+    <tr><td>major</td><td>TEXT</td><td>所学专业</td></tr>
+    <tr><td>graduation_year</td><td>INTEGER</td><td>毕业年份</td></tr>
+    <tr><td>school</td><td>TEXT</td><td>毕业院校</td></tr>
+    <tr><td>work_unit</td><td>TEXT</td><td>工作单位名称</td></tr>
+    <tr><td>work_unit_type</td><td>TEXT</td><td>单位类型（企业/事业/个体）</td></tr>
+    <tr><td>work_start_year</td><td>INTEGER</td><td>参加工作年份</td></tr>
+    <tr><td>current_title</td><td>TEXT</td><td>现有职称（助理/工程师/…）</td></tr>
+    <tr><td>current_title_year</td><td>INTEGER</td><td>取得现有职称年份</td></tr>
+    <tr><td>login_account</td><td>TEXT</td><td>申报系统账号</td></tr>
+    <tr><td>login_password</td><td>TEXT</td><td>申报系统密码（本地加密存储）</td></tr>
+    <tr><td>created_at</td><td>DATETIME</td><td>创建时间</td></tr>
+  </table>
+
+  <h3>projects · 申报项目</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+    <tr><td>id</td><td>INTEGER PK</td><td></td></tr>
+    <tr><td>applicant_id</td><td>INTEGER FK</td><td>关联 applicants.id</td></tr>
+    <tr><td>title_level</td><td>TEXT</td><td>申报职称级别</td></tr>
+    <tr><td>title_type</td><td>TEXT</td><td>职称类型（工程师/建筑师/城市规划师）</td></tr>
+    <tr><td>specialty</td><td>TEXT</td><td>申报专业方向</td></tr>
+    <tr><td>apply_year</td><td>INTEGER</td><td>申报年度</td></tr>
+    <tr><td>folder_path</td><td>TEXT</td><td>本地文件夹根路径</td></tr>
+    <tr><td>status</td><td>TEXT</td><td>建档中 / 材料齐全 / 已提交 / 已评审</td></tr>
+    <tr><td>check_result</td><td>TEXT</td><td>最近一次完整性检查结果（JSON）</td></tr>
+    <tr><td>submit_time</td><td>DATETIME</td><td>提交时间</td></tr>
+    <tr><td>remark</td><td>TEXT</td><td>备注</td></tr>
+    <tr><td>created_at</td><td>DATETIME</td><td></td></tr>
+  </table>
+
+  <h3>achievements · 工程业绩</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+    <tr><td>id</td><td>INTEGER PK</td><td></td></tr>
+    <tr><td>project_id</td><td>INTEGER FK</td><td>关联 projects.id</td></tr>
+    <tr><td>seq</td><td>INTEGER</td><td>序号（第几项业绩）</td></tr>
+    <tr><td>project_name</td><td>TEXT</td><td>工程项目名称</td></tr>
+    <tr><td>project_type</td><td>TEXT</td><td>项目类型（设计/施工/监理/造价/咨询…）</td></tr>
+    <tr><td>project_scale</td><td>TEXT</td><td>项目规模（大型/中型/小型）</td></tr>
+    <tr><td>my_role</td><td>TEXT</td><td>本人担任角色（项目负责人/技术骨干/主要参加人…）</td></tr>
+    <tr><td>start_date</td><td>DATE</td><td>开始时间</td></tr>
+    <tr><td>end_date</td><td>DATE</td><td>完成时间</td></tr>
+    <tr><td>build_area</td><td>REAL</td><td>建设规模（万㎡，部分专业需填）</td></tr>
+    <tr><td>investment</td><td>REAL</td><td>投资额（万元）</td></tr>
+    <tr><td>work_content</td><td>TEXT</td><td>本人承担的工作内容</td></tr>
+    <tr><td>folder_name</td><td>TEXT</td><td>对应本地业绩子文件夹名</td></tr>
+  </table>
+
+  <h3>awards · 获奖信息</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+    <tr><td>id</td><td>INTEGER PK</td><td></td></tr>
+    <tr><td>project_id</td><td>INTEGER FK</td><td></td></tr>
+    <tr><td>award_name</td><td>TEXT</td><td>奖项名称</td></tr>
+    <tr><td>award_level</td><td>TEXT</td><td>奖项级别（国家级/省部级/市厅级）</td></tr>
+    <tr><td>award_grade</td><td>TEXT</td><td>等次（一等奖/二等奖/三等奖）</td></tr>
+    <tr><td>award_type</td><td>TEXT</td><td>类型（科技奖/优质工程奖/优秀设计奖）</td></tr>
+    <tr><td>award_org</td><td>TEXT</td><td>颁奖单位</td></tr>
+    <tr><td>award_year</td><td>INTEGER</td><td>获奖年份</td></tr>
+    <tr><td>my_rank</td><td>INTEGER</td><td>本人排名</td></tr>
+    <tr><td>project_name</td><td>TEXT</td><td>获奖项目名称</td></tr>
+  </table>
+
+  <h3>papers · 论文著作</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+    <tr><td>id</td><td>INTEGER PK</td><td></td></tr>
+    <tr><td>project_id</td><td>INTEGER FK</td><td></td></tr>
+    <tr><td>paper_type</td><td>TEXT</td><td>类型（论文/著作）</td></tr>
+    <tr><td>title</td><td>TEXT</td><td>题目/书名</td></tr>
+    <tr><td>journal</td><td>TEXT</td><td>期刊名称（论文）/ 出版社（著作）</td></tr>
+    <tr><td>is_core</td><td>INTEGER</td><td>是否核心期刊（0/1）</td></tr>
+    <tr><td>author_rank</td><td>TEXT</td><td>作者排名（独著/第一作者/通讯作者）</td></tr>
+    <tr><td>publish_date</td><td>DATE</td><td>发表/出版日期</td></tr>
+    <tr><td>cn_issn</td><td>TEXT</td><td>CN号或ISSN号</td></tr>
+    <tr><td>isbn</td><td>TEXT</td><td>ISBN号（著作）</td></tr>
+  </table>
+
+  <hr />
+
+  <!-- ══════════════ 材料清单规范 ══════════════ -->
+  <h2 id="materials">材料清单规范</h2>
+  <p>以下是 <code>core/title_rules.py</code> 中配置的各级职称材料规则（系统完整性检查的依据）。</p>
+
+  <h3>必填材料（所有职称通用）</h3>
+  <ul class="checklist">
+    <li class="required">身份证正反面（文件名含「身份证」）</li>
+    <li class="required">毕业证书（文件名含「毕业证」）</li>
+    <li class="required">社保缴纳证明（文件名含「社保」）</li>
+    <li class="required">继续教育完成证明（文件名含「继续教育」）</li>
+    <li class="required">近3年年度考核证明（文件名含「考核」）</li>
+    <li class="required">工程业绩 ≥ 1 项（根据职称级别具体要求不同）</li>
+  </ul>
+
+  <h3>工程师 额外要求</h3>
+  <ul class="checklist">
+    <li class="required">现有职称证书（助理工程师证书）</li>
+    <li class="required">工程业绩 ≥ 2 项（含1至12条中至少1条）</li>
+    <li class="optional">论文/著作（不强制，有业绩2项可免）</li>
+    <li class="optional">专利证书</li>
+  </ul>
+
+  <h3>高级工程师 额外要求</h3>
+  <ul class="checklist">
+    <li class="required">现有职称证书（工程师证书）</li>
+    <li class="required">工程业绩：具备1-17中1条 + 18-23中1条，或1-17中2条 + 第24条</li>
+    <li class="required">获奖证书 至少1项（1-3条）</li>
+    <li class="required">论文/著作 至少1篇（18-24条之一）</li>
+    <li class="required">代表作（指定1项标志性成果）</li>
+    <li class="optional">专利证书</li>
+    <li class="optional">科研项目证明</li>
+  </ul>
+
+  <h3>正高级工程师 额外要求</h3>
+  <ul class="checklist">
+    <li class="required">现有职称证书（高级工程师证书）</li>
+    <li class="required">获奖类条件（1-6条）至少1项</li>
+    <li class="required">工程业绩类条件（7-15条）至少1项</li>
+    <li class="required">论文著作类条件（16-19条）至少1项（含核心期刊）</li>
+    <li class="required">代表作（指定1项标志性成果）</li>
+  </ul>
+
+  <hr />
+
+  <!-- ══════════════ 自动填报详细 ══════════════ -->
+  <h2 id="login">登录流程</h2>
+  <pre><code># automation/browser.py  示意
+from playwright.async_api import async_playwright
+
+async def login(account: str, password: str):
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=False)  # 有界面，便于观察
+        page = await browser.new_page()
+        await page.goto("https://my.gxrczc.com/Login")
+
+        # 填写账号密码
+        await page.fill('input[name="username"]', account)
+        await page.fill('input[name="password"]', password)
+        await page.click('button[type="submit"]')
+
+        # 等待跳转成功
+        await page.wait_for_url("**/index**", timeout=10000)
+        return page  # 返回已登录的 page 对象</code></pre>
+
+  <div class="callout callout-green">
+    ✅ 登录页无验证码，直接账号密码提交即可。首次使用时先手动登录确认账号密码正确，再录入系统。
+  </div>
+
+  <h2 id="form-map">表单字段映射</h2>
+  <p>以下字段映射需在首次开发时，通过浏览器开发者工具查看申报系统的实际 HTML 元素名称后补充完整。</p>
+  <table>
+    <tr><th>页面</th><th>填写字段</th><th>数据来源</th><th>控件类型</th></tr>
+    <tr><td rowspan="8">基本信息</td><td>姓名</td><td>applicants.name</td><td>文本框</td></tr>
+    <tr><td>身份证号</td><td>applicants.id_number</td><td>文本框</td></tr>
+    <tr><td>性别</td><td>applicants.gender</td><td>下拉菜单</td></tr>
+    <tr><td>出生年月</td><td>applicants.birth_date</td><td>日期选择</td></tr>
+    <tr><td>民族</td><td>applicants.ethnicity</td><td>下拉菜单</td></tr>
+    <tr><td>最高学历</td><td>applicants.education</td><td>下拉菜单</td></tr>
+    <tr><td>工作单位</td><td>applicants.work_unit</td><td>文本框</td></tr>
+    <tr><td>联系电话</td><td>applicants.phone</td><td>文本框</td></tr>
+    <tr><td rowspan="6">工程业绩（每条循环）</td><td>项目名称</td><td>achievements.project_name</td><td>文本框</td></tr>
+    <tr><td>项目类型</td><td>achievements.project_type</td><td>下拉菜单</td></tr>
+    <tr><td>项目规模</td><td>achievements.project_scale</td><td>下拉菜单</td></tr>
+    <tr><td>本人角色</td><td>achievements.my_role</td><td>下拉菜单</td></tr>
+    <tr><td>起止时间</td><td>achievements.start_date ~ end_date</td><td>日期选择</td></tr>
+    <tr><td>工作内容</td><td>achievements.work_content</td><td>多行文本框</td></tr>
+    <tr><td rowspan="4">获奖信息</td><td>奖项名称</td><td>awards.award_name</td><td>文本框</td></tr>
+    <tr><td>奖项级别</td><td>awards.award_level</td><td>下拉菜单</td></tr>
+    <tr><td>获奖年份</td><td>awards.award_year</td><td>文本框</td></tr>
+    <tr><td>本人排名</td><td>awards.my_rank</td><td>文本框</td></tr>
+    <tr><td rowspan="3">论文信息</td><td>论文题目</td><td>papers.title</td><td>文本框</td></tr>
+    <tr><td>发表期刊</td><td>papers.journal</td><td>文本框</td></tr>
+    <tr><td>发表时间</td><td>papers.publish_date</td><td>日期选择</td></tr>
+  </table>
+
+  <div class="callout callout-orange">
+    ⚠️ 以上字段映射为预设计版本。实际开发时需登录 gxrczc.com 逐页查看表单元素的 <code>name</code>、<code>id</code> 或 CSS selector，再更新到 <code>form_filler.py</code> 中。建议使用 Playwright 的 <code>codegen</code> 工具自动录制操作路径。
+  </div>
+
+  <h2 id="fill-flow">填报流程代码思路</h2>
+  <pre><code># automation/form_filler.py  示意
+async def fill_basic_info(page, applicant):
+    await page.fill('#name',    applicant['name'])
+    await page.fill('#id_card', applicant['id_number'])
+    await page.select_option('#gender',    applicant['gender'])
+    await page.select_option('#education', applicant['education'])
+    await page.fill('#work_unit', applicant['work_unit'])
+    await page.click('#next-btn')   # 下一步
+
+async def fill_achievements(page, achievements):
+    for ach in achievements:
+        await page.click('#add-achievement-btn')   # 点击「新增业绩」
+        await page.fill('.ach-name',    ach['project_name'])
+        await page.select_option('.ach-type',  ach['project_type'])
+        await page.select_option('.ach-scale', ach['project_scale'])
+        await page.select_option('.ach-role',  ach['my_role'])
+        await page.fill('.ach-content', ach['work_content'])
+        await page.click('.ach-save-btn')
+    await page.click('#next-btn')
+
+async def upload_file(page, selector, file_path):
+    await page.set_input_files(selector, file_path)</code></pre>
+
+  <hr />
+
+  <!-- ══════════════ 开发计划 ══════════════ -->
+  <h2 id="roadmap">开发计划</h2>
+
+  <table class="status-table">
+    <tr><th>阶段</th><th>内容</th><th>预计工时</th><th>状态</th></tr>
+    <tr>
+      <td>第一阶段</td>
+      <td>数据库设计 + 申报人基本信息录入界面 + 项目列表</td>
+      <td>1天</td>
+      <td class="todo">开发中</td>
+    </tr>
+    <tr>
+      <td>第二阶段</td>
+      <td>文件夹自动生成 + 材料管理界面（文件树）</td>
+      <td>1天</td>
+      <td class="later">待开始</td>
+    </tr>
+    <tr>
+      <td>第三阶段</td>
+      <td>工程业绩 / 获奖 / 论文录入表单</td>
+      <td>1天</td>
+      <td class="later">待开始</td>
+    </tr>
+    <tr>
+      <td>第四阶段</td>
+      <td>完整性检查模块</td>
+      <td>0.5天</td>
+      <td class="later">待开始</td>
+    </tr>
+    <tr>
+      <td>第五阶段</td>
+      <td>Playwright 登录 + 基本信息自动填报</td>
+      <td>1天</td>
+      <td class="later">待开始</td>
+    </tr>
+    <tr>
+      <td>第六阶段</td>
+      <td>业绩 / 获奖 / 论文自动填报 + 文件上传</td>
+      <td>1-2天</td>
+      <td class="later">待开始</td>
+    </tr>
+    <tr>
+      <td>第七阶段</td>
+      <td>联调测试 + 打包 .exe</td>
+      <td>0.5天</td>
+      <td class="later">待开始</td>
+    </tr>
+  </table>
+
+  <div class="callout callout-blue">
+    💡 开发顺序：数据库 → GUI → 文件管理 → 完整性检查 → 自动填报。每个阶段完成后可独立使用，不需要等全部完成。
+  </div>
+
+  <!-- ─ 运行说明 ─ -->
+  <h2 id="run">运行说明</h2>
+
+  <h3>安装依赖</h3>
+  <pre><code>pip install PyQt5 playwright openpyxl Pillow pymupdf
+python -m playwright install chromium</code></pre>
+
+  <h3>启动程序</h3>
+  <pre><code>python main.py</code></pre>
+
+  <h3>首次使用步骤</h3>
+  <ol style="margin:10px 0 0 20px; line-height:2.2; color:var(--text-sub); font-size:14px;">
+    <li>在「设置」中配置申报文件根目录（如 <code>D:\职称申报\</code>）</li>
+    <li>点击「新建项目」，录入申报人基本信息</li>
+    <li>选择职称级别，系统自动在根目录下创建该申报人的文件夹</li>
+    <li>把身份证、毕业证等材料放入对应文件夹</li>
+    <li>录入工程业绩、获奖信息等结构化数据</li>
+    <li>点击「检查材料」，确认全部通过</li>
+    <li>点击「启动网上填报」，确认后自动提交</li>
+  </ol>
+
+  <hr />
+
+  <p style="text-align:center; color:var(--gray); font-size:13px; margin-top:32px;">
+    职称申报自动化系统 · 开发文档 v1.0 · 2026-06 · 广西住建行业职称申报专用
+  </p>
+
+</main>
+</body>
+</html>
