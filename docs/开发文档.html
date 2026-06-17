@@ -295,6 +295,13 @@
     <li><a href="#ai-write">DeepSeek 接入设计</a></li>
     <li><a href="#ai-prompts">Prompt 模板</a></li>
 
+    <li class="section">中介业务管理</li>
+    <li><a href="#batch">年度批次管理</a></li>
+    <li><a href="#deadline">截止日期与预警</a></li>
+    <li><a href="#fee">服务费用管理</a></li>
+    <li><a href="#result">评审结果跟踪</a></li>
+    <li><a href="#report">业务统计报表</a></li>
+
     <li class="section">交付</li>
     <li><a href="#roadmap">开发计划</a></li>
     <li><a href="#run">运行说明</a></li>
@@ -867,6 +874,10 @@ def read_diploma(image_path: str) -> dict:
     <tr><td>status</td><td>TEXT</td><td>建档中 / 材料齐全 / 已提交 / 已评审</td></tr>
     <tr><td>check_result</td><td>TEXT</td><td>最近一次完整性检查结果（JSON）</td></tr>
     <tr><td>submit_time</td><td>DATETIME</td><td>提交时间</td></tr>
+    <tr><td>batch_id</td><td>INTEGER FK</td><td>关联 batches.id（所属申报批次）</td></tr>
+    <tr><td>review_result</td><td>TEXT</td><td>评审结果（待出结果 / 通过 / 不通过 / 公示中）</td></tr>
+    <tr><td>review_date</td><td>DATE</td><td>结果公布日期</td></tr>
+    <tr><td>review_comment</td><td>TEXT</td><td>评委意见（未通过时填写，作为下次改进依据）</td></tr>
     <tr><td>remark</td><td>TEXT</td><td>备注</td></tr>
     <tr><td>created_at</td><td>DATETIME</td><td></td></tr>
   </table>
@@ -917,6 +928,46 @@ def read_diploma(image_path: str) -> dict:
     <tr><td>publish_date</td><td>DATE</td><td>发表/出版日期</td></tr>
     <tr><td>cn_issn</td><td>TEXT</td><td>CN号或ISSN号</td></tr>
     <tr><td>isbn</td><td>TEXT</td><td>ISBN号（著作）</td></tr>
+  </table>
+
+  <h3>batches · 申报批次</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+    <tr><td>id</td><td>INTEGER PK</td><td></td></tr>
+    <tr><td>year</td><td>INTEGER</td><td>申报年度，如 2026</td></tr>
+    <tr><td>industry</td><td>TEXT</td><td>行业（住房城乡建设 / 教育 / 卫生健康）</td></tr>
+    <tr><td>committee</td><td>TEXT</td><td>评委会名称</td></tr>
+    <tr><td>deadline</td><td>DATE</td><td>材料提交截止日期</td></tr>
+    <tr><td>submit_deadline</td><td>DATE</td><td>网上填报截止日期</td></tr>
+    <tr><td>status</td><td>TEXT</td><td>进行中 / 已截止 / 已出结果</td></tr>
+    <tr><td>remark</td><td>TEXT</td><td>备注</td></tr>
+  </table>
+
+  <h3>fees · 服务费用</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+    <tr><td>id</td><td>INTEGER PK</td><td></td></tr>
+    <tr><td>project_id</td><td>INTEGER FK</td><td>关联 projects.id</td></tr>
+    <tr><td>total_amount</td><td>REAL</td><td>合同服务费总额（元）</td></tr>
+    <tr><td>deposit</td><td>REAL</td><td>定金金额</td></tr>
+    <tr><td>deposit_paid_date</td><td>DATE</td><td>定金收款日期</td></tr>
+    <tr><td>balance</td><td>REAL</td><td>尾款金额</td></tr>
+    <tr><td>balance_paid_date</td><td>DATE</td><td>尾款收款日期</td></tr>
+    <tr><td>pay_status</td><td>TEXT</td><td>未付 / 已付定金 / 已结清</td></tr>
+    <tr><td>invoice_no</td><td>TEXT</td><td>发票号（可选）</td></tr>
+    <tr><td>remark</td><td>TEXT</td><td>备注</td></tr>
+  </table>
+
+  <h3>contact_logs · 客户沟通记录</h3>
+  <table>
+    <tr><th>字段</th><th>类型</th><th>说明</th></tr>
+    <tr><td>id</td><td>INTEGER PK</td><td></td></tr>
+    <tr><td>project_id</td><td>INTEGER FK</td><td>关联 projects.id</td></tr>
+    <tr><td>log_date</td><td>DATE</td><td>联系日期</td></tr>
+    <tr><td>channel</td><td>TEXT</td><td>联系方式（微信 / 电话 / 短信）</td></tr>
+    <tr><td>content</td><td>TEXT</td><td>沟通内容摘要</td></tr>
+    <tr><td>missing_items</td><td>TEXT</td><td>本次催办的缺失材料（JSON数组）</td></tr>
+    <tr><td>next_followup</td><td>DATE</td><td>下次跟进日期</td></tr>
   </table>
 
   <hr />
