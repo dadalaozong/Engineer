@@ -179,7 +179,8 @@ def award_delete(aid, wid):
 
 # ── 论文 CRUD ─────────────────────────────────────────────────────
 
-_PAP_COLS = ["title","paper_type","journal","pub_date","author_rank","cn_issn","notes"]
+_PAP_COLS = ["title","paper_type","journal","pub_date","author_rank","cn_issn","notes",
+             "criteria_item","is_representative_paper","is_masterpiece"]
 
 @bp.route("/<int:aid>/papers/new", methods=["POST"])
 def paper_create(aid):

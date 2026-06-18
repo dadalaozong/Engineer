@@ -301,6 +301,10 @@ def _migrate(conn):
         ("achievements", "ach_work_unit", "TEXT"),
         # Tab8-1·业绩成果新增字段
         ("achievements", "rank_in_project", "TEXT"),
+        # Tab9·学术成果新增字段
+        ("papers", "criteria_item", "TEXT"),
+        ("papers", "is_representative_paper", "INTEGER DEFAULT 0"),
+        ("papers", "is_masterpiece", "TEXT DEFAULT '否'"),
     ]
     for table, col, col_type in migrations:
         try:

@@ -282,10 +282,16 @@ def list_papers(applicant_id):
 def insert_paper(**kw) -> int:
     conn = get_conn()
     cur = conn.execute(
-        "INSERT INTO papers (applicant_id,title,paper_type,journal,pub_date,author_rank,cn_issn,notes) VALUES (?,?,?,?,?,?,?,?)",
+        """INSERT INTO papers
+           (applicant_id,title,paper_type,journal,pub_date,author_rank,cn_issn,notes,
+            criteria_item,is_representative_paper,is_masterpiece)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
         (kw.get("applicant_id"), kw.get("title"), kw.get("paper_type","论文"),
          kw.get("journal"), kw.get("pub_date"), kw.get("author_rank"),
-         kw.get("cn_issn"), kw.get("notes"))
+         kw.get("cn_issn"), kw.get("notes"),
+         kw.get("criteria_item"),
+         1 if kw.get("is_representative_paper") in (1, "1", "是", True) else 0,
+         kw.get("is_masterpiece") or "否")
     )
     conn.commit(); conn.close()
     return cur.lastrowid
@@ -293,10 +299,17 @@ def insert_paper(**kw) -> int:
 def update_paper(pid, **kw):
     conn = get_conn()
     conn.execute(
-        "UPDATE papers SET title=?,paper_type=?,journal=?,pub_date=?,author_rank=?,cn_issn=?,notes=? WHERE id=?",
+        """UPDATE papers SET
+           title=?,paper_type=?,journal=?,pub_date=?,author_rank=?,cn_issn=?,notes=?,
+           criteria_item=?,is_representative_paper=?,is_masterpiece=?
+           WHERE id=?""",
         (kw.get("title"), kw.get("paper_type","论文"), kw.get("journal"),
          kw.get("pub_date"), kw.get("author_rank"), kw.get("cn_issn"),
-         kw.get("notes"), pid)
+         kw.get("notes"),
+         kw.get("criteria_item"),
+         1 if kw.get("is_representative_paper") in (1, "1", "是", True) else 0,
+         kw.get("is_masterpiece") or "否",
+         pid)
     )
     conn.commit(); conn.close()
 
