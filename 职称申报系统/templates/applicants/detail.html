@@ -88,6 +88,7 @@
     ('pro_certs',       '执业资格', pro_certs|length),
     ('academic_roles',  '学术兼职', academic_roles|length),
     ('work_summary',    '专业技术工作总结', 0),
+    ('other',           '其他材料(Tab11)', other_attachments|length),
   ] %}
   <button class="tab-btn" data-tab="{{ tab_id }}"
     style="padding:10px 16px;border:none;background:none;cursor:pointer;
@@ -692,6 +693,55 @@
     style="width:100%;font-size:14px;line-height:1.8;padding:12px;border:1px solid #d1d5db;border-radius:6px;resize:vertical;box-sizing:border-box"
     placeholder="点击上方"AI生成工作总结"按钮，系统将根据您已录入的业绩、获奖、论文等信息自动生成专业技术工作总结初稿...">{{ applicant.work_summary or '' }}</textarea>
   <div style="margin-top:8px;font-size:12px;color:#94a3b8">提示：AI生成内容仅供参考，请仔细核对后再保存使用。字数建议1500-2500字。</div>
+</div>
+
+<!-- ══ Tab: 其他材料（Tab11） ══ -->
+<div id="tab-other" class="tab-panel hidden">
+  <h3 style="margin-bottom:16px">其他材料</h3>
+  <div class="card" style="padding:16px;margin-bottom:16px;background:#f8f9fa;border:1px solid #e2e8f0;border-radius:8px">
+    <div class="form-row" style="align-items:flex-end;gap:12px">
+      <div class="form-group" style="flex:2;margin:0">
+        <label class="form-label">选择文件</label>
+        <input type="file" id="other-file-input" style="width:100%;padding:6px;border:1px solid #d1d5db;border-radius:4px;background:#fff">
+      </div>
+      <div class="form-group" style="flex:3;margin:0">
+        <label class="form-label">说明</label>
+        <input type="text" id="other-file-desc" placeholder="请输入文件说明（可选）" style="width:100%;padding:8px;border:1px solid #d1d5db;border-radius:4px;box-sizing:border-box">
+      </div>
+      <div class="form-group" style="flex:none;margin:0">
+        <button class="btn btn-primary" onclick="uploadOtherFile()">上传</button>
+      </div>
+    </div>
+  </div>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>序号</th>
+        <th>文件名</th>
+        <th>说明</th>
+        <th>大小</th>
+        <th>上传时间</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="other-att-tbody">
+      {% for att in other_attachments %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ att.orig_name }}</td>
+        <td>{{ att.description or '—' }}</td>
+        <td>{{ (att.file_size / 1024)|round(1) }} KB</td>
+        <td>{{ att.created_at[:16] }}</td>
+        <td>
+          <a href="/applicants/{{ applicant.id }}/other-attachments/{{ att.id }}/download" class="btn btn-sm btn-secondary">下载</a>
+          <button class="btn btn-sm btn-danger" onclick="deleteOtherAtt({{ att.id }})">删除</button>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" style="text-align:center;color:#999">暂无附件</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
 <!-- ══ Modals ══ -->
@@ -1604,6 +1654,25 @@ function openCertEdit(id,type,no,reg,spec,valid) {
   document.getElementById("cert-spec").value  = spec;
   document.getElementById("cert-valid").value = valid;
   openModal("cert-edit-modal");
+}
+
+function uploadOtherFile() {
+  const fileInput = document.getElementById('other-file-input');
+  const desc = document.getElementById('other-file-desc').value;
+  if (!fileInput.files[0]) { alert('请先选择文件'); return; }
+  const fd = new FormData();
+  fd.append('file', fileInput.files[0]);
+  fd.append('description', desc);
+  fetch('/applicants/{{ applicant.id }}/other-attachments/upload', {method:'POST', body:fd})
+    .then(r=>r.json()).then(d=>{
+      if(d.ok) location.reload();
+      else alert('上传失败：'+d.error);
+    });
+}
+function deleteOtherAtt(id) {
+  if(!confirm('确认删除此附件？')) return;
+  fetch('/applicants/{{ applicant.id }}/other-attachments/'+id+'/delete', {method:'POST'})
+    .then(r=>r.json()).then(d=>{ if(d.ok) location.reload(); });
 }
 </script>
 {% endblock %}

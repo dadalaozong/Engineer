@@ -495,8 +495,8 @@ _TAB_MATERIALS = [
         "tab_name": "其他材料",
         "folder": "11_其他材料",
         "items": [
-            {"name": "其他补充材料（如有）",      "fill": "file", "required_for": [],
-             "note": "评委会要求的其他材料"},
+            {"name": "其他支撑材料", "fill": "file", "required_for": [],
+             "desc": "自由上传，可附说明"},
         ],
     },
     {

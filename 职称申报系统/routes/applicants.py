@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, abort, current_app
 from database.models import (
     list_applicants, get_applicant, insert_applicant, update_applicant, delete_applicant,
     list_achievements, get_achievement, insert_achievement, update_achievement, delete_achievement,
@@ -12,6 +12,7 @@ from database.models import (
     edu_hours_by_year,
     list_pro_certificates, insert_pro_certificate, update_pro_certificate, delete_pro_certificate,
     list_academic_roles, insert_academic_role, update_academic_role, delete_academic_role,
+    list_other_attachments, insert_other_attachment, delete_other_attachment,
 )
 
 bp = Blueprint("applicants", __name__, url_prefix="/applicants")
@@ -107,6 +108,7 @@ def detail(aid):
     edu_trainings  = list_edu_trainings(aid)
     pro_certs      = list_pro_certificates(aid)
     academic_roles = list_academic_roles(aid)
+    other_attachments = list_other_attachments(aid)
     from datetime import date
     return render_template("applicants/detail.html",
                            applicant=applicant,
@@ -121,6 +123,7 @@ def detail(aid):
                            edu_by_year=edu_hours_by_year(aid),
                            pro_certs=pro_certs,
                            academic_roles=academic_roles,
+                           other_attachments=other_attachments,
                            today=date.today().isoformat())
 
 # ── 工程业绩 CRUD ─────────────────────────────────────────────────
@@ -332,6 +335,50 @@ def academic_role_delete(aid, rid):
     delete_academic_role(rid)
     flash("已删除", "success")
     return redirect(url_for("applicants.detail", aid=aid) + "#academic_roles")
+
+
+# ── 其他材料附件（Tab11）─────────────────────────────────────────
+
+@bp.route("/<int:aid>/other-attachments/upload", methods=["POST"])
+def upload_other_attachment(aid):
+    import os, uuid
+    from werkzeug.utils import secure_filename
+    f = request.files.get("file")
+    description = request.form.get("description", "")
+    if not f or not f.filename:
+        return jsonify({"ok": False, "error": "未选择文件"}), 400
+    orig_name = f.filename
+    ext = os.path.splitext(orig_name)[1]
+    filename = f"{uuid.uuid4().hex}{ext}"
+    upload_dir = os.path.join(current_app.root_path, "uploads", "other", str(aid))
+    os.makedirs(upload_dir, exist_ok=True)
+    save_path = os.path.join(upload_dir, filename)
+    f.save(save_path)
+    file_size = os.path.getsize(save_path)
+    insert_other_attachment(aid, filename, orig_name, description, file_size)
+    return jsonify({"ok": True})
+
+@bp.route("/<int:aid>/other-attachments/<int:rid>/delete", methods=["POST"])
+def delete_other_attachment_route(aid, rid):
+    import os
+    filename = delete_other_attachment(rid)
+    if filename:
+        path = os.path.join(current_app.root_path, "uploads", "other", str(aid), filename)
+        if os.path.exists(path):
+            os.remove(path)
+    return jsonify({"ok": True})
+
+@bp.route("/<int:aid>/other-attachments/<int:rid>/download")
+def download_other_attachment(aid, rid):
+    import os
+    from flask import send_file
+    from database.db import get_conn
+    with get_conn() as conn:
+        row = conn.execute("SELECT * FROM other_attachments WHERE id=?", (rid,)).fetchone()
+    if not row:
+        abort(404)
+    path = os.path.join(current_app.root_path, "uploads", "other", str(aid), row['filename'])
+    return send_file(path, as_attachment=True, download_name=row['orig_name'])
 
 
 @bp.route("/<int:aid>/json")

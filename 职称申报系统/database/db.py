@@ -202,6 +202,17 @@ def init_db():
             position        TEXT,
             created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
         );
+
+        -- 其他材料附件（Tab11）
+        CREATE TABLE IF NOT EXISTS other_attachments (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            applicant_id    INTEGER REFERENCES applicants(id) ON DELETE CASCADE,
+            filename        TEXT NOT NULL,
+            orig_name       TEXT,
+            description     TEXT,
+            file_size       INTEGER,
+            created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
     """)
     # 对已存在的旧表做列迁移（ALTER TABLE ADD COLUMN IF NOT EXISTS 不支持，用 try/except）
     _migrate(conn)

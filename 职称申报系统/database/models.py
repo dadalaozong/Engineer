@@ -661,6 +661,35 @@ def delete_academic_role(rid):
     conn.commit(); conn.close()
 
 
+# ── 其他材料附件（Tab11）─────────────────────────────────────────
+
+def list_other_attachments(applicant_id):
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT * FROM other_attachments WHERE applicant_id=? ORDER BY created_at DESC",
+        (applicant_id,)
+    ).fetchall()
+    conn.close()
+    return rows
+
+def insert_other_attachment(applicant_id, filename, orig_name, description, file_size):
+    conn = get_conn()
+    conn.execute(
+        "INSERT INTO other_attachments (applicant_id,filename,orig_name,description,file_size) VALUES (?,?,?,?,?)",
+        (applicant_id, filename, orig_name, description, file_size)
+    )
+    conn.commit()
+    conn.close()
+
+def delete_other_attachment(rid):
+    conn = get_conn()
+    row = conn.execute("SELECT filename FROM other_attachments WHERE id=?", (rid,)).fetchone()
+    conn.execute("DELETE FROM other_attachments WHERE id=?", (rid,))
+    conn.commit()
+    conn.close()
+    return row['filename'] if row else None
+
+
 # ── Dashboard Stats ───────────────────────────────────────────────
 
 def dashboard_stats():
