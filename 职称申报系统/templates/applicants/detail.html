@@ -25,7 +25,7 @@
       {% endif %}
     </div>
     <div style="display:flex;gap:8px">
-      <a href="{{ url_for('applicants.upload_center', aid=aid) }}" class="btn btn-primary btn-sm">📤 资料上传中心</a>
+      <a href="{{ url_for('applicants.folder_scan', aid=aid) }}" class="btn btn-primary btn-sm">📂 资料目录 & OCR</a>
       <a href="{{ url_for('applicants.edit_page', aid=aid) }}" class="btn btn-outline btn-sm">✏️ 编辑基本信息</a>
       <a href="{{ url_for('projects.list_page', applicant_id=aid) }}" class="btn btn-outline btn-sm">📁 查看申报项目</a>
       <a href="{{ url_for('applicants.list_page') }}" class="btn btn-outline btn-sm">← 返回列表</a>

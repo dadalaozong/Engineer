@@ -233,6 +233,7 @@ def _migrate(conn):
         ("applicants",   "title_cert_no",   "TEXT"),
         ("applicants",   "title_issuer",    "TEXT"),
         ("applicants",   "photo_path",      "TEXT"),
+        ("applicants",   "folder_path",     "TEXT"),
     ]
     for table, col, col_type in migrations:
         try:

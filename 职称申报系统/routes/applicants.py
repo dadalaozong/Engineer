@@ -21,7 +21,7 @@ _A_COLS = [
     "work_unit","work_unit_type","work_start_year","work_unit_addr","work_unit_phone",
     "current_position","current_specialty",
     "title_level","title_year","title_month","title_specialty","title_cert_no","title_issuer",
-    "politics","address","photo_path","notes"
+    "politics","address","photo_path","folder_path","notes"
 ]
 
 def _form(cols):
@@ -292,51 +292,95 @@ def pro_cert_delete(aid, cid):
     flash("已删除", "success")
     return redirect(url_for("applicants.detail", aid=aid) + "#pro_certs")
 
-# ── 资料上传中心 ───────────────────────────────────────────────────
+# ── 资料目录 & 批量OCR ────────────────────────────────────────────
 
-@bp.route("/<int:aid>/upload")
-def upload_center(aid):
+@bp.route("/<int:aid>/folder/create", methods=["POST"])
+def folder_create(aid):
+    applicant = get_applicant(aid)
+    if not applicant:
+        return jsonify({"success": False, "error": "申报人不存在"})
+    from config import CONFIG
+    docs_folder = CONFIG.get("docs_folder", "")
+    if not docs_folder:
+        return jsonify({"success": False, "error": "请先在系统设置中配置【资料根目录】"})
+    from core.folder_manager import create_applicant_folder
+    folder_path = create_applicant_folder(applicant, docs_folder)
+    merged = dict(applicant)
+    merged["folder_path"] = folder_path
+    update_applicant(aid, **{c: merged.get(c, "") for c in _A_COLS})
+    return jsonify({"success": True, "path": folder_path})
+
+@bp.route("/<int:aid>/folder/scan")
+def folder_scan(aid):
     applicant = get_applicant(aid)
     if not applicant:
         flash("申报人不存在", "danger")
         return redirect(url_for("applicants.list_page"))
-    from config import CONFIG
-    ocr_ok = bool(CONFIG.get("tencent_secret_id") and CONFIG.get("tencent_secret_key"))
-    return render_template("applicants/upload.html", applicant=applicant, ocr_ok=ocr_ok)
+    folder_path = applicant.get("folder_path", "")
+    from core.folder_manager import scan_folder, folder_exists, SUBFOLDERS
+    files = scan_folder(folder_path) if folder_exists(folder_path) else []
+    return render_template("applicants/folder_scan.html",
+                           applicant=applicant,
+                           folder_path=folder_path,
+                           files=files,
+                           subfolders=SUBFOLDERS)
 
-@bp.route("/<int:aid>/ocr-apply", methods=["POST"])
-def ocr_apply(aid):
-    """将OCR解析结果写入申报人档案。mode决定写入哪些字段。"""
+@bp.route("/<int:aid>/folder/batch-ocr", methods=["POST"])
+def batch_ocr_run(aid):
+    """AJAX — 批量OCR扫描目录，返回汇总结果。"""
     applicant = get_applicant(aid)
     if not applicant:
         return jsonify({"success": False, "error": "申报人不存在"})
-    mode = request.form.get("mode", "")
-    allowed = {
-        "id_card":   ["name","gender","birth_date","id_card","address","ethnicity"],
-        "degree":    ["education","major","school","graduation_year","grad_month","degree","study_mode"],
-        "title":     ["title_level","title_year","title_month","title_specialty","title_cert_no","title_issuer"],
-        "pro_cert":  [],   # 写入 pro_certificates 表，不改主表
-    }
-    if mode == "pro_cert":
-        d = {c: (request.form.get(c) or "").strip() for c in ["cert_type","cert_no","reg_no","specialty","valid_until"]}
-        d["applicant_id"] = aid
-        if d.get("cert_type"):
-            insert_pro_certificate(**d)
-            return jsonify({"success": True, "msg": "执业资格证已保存"})
-        return jsonify({"success": False, "error": "证书类型不能为空"})
+    folder_path = applicant.get("folder_path", "")
+    from core.folder_manager import scan_folder, folder_exists
+    if not folder_exists(folder_path):
+        return jsonify({"success": False, "error": "资料目录不存在，请先创建"})
+    files = scan_folder(folder_path)
+    if not files:
+        return jsonify({"success": False, "error": "目录中未找到任何图片文件"})
+    from config import CONFIG
+    sid  = CONFIG.get("tencent_secret_id", "")
+    skey = CONFIG.get("tencent_secret_key", "")
+    if not sid or not skey:
+        return jsonify({"success": False, "error": "腾讯云OCR未配置"})
+    from core.batch_ocr import batch_scan
+    result = batch_scan(files, sid, skey)
+    return jsonify({"success": True, **result})
 
-    cols = allowed.get(mode, [])
-    if not cols:
-        return jsonify({"success": False, "error": "未知模式"})
-    updates = {c: (request.form.get(c) or "").strip() for c in cols}
-    # 合并：只更新非空字段（不覆盖已有数据，除非明确勾选了覆盖）
-    overwrite = request.form.get("overwrite") == "1"
+@bp.route("/<int:aid>/folder/apply", methods=["POST"])
+def batch_apply(aid):
+    """一次性将批量OCR结果写入申报人档案。"""
+    applicant = get_applicant(aid)
+    if not applicant:
+        return jsonify({"success": False, "error": "申报人不存在"})
+    import json as _json
+    # 申报人字段
     merged = dict(applicant)
-    for k, v in updates.items():
-        if v or overwrite:
-            merged[k] = v
+    for c in _A_COLS:
+        v = (request.form.get(c) or "").strip()
+        if v:
+            merged[c] = v
     update_applicant(aid, **{c: merged.get(c, "") for c in _A_COLS})
-    return jsonify({"success": True, "msg": "已写入档案"})
+    # 执业资格证
+    pro_certs_json = request.form.get("pro_certs_json", "[]")
+    try:
+        for pc in _json.loads(pro_certs_json):
+            if pc.get("cert_type"):
+                pc["applicant_id"] = aid
+                insert_pro_certificate(**pc)
+    except Exception:
+        pass
+    # 社保时段
+    ins_json = request.form.get("insurance_json", "[]")
+    try:
+        for seg in _json.loads(ins_json):
+            if seg.get("insure_start"):
+                seg["applicant_id"] = aid
+                insert_social_insurance(**seg)
+    except Exception:
+        pass
+    flash("OCR识别结果已写入档案", "success")
+    return redirect(url_for("applicants.detail", aid=aid))
 
 # ── Excel 导出 ─────────────────────────────────────────────────────
 

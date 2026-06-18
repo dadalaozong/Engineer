@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+{% block title %}资料目录 — {{ applicant.name }}{% endblock %}
+{% block page_title %}资料目录 & 批量OCR{% endblock %}
+{% block content %}
+
+{% set aid = applicant.id %}
+
+<!-- 顶部信息栏 -->
+<div class="card" style="margin-bottom:16px">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <div>
+      <span style="font-size:18px;font-weight:700;color:#1e293b">{{ applicant.name }}</span>
+      <span class="badge badge-gray" style="margin-left:8px">{{ applicant.work_unit or '—' }}</span>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+      <a href="{{ url_for('applicants.detail', aid=aid) }}" class="btn btn-outline btn-sm">← 返回详情</a>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  {% if folder_path %}
+  <div style="font-size:13px">
+    <span class="text-muted">资料目录：</span>
+    <code style="background:#f1f5f9;padding:2px 8px;border-radius:4px;color:#1e293b">{{ folder_path }}</code>
+    <span class="badge {{ 'badge-green' if files else 'badge-orange' }}" style="margin-left:8px">
+      {{ files|length }} 个文件
+    </span>
+  </div>
+  {% else %}
+  <div style="color:#d97706;font-size:13px">⚠ 尚未创建资料目录</div>
+  {% endif %}
+
+  <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+    {% if not folder_path %}
+    <button class="btn btn-primary" onclick="createFolder()">📂 创建资料目录</button>
+    {% else %}
+    <button class="btn btn-outline btn-sm" onclick="createFolder()">🔄 重新创建目录</button>
+    {% endif %}
+    <button class="btn btn-primary" onclick="startBatchOcr()"
+            {{ 'disabled' if not files }} id="ocr-btn">
+      🔎 一键批量OCR识别
+    </button>
+  </div>
+</div>
+
+<!-- 目录文件列表 -->
+{% if folder_path %}
+<div class="card" style="margin-bottom:16px">
+  <div class="section-title">目录文件清单</div>
+  {% if files %}
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr><th>文件</th><th>所在目录</th><th>识别类型</th><th>状态</th></tr>
+      </thead>
+      <tbody>
+        {% for f in files %}
+        <tr id="file-row-{{ loop.index0 }}">
+          <td style="font-size:12px;font-family:monospace">{{ f.filename }}</td>
+          <td><span class="badge badge-gray">{{ f.subfolder }}</span></td>
+          <td>
+            {% if f.cert_type %}
+            <span class="badge badge-blue">{{ {'id_card':'身份证','degree':'学历证','title':'职称证','pro_cert':'执业资格','social_insurance':'社保记录'}[f.cert_type] }}</span>
+            {% else %}
+            <span class="text-muted">归档（不识别）</span>
+            {% endif %}
+          </td>
+          <td id="file-status-{{ loop.index0 }}"><span class="text-muted">待识别</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="color:#64748b;font-size:13px;padding:12px 0">
+    目录为空。请将申报人的证件图片放入对应子目录后再识别。
+    <br><br>
+    <strong>子目录说明：</strong>
+    <ul style="margin-top:8px;font-size:13px">
+      {% for name, cert_type in subfolders %}
+      <li style="margin-bottom:4px">
+        <code>{{ name }}/</code>
+        {% if cert_type %}— 自动识别为"{{ {'id_card':'身份证','degree':'学历证','title':'职称证','pro_cert':'执业资格','social_insurance':'社保记录'}[cert_type] }}"{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- OCR进度 -->
+<div id="ocr-progress" class="card hidden" style="margin-bottom:16px">
+  <div class="section-title">识别进度</div>
+  <div id="progress-bar-wrap" style="background:#e2e8f0;border-radius:6px;height:8px;margin-bottom:12px">
+    <div id="progress-bar" style="background:#2563eb;height:8px;border-radius:6px;width:0%;transition:width .3s"></div>
+  </div>
+  <div id="progress-text" style="font-size:13px;color:#64748b">准备中…</div>
+</div>
+
+<!-- 识别结果确认区 -->
+<div id="result-area" class="hidden">
+  <div class="card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div class="section-title" style="margin:0">识别结果确认</div>
+      <span id="result-summary" class="badge badge-blue"></span>
+    </div>
+    <p style="font-size:13px;color:#64748b;margin-bottom:16px">
+      以下字段由OCR自动识别，请核对后点击"确认写入档案"。可直接修改任何字段值。
+    </p>
+
+    <form id="apply-form" method="post" action="{{ url_for('applicants.batch_apply', aid=aid) }}">
+      <!-- 申报人字段 -->
+      <div id="applicant-fields-section" class="hidden">
+        <div class="section-title" style="font-size:14px">📋 申报人基本信息</div>
+        <div id="applicant-fields" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px;margin-bottom:16px"></div>
+      </div>
+
+      <!-- 执业资格证 -->
+      <div id="pro-certs-section" class="hidden">
+        <div class="section-title" style="font-size:14px">🏗️ 执业资格证书（将新增到执业资格记录）</div>
+        <div id="pro-certs-list" style="margin-bottom:16px"></div>
+        <input type="hidden" name="pro_certs_json" id="pro-certs-json" value="[]">
+      </div>
+
+      <!-- 社保时段 -->
+      <div id="insurance-section" class="hidden">
+        <div class="section-title" style="font-size:14px">🛡️ 社保时段（将新增到社保记录）</div>
+        <div id="insurance-list" style="margin-bottom:16px"></div>
+        <input type="hidden" name="insurance_json" id="insurance-json" value="[]">
+      </div>
+
+      <!-- 识别错误 -->
+      <div id="errors-section" class="hidden">
+        <div class="section-title" style="font-size:14px;color:#dc2626">⚠ 识别失败的文件</div>
+        <div id="errors-list" style="margin-bottom:16px;font-size:13px;color:#dc2626"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button type="submit" class="btn btn-primary">✅ 确认写入档案</button>
+        <button type="button" class="btn btn-outline" onclick="resetResult()">取消</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.field-edit-row {
+  display:flex;align-items:center;gap:6px;
+  background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;
+}
+.field-edit-row label {
+  font-size:11px;color:#64748b;white-space:nowrap;width:90px;flex-shrink:0;
+}
+.field-edit-row input {
+  flex:1;border:none;background:transparent;font-size:13px;font-weight:600;color:#1e293b;
+  outline:none;min-width:0;
+}
+.ins-seg {
+  display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+  background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:8px 12px;margin-bottom:6px;font-size:13px;
+}
+.ins-seg input {
+  border:1px solid #86efac;border-radius:4px;padding:2px 6px;font-size:12px;width:100px;
+}
+</style>
+
+{% endblock %}
+{% block scripts %}
+<script>
+const AID = {{ aid }};
+
+const FIELD_LABELS = {
+  name:"姓名", gender:"性别", birth_date:"出生日期", id_card:"身份证号",
+  address:"住址", ethnicity:"民族",
+  education:"学历", major:"专业", school:"毕业院校",
+  graduation_year:"毕业年份", grad_month:"毕业年月", degree:"学位", study_mode:"学习形式",
+  title_level:"职称等级", title_year:"取证年份", title_month:"取证年月",
+  title_specialty:"职称专业", title_cert_no:"证书编号", title_issuer:"发证机关",
+};
+
+function createFolder() {
+  fetch(`/applicants/${AID}/folder/create`, {method:"POST"})
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) {
+        alert("目录已创建：\n" + d.path + "\n\n请将申报人证件图片放入对应子目录后刷新页面。");
+        location.reload();
+      } else {
+        alert("创建失败：" + d.error);
+      }
+    });
+}
+
+function startBatchOcr() {
+  document.getElementById("ocr-progress").classList.remove("hidden");
+  document.getElementById("result-area").classList.add("hidden");
+  document.getElementById("ocr-btn").disabled = true;
+  document.getElementById("progress-text").textContent = "正在调用OCR识别，请稍候…";
+  document.getElementById("progress-bar").style.width = "30%";
+
+  fetch(`/applicants/${AID}/folder/batch-ocr`, {method:"POST"})
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById("progress-bar").style.width = "100%";
+      if (!d.success) {
+        document.getElementById("progress-text").innerHTML =
+          `<span style="color:#dc2626">❌ ${d.error}</span>`;
+        document.getElementById("ocr-btn").disabled = false;
+        return;
+      }
+      document.getElementById("progress-text").textContent = "识别完成，请核对下方结果";
+      showResults(d);
+    })
+    .catch(e => {
+      document.getElementById("progress-text").innerHTML =
+        `<span style="color:#dc2626">❌ 请求失败：${e}</span>`;
+      document.getElementById("ocr-btn").disabled = false;
+    });
+}
+
+function showResults(d) {
+  document.getElementById("result-area").classList.remove("hidden");
+
+  // 文件状态
+  const raws = d.raw_results || [];
+  raws.forEach((r, i) => {
+    const el = document.getElementById(`file-status-${i}`);
+    if (!el) return;
+    if (r.error) {
+      el.innerHTML = `<span style="color:#dc2626">❌ 失败</span>`;
+    } else if (Object.keys(r.fields || {}).length) {
+      el.innerHTML = `<span style="color:#16a34a">✅ 识别成功</span>`;
+    } else {
+      el.innerHTML = `<span style="color:#d97706">⚠ 无内容</span>`;
+    }
+  });
+
+  // 申报人字段
+  const af = d.applicant_fields || {};
+  const afKeys = Object.keys(af).filter(k => af[k] && FIELD_LABELS[k]);
+  if (afKeys.length) {
+    document.getElementById("applicant-fields-section").classList.remove("hidden");
+    document.getElementById("applicant-fields").innerHTML = afKeys.map(k => `
+      <div class="field-edit-row">
+        <label>${FIELD_LABELS[k]}</label>
+        <input type="text" name="${k}" value="${af[k]}">
+      </div>
+    `).join("");
+  }
+
+  // 执业资格证
+  const pcs = d.pro_certs || [];
+  if (pcs.length) {
+    document.getElementById("pro-certs-section").classList.remove("hidden");
+    document.getElementById("pro-certs-list").innerHTML = pcs.map((pc, i) => `
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px;margin-bottom:8px;font-size:13px">
+        <strong>${pc.cert_type || '未知类型'}</strong>
+        ${pc.cert_no ? ` · 证书号：${pc.cert_no}` : ''}
+        ${pc.reg_no  ? ` · 注册号：${pc.reg_no}`  : ''}
+        ${pc.valid_until ? ` · 有效期至：${pc.valid_until}` : ''}
+      </div>
+    `).join("");
+    document.getElementById("pro-certs-json").value = JSON.stringify(pcs);
+  }
+
+  // 社保时段
+  const segs = d.insurance_segments || [];
+  if (segs.length) {
+    document.getElementById("insurance-section").classList.remove("hidden");
+    document.getElementById("insurance-list").innerHTML = segs.map((s, i) => `
+      <div class="ins-seg">
+        <span style="color:#64748b">开始：</span>
+        <input type="text" id="ins-s-${i}" value="${s.insure_start||''}">
+        <span style="color:#64748b">结束：</span>
+        <input type="text" id="ins-e-${i}" value="${s.insure_end||''}">
+      </div>
+    `).join("");
+    // 提交时从输入框同步回 hidden input
+    document.getElementById("apply-form").addEventListener("submit", function() {
+      const updated = segs.map((_, i) => ({
+        insure_start: document.getElementById(`ins-s-${i}`)?.value || "",
+        insure_end:   document.getElementById(`ins-e-${i}`)?.value || "",
+      }));
+      document.getElementById("insurance-json").value = JSON.stringify(updated);
+    }, {once: true});
+    document.getElementById("insurance-json").value = JSON.stringify(segs);
+  }
+
+  // 错误
+  const errors = raws.filter(r => r.error);
+  if (errors.length) {
+    document.getElementById("errors-section").classList.remove("hidden");
+    document.getElementById("errors-list").innerHTML = errors.map(e =>
+      `<div>• ${e.file}：${e.error}</div>`
+    ).join("");
+  }
+
+  // 摘要
+  const total = afKeys.length + pcs.length + segs.length;
+  document.getElementById("result-summary").textContent =
+    `识别到 ${total} 项数据`;
+
+  document.getElementById("ocr-btn").disabled = false;
+}
+
+function resetResult() {
+  document.getElementById("result-area").classList.add("hidden");
+  document.getElementById("ocr-progress").classList.add("hidden");
+}
+</script>
+{% endblock %}
