@@ -310,6 +310,34 @@
       </div>
     </div>
 
+    <div class="section-title" style="margin-top:16px">3-2. 破格/直接申报 + 职称外语计算机（对应网站Tab3-2）</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">是否申请破格</label>
+        <select class="form-control" name="apply_exception">
+          {% for opt in ['否','是'] %}
+          <option value="{{ opt }}" {{ 'selected' if v.get('apply_exception','否') == opt }}>{{ opt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">职称外语计算机要求</label>
+        <select class="form-control" name="lang_comp_require">
+          {% for opt in ['不作要求','需参加考试','免试'] %}
+          <option value="{{ opt }}" {{ 'selected' if v.get('lang_comp_require','不作要求') == opt }}>{{ opt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">外语考试合格情况</label>
+        <select class="form-control" name="lang_exam_result">
+          {% for opt in ['不作要求','合格','不合格'] %}
+          <option value="{{ opt }}" {{ 'selected' if v.get('lang_exam_result','不作要求') == opt }}>{{ opt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
     <div class="form-group" style="margin-top:8px">
       <label class="form-label">备注</label>
       <textarea class="form-control" name="notes" rows="3">{{ v.get('notes','') }}</textarea>

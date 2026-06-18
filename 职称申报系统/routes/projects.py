@@ -308,8 +308,16 @@ _TAB_MATERIALS = [
         "tab_name": "破格/直接申报",
         "folder": "03-2_破格直接申报",
         "items": [
-            {"name": "破格/直接申报材料",         "fill": "file", "required_for": [],
-             "note": "仅破格或直接申报人员需要提供，普通申报可跳过"},
+            # ── 第一区块：破格/直接申报 ──
+            {"name": "是否申请破格",              "fill": "auto", "required_for": [],
+             "note": "从申报人档案填写（是/否），大多数人填【否】"},
+            {"name": "破格申报材料（如申请破格）", "fill": "file", "required_for": [],
+             "note": "仅申请破格人员需要，放入03-2_破格直接申报目录"},
+            # ── 第二区块：职称外语和职称计算机 ──
+            {"name": "职称外语计算机要求",        "fill": "auto", "required_for": [],
+             "note": "由评委会政策决定，一般为【不作要求】，系统自动填写"},
+            {"name": "外语考试合格情况",          "fill": "auto", "required_for": [],
+             "note": "由评委会政策决定，一般为【不作要求】，系统自动填写"},
         ],
     },
     {
@@ -318,9 +326,9 @@ _TAB_MATERIALS = [
         "folder": "04_外语和计算机",
         "items": [
             {"name": "外语水平证书（如有）",      "fill": "file", "required_for": [],
-             "note": "英语等级证书、雅思/托福等"},
+             "note": "英语等级证书、雅思/托福等，评委会要求时提供"},
             {"name": "计算机水平证书（如有）",    "fill": "file", "required_for": [],
-             "note": "全国计算机等级证书等"},
+             "note": "全国计算机等级证书等，评委会要求时提供"},
         ],
     },
     {
@@ -634,6 +642,14 @@ def fill_preview_page(pid):
             {"label": "批准机关",       "value": a.get("title_issuer",""),   "status": "ok" if a.get("title_issuer") else "warn"},
             {"label": "证书适用范围",   "value": a.get("title_scope",""),    "status": "ok"},
             {"label": "获取时间（有效期）", "value": a.get("title_expire",""), "status": "ok"},
+        ]},
+        {"section": "Tab3-2·破格/直接申报 + 职称外语计算机", "items": [
+            {"label": "是否申请破格",       "value": a.get("apply_exception","否"),
+             "status": "ok"},
+            {"label": "职称外语计算机要求", "value": a.get("lang_comp_require","不作要求"),
+             "status": "ok"},
+            {"label": "外语考试合格情况",   "value": a.get("lang_exam_result","不作要求"),
+             "status": "ok"},
         ]},
     ]
 

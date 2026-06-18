@@ -9,6 +9,8 @@ _APPLICANT_COLS = (
     "current_position","current_specialty",
     "title_level","title_year","title_month","title_specialty","title_cert_no","title_issuer",
     "politics","address","photo_path","folder_path","notes",
+    # Tab3-2·破格/直接申报 + 职称外语计算机
+    "apply_exception","lang_comp_require","lang_exam_result",
     # Tab3-1·职称证书
     "title_manage_no","title_scope","title_expire",
     # Tab2·学历情况
