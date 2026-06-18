@@ -419,10 +419,14 @@ _TAB_MATERIALS = [
     {
         "tab": "7-2",
         "tab_name": "学术团体及社会兼职",
-        "folder": "07-2_学术团体社会兼职",
+        "folder": "07-2_学术团体兼职",
         "items": [
-            {"name": "学术团体/社会兼职证明（如有）", "fill": "file", "required_for": [],
-             "note": "担任学会/协会职务等，可选"},
+            {"name": "学术团体证明材料", "fill": "file", "required_for": [],
+             "note": "开始时间/截止时间/学术团体名称/在何职"},
+            {"name": "开始时间", "fill": "auto", "required_for": [], "note": ""},
+            {"name": "截止时间", "fill": "auto", "required_for": [], "note": ""},
+            {"name": "学术团体名称", "fill": "auto", "required_for": [], "note": ""},
+            {"name": "在何职", "fill": "auto", "required_for": [], "note": ""},
         ],
     },
     {

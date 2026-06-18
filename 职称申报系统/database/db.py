@@ -191,6 +191,17 @@ def init_db():
             valid_until     TEXT,
             created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
         );
+
+        -- 学术团体及社会兼职
+        CREATE TABLE IF NOT EXISTS academic_roles (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            applicant_id    INTEGER REFERENCES applicants(id) ON DELETE CASCADE,
+            start_date      TEXT,
+            end_date        TEXT,
+            org_name        TEXT,
+            position        TEXT,
+            created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
     """)
     # 对已存在的旧表做列迁移（ALTER TABLE ADD COLUMN IF NOT EXISTS 不支持，用 try/except）
     _migrate(conn)

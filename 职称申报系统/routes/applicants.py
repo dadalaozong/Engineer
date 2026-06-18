@@ -11,6 +11,7 @@ from database.models import (
     list_edu_trainings, insert_edu_training, update_edu_training, delete_edu_training,
     edu_hours_by_year,
     list_pro_certificates, insert_pro_certificate, update_pro_certificate, delete_pro_certificate,
+    list_academic_roles, insert_academic_role, update_academic_role, delete_academic_role,
 )
 
 bp = Blueprint("applicants", __name__, url_prefix="/applicants")
@@ -97,14 +98,15 @@ def detail(aid):
     if not applicant:
         flash("申报人不存在", "danger")
         return redirect(url_for("applicants.list_page"))
-    achievements  = list_achievements(aid)
-    awards        = list_awards(aid)
-    papers        = list_papers(aid)
-    logs          = list_contact_logs(aid)
-    work_exps     = list_work_experiences(aid)
-    insurances    = list_social_insurance(aid)
-    edu_trainings = list_edu_trainings(aid)
-    pro_certs     = list_pro_certificates(aid)
+    achievements   = list_achievements(aid)
+    awards         = list_awards(aid)
+    papers         = list_papers(aid)
+    logs           = list_contact_logs(aid)
+    work_exps      = list_work_experiences(aid)
+    insurances     = list_social_insurance(aid)
+    edu_trainings  = list_edu_trainings(aid)
+    pro_certs      = list_pro_certificates(aid)
+    academic_roles = list_academic_roles(aid)
     from datetime import date
     return render_template("applicants/detail.html",
                            applicant=applicant,
@@ -118,6 +120,7 @@ def detail(aid):
                            edu_trainings=edu_trainings,
                            edu_by_year=edu_hours_by_year(aid),
                            pro_certs=pro_certs,
+                           academic_roles=academic_roles,
                            today=date.today().isoformat())
 
 # ── 工程业绩 CRUD ─────────────────────────────────────────────────
@@ -305,6 +308,30 @@ def pro_cert_delete(aid, cid):
     delete_pro_certificate(cid)
     flash("已删除", "success")
     return redirect(url_for("applicants.detail", aid=aid) + "#pro_certs")
+
+# ── 学术团体及社会兼职 CRUD ───────────────────────────────────────
+
+_ACA_COLS = ["start_date", "end_date", "org_name", "position"]
+
+@bp.route("/<int:aid>/academic-roles/add", methods=["POST"])
+def academic_role_create(aid):
+    d = _form(_ACA_COLS); d["applicant_id"] = aid
+    insert_academic_role(**d)
+    flash("学术团体兼职已添加", "success")
+    return redirect(url_for("applicants.detail", aid=aid) + "#academic_roles")
+
+@bp.route("/<int:aid>/academic-roles/<int:rid>/edit", methods=["POST"])
+def academic_role_update(aid, rid):
+    update_academic_role(rid, **_form(_ACA_COLS))
+    flash("已保存", "success")
+    return redirect(url_for("applicants.detail", aid=aid) + "#academic_roles")
+
+@bp.route("/<int:aid>/academic-roles/<int:rid>/delete", methods=["POST"])
+def academic_role_delete(aid, rid):
+    delete_academic_role(rid)
+    flash("已删除", "success")
+    return redirect(url_for("applicants.detail", aid=aid) + "#academic_roles")
+
 
 @bp.route("/<int:aid>/json")
 def applicant_json(aid):

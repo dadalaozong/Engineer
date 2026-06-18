@@ -609,6 +609,41 @@ def delete_pro_certificate(cid):
     conn.commit(); conn.close()
 
 
+# ── Academic Roles (学术团体及社会兼职) ───────────────────────────
+
+def list_academic_roles(applicant_id):
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT * FROM academic_roles WHERE applicant_id=? ORDER BY start_date ASC, id ASC",
+        (applicant_id,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def insert_academic_role(**kw) -> int:
+    conn = get_conn()
+    cur = conn.execute(
+        "INSERT INTO academic_roles (applicant_id, start_date, end_date, org_name, position) VALUES (?,?,?,?,?)",
+        (kw.get("applicant_id"), kw.get("start_date"), kw.get("end_date"),
+         kw.get("org_name"), kw.get("position"))
+    )
+    conn.commit(); conn.close()
+    return cur.lastrowid
+
+def update_academic_role(rid, **kw):
+    conn = get_conn()
+    conn.execute(
+        "UPDATE academic_roles SET start_date=?, end_date=?, org_name=?, position=? WHERE id=?",
+        (kw.get("start_date"), kw.get("end_date"), kw.get("org_name"), kw.get("position"), rid)
+    )
+    conn.commit(); conn.close()
+
+def delete_academic_role(rid):
+    conn = get_conn()
+    conn.execute("DELETE FROM academic_roles WHERE id=?", (rid,))
+    conn.commit(); conn.close()
+
+
 # ── Dashboard Stats ───────────────────────────────────────────────
 
 def dashboard_stats():
