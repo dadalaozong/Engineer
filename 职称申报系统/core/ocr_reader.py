@@ -308,3 +308,270 @@ def _parse_insurance_segments(full: str) -> list:
 def parse_title_cert(text: str) -> dict:
     full = " ".join(text.splitlines())
     return _parse_title_text(full)
+
+
+# ── 继续教育证明 ───────────────────────────────────────────────────
+
+def recognize_edu_training(image_path: str, secret_id: str, secret_key: str) -> dict:
+    """继续教育/培训证明识别。"""
+    payload = {"ImageBase64": _img_b64(image_path)}
+    data = _call(secret_id, secret_key, "GeneralAccurateOCR", payload)
+    lines = [item["DetectedText"] for item in data.get("TextDetections", [])]
+    full = " ".join(lines)
+    return _parse_edu_training_text(full)
+
+
+def _parse_edu_training_text(full: str) -> dict:
+    result: dict = {}
+
+    # 课程/培训名称
+    m = re.search(r"(?:培训|课程|学习)名称[：:\s]*([^，。\n]{4,40})", full)
+    if m:
+        result["course_name"] = m.group(1).strip()
+    else:
+        m = re.search(r"《([^》]{3,40})》", full)
+        if m:
+            result["course_name"] = m.group(1)
+        else:
+            for token in full.split():
+                if len(token) >= 6 and re.search(r"[一-鿿]{4,}", token):
+                    result["course_name"] = token[:40]
+                    break
+
+    # 学时/学分
+    m = re.search(r"(\d+)\s*(?:学时|课时|小时)", full)
+    if m:
+        result["hours"] = int(m.group(1))
+
+    # 起止日期
+    dates = re.findall(r"(\d{4}[-年/]\d{1,2}[-月/]?\d{0,2})", full)
+    if len(dates) >= 2:
+        result["train_start"] = _norm_date(dates[0])
+        result["train_end"]   = _norm_date(dates[1])
+    elif len(dates) == 1:
+        result["train_start"] = _norm_date(dates[0])
+
+    # 发证/培训机构
+    m = re.search(r"(?:主办单位|培训单位|发证机关|颁发单位|组织单位)[：:\s]*([^\s，。]{3,30})", full)
+    if m:
+        result["issuer"] = m.group(1).strip()
+
+    return result
+
+
+# ── 工程业绩证明 ───────────────────────────────────────────────────
+
+def recognize_achievement(image_path: str, secret_id: str, secret_key: str) -> dict:
+    """工程业绩证明/施工合同识别。"""
+    payload = {"ImageBase64": _img_b64(image_path)}
+    data = _call(secret_id, secret_key, "GeneralAccurateOCR", payload)
+    lines = [item["DetectedText"] for item in data.get("TextDetections", [])]
+    full = " ".join(lines)
+    return _parse_achievement_text(full)
+
+
+def _parse_achievement_text(full: str) -> dict:
+    result: dict = {}
+
+    # 工程名称
+    m = re.search(r"(?:工程名称|项目名称)[：:\s]*([^\s，。]{4,40})", full)
+    if m:
+        result["project_name"] = m.group(1).strip()
+    else:
+        # 找含"工程"/"项目"的名词短语
+        m = re.search(r"([一-龥]{2,20}(?:工程|项目|大厦|楼|路|桥|隧道|管道))", full)
+        if m:
+            result["project_name"] = m.group(1)
+
+    # 工程类型
+    for pt in ["房屋建筑", "市政公用", "公路工程", "装饰装修", "机电安装",
+               "桥梁", "隧道", "给排水", "电力", "通信"]:
+        if pt in full:
+            result["project_type"] = pt
+            break
+
+    # 担任职务/角色
+    m = re.search(r"(?:担任|职务|岗位)[：:\s]*([^\s，。]{2,15})", full)
+    if m:
+        result["role"] = m.group(1).strip()
+    else:
+        for role in ["项目经理", "技术负责人", "项目总工", "施工员", "监理工程师"]:
+            if role in full:
+                result["role"] = role
+                break
+
+    # 建设规模/合同金额
+    m = re.search(r"(?:规模|建筑面积|合同金额|造价)[：:\s]*([^\s，。]{2,20})", full)
+    if m:
+        result["scale"] = m.group(1).strip()
+
+    # 起止年份
+    dates = re.findall(r"(\d{4}[-年/]\d{1,2}[-月/]?\d{0,2})", full)
+    if len(dates) >= 2:
+        result["start_date"] = _norm_date(dates[0])
+        result["end_date"]   = _norm_date(dates[1])
+    elif len(dates) == 1:
+        result["start_date"] = _norm_date(dates[0])
+
+    # 证明单位
+    m = re.search(r"(?:建设单位|发证单位|合同甲方)[：:\s]*([^\s，。]{3,30})", full)
+    if m:
+        result["issuer"] = m.group(1).strip()
+
+    return result
+
+
+# ── 获奖证书 ────────────────────────────────────────────────────────
+
+def recognize_award(image_path: str, secret_id: str, secret_key: str) -> dict:
+    """获奖证书识别。"""
+    payload = {"ImageBase64": _img_b64(image_path)}
+    data = _call(secret_id, secret_key, "GeneralAccurateOCR", payload)
+    lines = [item["DetectedText"] for item in data.get("TextDetections", [])]
+    full = " ".join(lines)
+    return _parse_award_text(full)
+
+
+def _parse_award_text(full: str) -> dict:
+    result: dict = {}
+
+    # 奖项名称
+    m = re.search(r"(?:荣获|获得|授予)[：:\s]*([^\s，。]{3,30})", full)
+    if m:
+        result["award_name"] = m.group(1).strip()
+    else:
+        m = re.search(r"([一-龥]{2,20}(?:奖|荣誉|称号))", full)
+        if m:
+            result["award_name"] = m.group(1)
+
+    # 奖励级别
+    for lvl in ["国家级", "省部级", "厅局级", "市级", "县级", "企业级"]:
+        if lvl in full:
+            result["award_level"] = lvl
+            break
+    if "award_level" not in result:
+        for lvl in ["一等奖", "二等奖", "三等奖", "特等奖", "优秀奖"]:
+            if lvl in full:
+                result["award_level"] = lvl
+                break
+
+    # 颁奖时间
+    m = re.search(r"(\d{4})\s*年\s*(\d{1,2})\s*月", full)
+    if m:
+        result["award_date"] = f"{m.group(1)}-{int(m.group(2)):02d}"
+    elif re.search(r"\d{4}", full):
+        result["award_date"] = re.search(r"(\d{4})", full).group(1)
+
+    # 颁发单位
+    m = re.search(r"(?:颁发单位|授予单位|颁发机关)[：:\s]*([^\s，。]{3,30})", full)
+    if m:
+        result["award_org"] = m.group(1).strip()
+
+    return result
+
+
+# ── 论文/著作 ───────────────────────────────────────────────────────
+
+def recognize_paper(image_path: str, secret_id: str, secret_key: str) -> dict:
+    """论文/著作封面或收录证明识别。"""
+    payload = {"ImageBase64": _img_b64(image_path)}
+    data = _call(secret_id, secret_key, "GeneralAccurateOCR", payload)
+    lines = [item["DetectedText"] for item in data.get("TextDetections", [])]
+    full = " ".join(lines)
+    return _parse_paper_text(full)
+
+
+def _parse_paper_text(full: str) -> dict:
+    result: dict = {}
+
+    # 论文标题（通常是最长的中文短语）
+    candidates = [t for t in full.split() if len(t) >= 6 and re.search(r"[一-鿿]{4,}", t)]
+    if candidates:
+        result["title"] = max(candidates, key=len)[:60]
+
+    # 期刊/出版社
+    m = re.search(r"(?:发表于|刊登于|期刊|杂志|出版社)[：:\s]*([^\s，。]{3,30})", full)
+    if m:
+        result["journal"] = m.group(1).strip()
+    else:
+        for kw in ["学报", "期刊", "杂志", "Journal", "出版社"]:
+            idx = full.find(kw)
+            if idx >= 0:
+                result["journal"] = full[max(0, idx-10):idx+len(kw)].strip()
+                break
+
+    # 发表时间
+    m = re.search(r"(\d{4})\s*年\s*(\d{1,2})\s*月", full)
+    if m:
+        result["publish_date"] = f"{m.group(1)}-{int(m.group(2)):02d}"
+    elif re.search(r"\d{4}", full):
+        result["publish_date"] = re.search(r"(\d{4})", full).group(1)
+
+    # ISSN/ISBN/DOI
+    m = re.search(r"ISSN\s*[：:]?\s*([\d\-X]{8,})", full, re.I)
+    if m:
+        result["issn"] = m.group(1)
+    m = re.search(r"ISBN\s*[：:]?\s*([\d\-X]{10,})", full, re.I)
+    if m:
+        result["isbn"] = m.group(1)
+    m = re.search(r"DOI\s*[：:]?\s*(10\.\S+)", full, re.I)
+    if m:
+        result["doi"] = m.group(1)
+
+    # 作者
+    m = re.search(r"(?:作者|著者|Author)[：:\s]*([^\s，。]{2,20})", full)
+    if m:
+        result["authors"] = m.group(1).strip()
+
+    return result
+
+
+# ── 年度考核表 ─────────────────────────────────────────────────────
+
+def recognize_annual_review(image_path: str, secret_id: str, secret_key: str) -> dict:
+    """年度考核表识别。"""
+    payload = {"ImageBase64": _img_b64(image_path)}
+    data = _call(secret_id, secret_key, "GeneralAccurateOCR", payload)
+    lines = [item["DetectedText"] for item in data.get("TextDetections", [])]
+    full = " ".join(lines)
+    return _parse_annual_review_text(full)
+
+
+def _parse_annual_review_text(full: str) -> dict:
+    result: dict = {}
+
+    # 考核年度
+    m = re.search(r"(\d{4})\s*年(?:度|份)?考核", full)
+    if m:
+        result["review_year"] = m.group(1)
+    else:
+        m = re.search(r"(\d{4})", full)
+        if m:
+            result["review_year"] = m.group(1)
+
+    # 考核结果
+    for grade in ["优秀", "良好", "合格", "基本合格", "不合格"]:
+        if grade in full:
+            result["review_result"] = grade
+            break
+
+    # 考核单位
+    m = re.search(r"(?:考核单位|填报单位|单位名称)[：:\s]*([^\s，。]{3,30})", full)
+    if m:
+        result["review_unit"] = m.group(1).strip()
+
+    return result
+
+
+# ── 通用日期规范化 ─────────────────────────────────────────────────
+
+def _norm_date(s: str) -> str:
+    """将 '2020年3月' / '2020/3/1' 等规范化为 'YYYY-MM'"""
+    s = re.sub(r"[年月/]", "-", s).rstrip("-")
+    parts = [p for p in s.split("-") if p]
+    if len(parts) >= 2:
+        try:
+            return f"{parts[0]}-{int(parts[1]):02d}"
+        except ValueError:
+            return s
+    return s

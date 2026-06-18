@@ -387,6 +387,77 @@ def batch_apply(aid):
                 insert_social_insurance(**seg)
     except Exception:
         pass
+    # 继续教育记录 — OCR字段 → DB字段映射
+    edu_json = request.form.get("edu_trainings_json", "[]")
+    try:
+        from database.models import insert_edu_training
+        for rec in _json.loads(edu_json):
+            if rec.get("course_name") or rec.get("train_start"):
+                year = None
+                if rec.get("train_start"):
+                    try: year = int(rec["train_start"][:4])
+                    except Exception: pass
+                insert_edu_training(
+                    applicant_id=aid,
+                    course_name=rec.get("course_name", ""),
+                    hours=rec.get("hours") or None,
+                    year=year,
+                    institution=rec.get("issuer", ""),
+                )
+    except Exception:
+        pass
+    # 工程业绩
+    ach_json = request.form.get("achievements_json", "[]")
+    try:
+        from database.models import insert_achievement
+        for rec in _json.loads(ach_json):
+            if rec.get("project_name"):
+                insert_achievement(
+                    applicant_id=aid,
+                    project_name=rec.get("project_name", ""),
+                    project_type=rec.get("project_type", ""),
+                    scale=rec.get("scale", ""),
+                    role=rec.get("role", ""),
+                    start_date=rec.get("start_date", ""),
+                    end_date=rec.get("end_date", ""),
+                    owner=rec.get("issuer", ""),
+                )
+    except Exception:
+        pass
+    # 获奖记录 — award_date → award_year
+    award_json = request.form.get("awards_json", "[]")
+    try:
+        from database.models import insert_award
+        for rec in _json.loads(award_json):
+            if rec.get("award_name"):
+                award_year = None
+                if rec.get("award_date"):
+                    try: award_year = int(str(rec["award_date"])[:4])
+                    except Exception: pass
+                insert_award(
+                    applicant_id=aid,
+                    award_name=rec.get("award_name", ""),
+                    award_level=rec.get("award_level", ""),
+                    award_year=award_year,
+                    award_org=rec.get("award_org", ""),
+                )
+    except Exception:
+        pass
+    # 论文著作 — publish_date → pub_date
+    paper_json = request.form.get("papers_json", "[]")
+    try:
+        from database.models import insert_paper
+        for rec in _json.loads(paper_json):
+            if rec.get("title"):
+                insert_paper(
+                    applicant_id=aid,
+                    title=rec.get("title", ""),
+                    journal=rec.get("journal", ""),
+                    pub_date=rec.get("publish_date", ""),
+                    cn_issn=rec.get("issn", ""),
+                )
+    except Exception:
+        pass
     flash("OCR识别结果已写入档案", "success")
     return redirect(url_for("applicants.detail", aid=aid))
 

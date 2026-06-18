@@ -5,6 +5,13 @@
 
 {% set aid = applicant.id %}
 
+{% set CERT_LABELS = {
+  'id_card':'身份证','degree':'学历证','title':'职称证',
+  'pro_cert':'执业资格','social_insurance':'社保记录',
+  'edu_training':'继续教育','achievement':'工程业绩',
+  'award':'获奖证书','paper':'论文著作','annual_review':'年度考核'
+} %}
+
 <!-- 顶部信息栏 -->
 <div class="card" style="margin-bottom:16px">
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
@@ -61,7 +68,7 @@
           <td><span class="badge badge-gray">{{ f.subfolder }}</span></td>
           <td>
             {% if f.cert_type %}
-            <span class="badge badge-blue">{{ {'id_card':'身份证','degree':'学历证','title':'职称证','pro_cert':'执业资格','social_insurance':'社保记录'}[f.cert_type] }}</span>
+            <span class="badge badge-blue">{{ CERT_LABELS.get(f.cert_type, f.cert_type) }}</span>
             {% else %}
             <span class="text-muted">归档（不识别）</span>
             {% endif %}
@@ -81,7 +88,7 @@
       {% for name, cert_type in subfolders %}
       <li style="margin-bottom:4px">
         <code>{{ name }}/</code>
-        {% if cert_type %}— 自动识别为"{{ {'id_card':'身份证','degree':'学历证','title':'职称证','pro_cert':'执业资格','social_insurance':'社保记录'}[cert_type] }}"{% endif %}
+        {% if cert_type %}— 自动识别为"{{ CERT_LABELS.get(cert_type, cert_type) }}"{% endif %}
       </li>
       {% endfor %}
     </ul>
@@ -119,16 +126,44 @@
 
       <!-- 执业资格证 -->
       <div id="pro-certs-section" class="hidden">
-        <div class="section-title" style="font-size:14px">🏗️ 执业资格证书（将新增到执业资格记录）</div>
+        <div class="section-title" style="font-size:14px">🏗️ 执业资格证书</div>
         <div id="pro-certs-list" style="margin-bottom:16px"></div>
         <input type="hidden" name="pro_certs_json" id="pro-certs-json" value="[]">
       </div>
 
       <!-- 社保时段 -->
       <div id="insurance-section" class="hidden">
-        <div class="section-title" style="font-size:14px">🛡️ 社保时段（将新增到社保记录）</div>
+        <div class="section-title" style="font-size:14px">🛡️ 社保时段</div>
         <div id="insurance-list" style="margin-bottom:16px"></div>
         <input type="hidden" name="insurance_json" id="insurance-json" value="[]">
+      </div>
+
+      <!-- 继续教育 -->
+      <div id="edu-section" class="hidden">
+        <div class="section-title" style="font-size:14px">📚 继续教育记录</div>
+        <div id="edu-list" style="margin-bottom:16px"></div>
+        <input type="hidden" name="edu_trainings_json" id="edu-json" value="[]">
+      </div>
+
+      <!-- 工程业绩 -->
+      <div id="ach-section" class="hidden">
+        <div class="section-title" style="font-size:14px">🏗 工程业绩</div>
+        <div id="ach-list" style="margin-bottom:16px"></div>
+        <input type="hidden" name="achievements_json" id="ach-json" value="[]">
+      </div>
+
+      <!-- 获奖 -->
+      <div id="award-section" class="hidden">
+        <div class="section-title" style="font-size:14px">🏆 获奖记录</div>
+        <div id="award-list" style="margin-bottom:16px"></div>
+        <input type="hidden" name="awards_json" id="award-json" value="[]">
+      </div>
+
+      <!-- 论文 -->
+      <div id="paper-section" class="hidden">
+        <div class="section-title" style="font-size:14px">📄 论文著作</div>
+        <div id="paper-list" style="margin-bottom:16px"></div>
+        <input type="hidden" name="papers_json" id="paper-json" value="[]">
       </div>
 
       <!-- 识别错误 -->
@@ -157,9 +192,14 @@
   flex:1;border:none;background:transparent;font-size:13px;font-weight:600;color:#1e293b;
   outline:none;min-width:0;
 }
+.ocr-card {
+  background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;
+  margin-bottom:8px;font-size:13px;
+}
 .ins-seg {
   display:flex;gap:12px;align-items:center;flex-wrap:wrap;
-  background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:8px 12px;margin-bottom:6px;font-size:13px;
+  background:#f0fdf4;border:1px solid #86efac;border-radius:6px;
+  padding:8px 12px;margin-bottom:6px;font-size:13px;
 }
 .ins-seg input {
   border:1px solid #86efac;border-radius:4px;padding:2px 6px;font-size:12px;width:100px;
@@ -173,9 +213,10 @@ const AID = {{ aid }};
 
 const FIELD_LABELS = {
   name:"姓名", gender:"性别", birth_date:"出生日期", id_card:"身份证号",
-  address:"住址", ethnicity:"民族",
+  address:"住址", ethnicity:"民族", authority:"发证机关", valid_date:"有效期",
   education:"学历", major:"专业", school:"毕业院校",
-  graduation_year:"毕业年份", grad_month:"毕业年月", degree:"学位", study_mode:"学习形式",
+  graduation_year:"毕业年份", grad_year:"毕业年份", grad_month:"毕业年月",
+  degree:"学位", study_mode:"学习形式",
   title_level:"职称等级", title_year:"取证年份", title_month:"取证年月",
   title_specialty:"职称专业", title_cert_no:"证书编号", title_issuer:"发证机关",
 };
@@ -220,18 +261,26 @@ function startBatchOcr() {
     });
 }
 
+function renderOcrCard(fields, color) {
+  color = color || "#f8fafc";
+  const rows = Object.entries(fields).filter(([k,v]) => v).map(([k,v]) =>
+    `<span style="color:#64748b">${k}：</span><strong>${v}</strong>`
+  ).join("　");
+  return `<div class="ocr-card" style="background:${color}">${rows || '（无内容）'}</div>`;
+}
+
 function showResults(d) {
   document.getElementById("result-area").classList.remove("hidden");
+  let totalItems = 0;
 
-  // 文件状态
-  const raws = d.raw_results || [];
-  raws.forEach((r, i) => {
+  // 文件状态更新
+  (d.raw_results || []).forEach((r, i) => {
     const el = document.getElementById(`file-status-${i}`);
     if (!el) return;
     if (r.error) {
       el.innerHTML = `<span style="color:#dc2626">❌ 失败</span>`;
     } else if (Object.keys(r.fields || {}).length) {
-      el.innerHTML = `<span style="color:#16a34a">✅ 识别成功</span>`;
+      el.innerHTML = `<span style="color:#16a34a">✅ 成功</span>`;
     } else {
       el.innerHTML = `<span style="color:#d97706">⚠ 无内容</span>`;
     }
@@ -248,21 +297,21 @@ function showResults(d) {
         <input type="text" name="${k}" value="${af[k]}">
       </div>
     `).join("");
+    totalItems += afKeys.length;
   }
 
   // 执业资格证
   const pcs = d.pro_certs || [];
   if (pcs.length) {
     document.getElementById("pro-certs-section").classList.remove("hidden");
-    document.getElementById("pro-certs-list").innerHTML = pcs.map((pc, i) => `
-      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px;margin-bottom:8px;font-size:13px">
-        <strong>${pc.cert_type || '未知类型'}</strong>
-        ${pc.cert_no ? ` · 证书号：${pc.cert_no}` : ''}
-        ${pc.reg_no  ? ` · 注册号：${pc.reg_no}`  : ''}
-        ${pc.valid_until ? ` · 有效期至：${pc.valid_until}` : ''}
-      </div>
-    `).join("");
+    document.getElementById("pro-certs-list").innerHTML = pcs.map(pc =>
+      renderOcrCard({
+        "证书类型": pc.cert_type, "证书号": pc.cert_no,
+        "注册号": pc.reg_no, "专业": pc.specialty, "有效期至": pc.valid_until
+      }, "#eff6ff")
+    ).join("");
     document.getElementById("pro-certs-json").value = JSON.stringify(pcs);
+    totalItems += pcs.length;
   }
 
   // 社保时段
@@ -277,7 +326,6 @@ function showResults(d) {
         <input type="text" id="ins-e-${i}" value="${s.insure_end||''}">
       </div>
     `).join("");
-    // 提交时从输入框同步回 hidden input
     document.getElementById("apply-form").addEventListener("submit", function() {
       const updated = segs.map((_, i) => ({
         insure_start: document.getElementById(`ins-s-${i}`)?.value || "",
@@ -286,22 +334,75 @@ function showResults(d) {
       document.getElementById("insurance-json").value = JSON.stringify(updated);
     }, {once: true});
     document.getElementById("insurance-json").value = JSON.stringify(segs);
+    totalItems += segs.length;
+  }
+
+  // 继续教育
+  const edus = d.edu_trainings || [];
+  if (edus.length) {
+    document.getElementById("edu-section").classList.remove("hidden");
+    document.getElementById("edu-list").innerHTML = edus.map(r =>
+      renderOcrCard({
+        "课程名称": r.course_name, "学时": r.hours,
+        "开始": r.train_start, "结束": r.train_end, "机构": r.issuer
+      }, "#fefce8")
+    ).join("");
+    document.getElementById("edu-json").value = JSON.stringify(edus);
+    totalItems += edus.length;
+  }
+
+  // 工程业绩
+  const achs = d.achievements || [];
+  if (achs.length) {
+    document.getElementById("ach-section").classList.remove("hidden");
+    document.getElementById("ach-list").innerHTML = achs.map(r =>
+      renderOcrCard({
+        "项目名称": r.project_name, "类型": r.project_type,
+        "规模": r.scale, "职务": r.role, "建设单位": r.issuer,
+        "开始": r.start_date, "结束": r.end_date
+      }, "#f0fdf4")
+    ).join("");
+    document.getElementById("ach-json").value = JSON.stringify(achs);
+    totalItems += achs.length;
+  }
+
+  // 获奖
+  const awds = d.awards || [];
+  if (awds.length) {
+    document.getElementById("award-section").classList.remove("hidden");
+    document.getElementById("award-list").innerHTML = awds.map(r =>
+      renderOcrCard({
+        "奖项名称": r.award_name, "级别": r.award_level,
+        "时间": r.award_date, "颁发单位": r.award_org
+      }, "#faf5ff")
+    ).join("");
+    document.getElementById("award-json").value = JSON.stringify(awds);
+    totalItems += awds.length;
+  }
+
+  // 论文
+  const papers = d.papers || [];
+  if (papers.length) {
+    document.getElementById("paper-section").classList.remove("hidden");
+    document.getElementById("paper-list").innerHTML = papers.map(r =>
+      renderOcrCard({
+        "标题": r.title, "期刊": r.journal,
+        "发表时间": r.publish_date, "ISSN": r.issn
+      }, "#fff7ed")
+    ).join("");
+    document.getElementById("paper-json").value = JSON.stringify(papers);
+    totalItems += papers.length;
   }
 
   // 错误
-  const errors = raws.filter(r => r.error);
+  const errors = (d.raw_results || []).filter(r => r.error);
   if (errors.length) {
     document.getElementById("errors-section").classList.remove("hidden");
-    document.getElementById("errors-list").innerHTML = errors.map(e =>
-      `<div>• ${e.file}：${e.error}</div>`
-    ).join("");
+    document.getElementById("errors-list").innerHTML =
+      errors.map(e => `<div>• ${e.file}：${e.error}</div>`).join("");
   }
 
-  // 摘要
-  const total = afKeys.length + pcs.length + segs.length;
-  document.getElementById("result-summary").textContent =
-    `识别到 ${total} 项数据`;
-
+  document.getElementById("result-summary").textContent = `识别到 ${totalItems} 项数据`;
   document.getElementById("ocr-btn").disabled = false;
 }
 

@@ -11,10 +11,12 @@ SUBFOLDERS = [
     ("03_职称证书",     "title"),
     ("04_执业资格证",   "pro_cert"),
     ("05_社保记录",     "social_insurance"),
-    ("06_工程业绩",     None),
-    ("07_获奖证书",     None),
-    ("08_论文著作",     None),
-    ("09_其他",         None),
+    ("06_继续教育",     "edu_training"),
+    ("07_工程业绩",     "achievement"),
+    ("08_获奖证书",     "award"),
+    ("09_论文著作",     "paper"),
+    ("10_年度考核",     "annual_review"),
+    ("11_其他",         None),
 ]
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp", ".pdf"}
