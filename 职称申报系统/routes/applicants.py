@@ -292,6 +292,52 @@ def pro_cert_delete(aid, cid):
     flash("已删除", "success")
     return redirect(url_for("applicants.detail", aid=aid) + "#pro_certs")
 
+# ── 资料上传中心 ───────────────────────────────────────────────────
+
+@bp.route("/<int:aid>/upload")
+def upload_center(aid):
+    applicant = get_applicant(aid)
+    if not applicant:
+        flash("申报人不存在", "danger")
+        return redirect(url_for("applicants.list_page"))
+    from config import CONFIG
+    ocr_ok = bool(CONFIG.get("tencent_secret_id") and CONFIG.get("tencent_secret_key"))
+    return render_template("applicants/upload.html", applicant=applicant, ocr_ok=ocr_ok)
+
+@bp.route("/<int:aid>/ocr-apply", methods=["POST"])
+def ocr_apply(aid):
+    """将OCR解析结果写入申报人档案。mode决定写入哪些字段。"""
+    applicant = get_applicant(aid)
+    if not applicant:
+        return jsonify({"success": False, "error": "申报人不存在"})
+    mode = request.form.get("mode", "")
+    allowed = {
+        "id_card":   ["name","gender","birth_date","id_card","address","ethnicity"],
+        "degree":    ["education","major","school","graduation_year","grad_month","degree","study_mode"],
+        "title":     ["title_level","title_year","title_month","title_specialty","title_cert_no","title_issuer"],
+        "pro_cert":  [],   # 写入 pro_certificates 表，不改主表
+    }
+    if mode == "pro_cert":
+        d = {c: (request.form.get(c) or "").strip() for c in ["cert_type","cert_no","reg_no","specialty","valid_until"]}
+        d["applicant_id"] = aid
+        if d.get("cert_type"):
+            insert_pro_certificate(**d)
+            return jsonify({"success": True, "msg": "执业资格证已保存"})
+        return jsonify({"success": False, "error": "证书类型不能为空"})
+
+    cols = allowed.get(mode, [])
+    if not cols:
+        return jsonify({"success": False, "error": "未知模式"})
+    updates = {c: (request.form.get(c) or "").strip() for c in cols}
+    # 合并：只更新非空字段（不覆盖已有数据，除非明确勾选了覆盖）
+    overwrite = request.form.get("overwrite") == "1"
+    merged = dict(applicant)
+    for k, v in updates.items():
+        if v or overwrite:
+            merged[k] = v
+    update_applicant(aid, **{c: merged.get(c, "") for c in _A_COLS})
+    return jsonify({"success": True, "msg": "已写入档案"})
+
 # ── Excel 导出 ─────────────────────────────────────────────────────
 
 @bp.route("/export/excel")

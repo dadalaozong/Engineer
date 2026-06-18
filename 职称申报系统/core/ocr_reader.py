@@ -208,14 +208,103 @@ def parse_degree_cert(text: str) -> dict:
     return _parse_degree_text(" ".join(text.splitlines()))
 
 
-def parse_title_cert(text: str) -> dict:
-    full = " ".join(text.splitlines())
+def recognize_title_cert(image_path: str, secret_id: str, secret_key: str) -> dict:
+    """职称证书识别（通用OCR + 结构化解析）。"""
+    payload = {"ImageBase64": _img_b64(image_path)}
+    data = _call(secret_id, secret_key, "GeneralAccurateOCR", payload)
+    lines = [item["DetectedText"] for item in data.get("TextDetections", [])]
+    full = " ".join(lines)
+    return _parse_title_text(full)
+
+
+def recognize_pro_cert(image_path: str, secret_id: str, secret_key: str) -> dict:
+    """执业资格证书识别（通用OCR + 结构化解析）。"""
+    payload = {"ImageBase64": _img_b64(image_path)}
+    data = _call(secret_id, secret_key, "GeneralAccurateOCR", payload)
+    lines = [item["DetectedText"] for item in data.get("TextDetections", [])]
+    full = " ".join(lines)
+    return _parse_pro_cert_text(full)
+
+
+def recognize_social_insurance(image_path: str, secret_id: str, secret_key: str) -> dict:
+    """社保记录截图识别 — 返回参保段落列表。"""
+    payload = {"ImageBase64": _img_b64(image_path)}
+    data = _call(secret_id, secret_key, "GeneralAccurateOCR", payload)
+    lines = [item["DetectedText"] for item in data.get("TextDetections", [])]
+    full = "\n".join(lines)
+    return {"raw": full, "segments": _parse_insurance_segments(full)}
+
+
+def _parse_title_text(full: str) -> dict:
     result: dict = {}
     for level in ["正高级工程师", "高级工程师", "工程师", "助理工程师"]:
         if level in full:
             result["title_level"] = level
             break
-    m = re.search(r"(\d{4})\s*年", full)
+    m = re.search(r"专业[名称：:\s]*([^\s，。,、]{2,20})", full)
     if m:
-        result["title_year"] = m.group(1)
+        result["title_specialty"] = m.group(1).strip()
+    m = re.search(r"证书编号[：:\s]*([A-Za-z0-9\-]{4,30})", full)
+    if m:
+        result["title_cert_no"] = m.group(1).strip()
+    m = re.search(r"(\d{4})\s*年\s*(\d{1,2})\s*月", full)
+    if m:
+        result["title_year"]  = m.group(1)
+        result["title_month"] = f"{m.group(1)}-{int(m.group(2)):02d}"
+    elif re.search(r"\d{4}", full):
+        result["title_year"] = re.search(r"(\d{4})", full).group(1)
+    m = re.search(r"发证机关[：:\s]*([^\s，。]{3,20})", full)
+    if m:
+        result["title_issuer"] = m.group(1).strip()
     return result
+
+
+def _parse_pro_cert_text(full: str) -> dict:
+    result: dict = {}
+    for ct in ["注册建造师", "注册结构工程师", "注册建筑师", "注册监理工程师",
+               "注册造价工程师", "注册安全工程师", "注册岩土工程师"]:
+        if ct in full:
+            result["cert_type"] = ct
+            break
+    m = re.search(r"注册号[：:\s]*([A-Za-z0-9\-]{4,30})", full)
+    if m:
+        result["reg_no"] = m.group(1).strip()
+    m = re.search(r"证书编号[：:\s]*([A-Za-z0-9\-]{4,30})", full)
+    if m:
+        result["cert_no"] = m.group(1).strip()
+    m = re.search(r"专业[：:\s]*([^\s，。,、]{2,20})", full)
+    if m:
+        result["specialty"] = m.group(1).strip()
+    m = re.search(r"有效期[至到：:\s]*(\d{4}[-年]\d{1,2}[-月]\d{0,2})", full)
+    if m:
+        raw = m.group(1)
+        raw = re.sub(r"[年月]", "-", raw).rstrip("-")
+        parts = raw.split("-")
+        if len(parts) >= 2:
+            result["valid_until"] = f"{parts[0]}-{int(parts[1]):02d}-{'01' if len(parts)<3 else f'{int(parts[2]):02d}'}"
+    return result
+
+
+def _parse_insurance_segments(full: str) -> list:
+    """尝试从社保截图中解析参保段落，返回 [{insure_start, insure_end, insure_unit}]"""
+    segments = []
+    pattern = re.compile(
+        r"(\d{4}[-年/]\d{1,2}[-月/]?\d{0,2})\s*[~至—-]+\s*(\d{4}[-年/]\d{1,2}[-月/]?\d{0,2})"
+    )
+    for m in pattern.finditer(full):
+        def norm(s):
+            s = re.sub(r"[年月/]", "-", s).rstrip("-")
+            parts = s.split("-")
+            if len(parts) >= 2:
+                return f"{parts[0]}-{int(parts[1]):02d}"
+            return s
+        segments.append({
+            "insure_start": norm(m.group(1)),
+            "insure_end":   norm(m.group(2)),
+        })
+    return segments
+
+
+def parse_title_cert(text: str) -> dict:
+    full = " ".join(text.splitlines())
+    return _parse_title_text(full)

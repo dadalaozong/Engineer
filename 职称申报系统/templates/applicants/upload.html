@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+{% block title %}资料上传中心 — {{ applicant.name }}{% endblock %}
+{% block page_title %}资料上传中心{% endblock %}
+{% block content %}
+
+{% set aid = applicant.id %}
+
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+  <div>
+    <span style="font-size:18px;font-weight:700;color:#1e293b">{{ applicant.name }}</span>
+    <span class="badge badge-gray" style="margin-left:8px">{{ applicant.work_unit or '—' }}</span>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:8px">
+    <a href="{{ url_for('applicants.detail', aid=aid) }}" class="btn btn-outline btn-sm">← 返回详情</a>
+  </div>
+</div>
+
+{% if not ocr_ok %}
+<div class="alert alert-warning" style="margin-bottom:16px">
+  ⚠ 腾讯云OCR未配置，识别功能不可用。请先在
+  <a href="{{ url_for('settings.index') }}" style="color:#92400e;font-weight:600">系统设置</a>
+  中填写 SecretId 和 SecretKey。
+</div>
+{% endif %}
+
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px">
+
+  <!-- ── 身份证 ── -->
+  <div class="card" id="card-id">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <span style="font-size:20px">🪪</span>
+      <div class="section-title" style="margin:0">身份证</div>
+      <span class="badge badge-gray" style="margin-left:auto">自动填：姓名/性别/出生/身份证号/住址</span>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:8px">
+      <button class="btn btn-sm {{ 'btn-primary' if ocr_ok else 'btn-outline' }}" style="flex:1"
+              onclick="selectSide('id','FRONT')" id="id-front-btn">正面</button>
+      <button class="btn btn-sm btn-outline" style="flex:1"
+              onclick="selectSide('id','BACK')" id="id-back-btn">背面</button>
+    </div>
+    <input type="file" id="id-file" accept="image/*" class="form-control" style="margin-bottom:8px"
+           onchange="previewImg(this,'id-preview')">
+    <div id="id-preview" style="margin-bottom:8px"></div>
+    <button class="btn btn-primary" style="width:100%;margin-bottom:12px"
+            onclick="doOcr('id')" {{ 'disabled' if not ocr_ok }}>🔎 识别</button>
+    <div id="id-result" class="ocr-result-box hidden"></div>
+    <form id="id-apply-form" style="display:none" onsubmit="applyOcr(event,'id_card')">
+      <input type="hidden" name="mode" value="id_card">
+      <div id="id-fields"></div>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#64748b;margin:6px 0">
+        <input type="checkbox" name="overwrite" value="1"> 覆盖已有数据
+      </label>
+      <button class="btn btn-primary btn-sm" style="width:100%">✅ 确认写入档案</button>
+    </form>
+  </div>
+
+  <!-- ── 学历证书 ── -->
+  <div class="card" id="card-degree">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <span style="font-size:20px">🎓</span>
+      <div class="section-title" style="margin:0">学历/学位证书</div>
+      <span class="badge badge-gray" style="margin-left:auto">自动填：学历/专业/院校/毕业年月</span>
+    </div>
+    <input type="file" id="degree-file" accept="image/*" class="form-control" style="margin-bottom:8px"
+           onchange="previewImg(this,'degree-preview')">
+    <div id="degree-preview" style="margin-bottom:8px"></div>
+    <button class="btn btn-primary" style="width:100%;margin-bottom:12px"
+            onclick="doOcr('degree')" {{ 'disabled' if not ocr_ok }}>🔎 识别</button>
+    <div id="degree-result" class="ocr-result-box hidden"></div>
+    <form id="degree-apply-form" style="display:none" onsubmit="applyOcr(event,'degree')">
+      <input type="hidden" name="mode" value="degree">
+      <div id="degree-fields"></div>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#64748b;margin:6px 0">
+        <input type="checkbox" name="overwrite" value="1"> 覆盖已有数据
+      </label>
+      <button class="btn btn-primary btn-sm" style="width:100%">✅ 确认写入档案</button>
+    </form>
+  </div>
+
+  <!-- ── 职称证书 ── -->
+  <div class="card" id="card-title">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <span style="font-size:20px">📜</span>
+      <div class="section-title" style="margin:0">职称证书</div>
+      <span class="badge badge-gray" style="margin-left:auto">自动填：职称等级/专业/证书号/取得年月</span>
+    </div>
+    <input type="file" id="title-file" accept="image/*" class="form-control" style="margin-bottom:8px"
+           onchange="previewImg(this,'title-preview')">
+    <div id="title-preview" style="margin-bottom:8px"></div>
+    <button class="btn btn-primary" style="width:100%;margin-bottom:12px"
+            onclick="doOcr('title')" {{ 'disabled' if not ocr_ok }}>🔎 识别</button>
+    <div id="title-result" class="ocr-result-box hidden"></div>
+    <form id="title-apply-form" style="display:none" onsubmit="applyOcr(event,'title')">
+      <input type="hidden" name="mode" value="title">
+      <div id="title-fields"></div>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:#64748b;margin:6px 0">
+        <input type="checkbox" name="overwrite" value="1"> 覆盖已有数据
+      </label>
+      <button class="btn btn-primary btn-sm" style="width:100%">✅ 确认写入档案</button>
+    </form>
+  </div>
+
+  <!-- ── 执业资格证 ── -->
+  <div class="card" id="card-pro">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <span style="font-size:20px">🏗️</span>
+      <div class="section-title" style="margin:0">执业资格证书</div>
+      <span class="badge badge-gray" style="margin-left:auto">新增一条执业资格记录</span>
+    </div>
+    <input type="file" id="pro-file" accept="image/*" class="form-control" style="margin-bottom:8px"
+           onchange="previewImg(this,'pro-preview')">
+    <div id="pro-preview" style="margin-bottom:8px"></div>
+    <button class="btn btn-primary" style="width:100%;margin-bottom:12px"
+            onclick="doOcr('pro')" {{ 'disabled' if not ocr_ok }}>🔎 识别</button>
+    <div id="pro-result" class="ocr-result-box hidden"></div>
+    <form id="pro-apply-form" style="display:none" onsubmit="applyOcr(event,'pro_cert')">
+      <input type="hidden" name="mode" value="pro_cert">
+      <div id="pro-fields"></div>
+      <button class="btn btn-primary btn-sm" style="width:100%">✅ 新增执业资格记录</button>
+    </form>
+  </div>
+
+  <!-- ── 社保记录 ── -->
+  <div class="card" id="card-ins">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <span style="font-size:20px">🛡️</span>
+      <div class="section-title" style="margin:0">社保缴纳记录截图</div>
+      <span class="badge badge-gray" style="margin-left:auto">解析参保时间段</span>
+    </div>
+    <input type="file" id="ins-file" accept="image/*" class="form-control" style="margin-bottom:8px"
+           onchange="previewImg(this,'ins-preview')">
+    <div id="ins-preview" style="margin-bottom:8px"></div>
+    <button class="btn btn-primary" style="width:100%;margin-bottom:12px"
+            onclick="doOcr('ins')" {{ 'disabled' if not ocr_ok }}>🔎 识别</button>
+    <div id="ins-result" class="ocr-result-box hidden"></div>
+    <div id="ins-segments"></div>
+  </div>
+
+</div>
+
+<!-- 成功提示 -->
+<div id="toast" style="
+  position:fixed;bottom:24px;right:24px;
+  background:#16a34a;color:#fff;
+  padding:12px 20px;border-radius:8px;
+  font-weight:600;font-size:14px;
+  box-shadow:0 4px 12px rgba(0,0,0,.15);
+  display:none;z-index:9999">
+</div>
+
+<style>
+.ocr-result-box {
+  background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;
+  padding:10px;font-size:12px;color:#334155;margin-bottom:10px;
+  max-height:160px;overflow-y:auto;
+}
+.ocr-field-row {
+  display:flex;gap:8px;align-items:center;margin-bottom:6px;
+}
+.ocr-field-row label {
+  width:110px;font-size:12px;color:#64748b;flex-shrink:0;text-align:right;
+}
+.ocr-field-row input {
+  flex:1;padding:4px 8px;border:1px solid #cbd5e1;border-radius:4px;
+  font-size:13px;background:#fff;
+}
+.ins-seg-card {
+  background:#f0fdf4;border:1px solid #86efac;border-radius:6px;
+  padding:10px;margin-bottom:8px;font-size:13px;
+}
+</style>
+
+{% endblock %}
+{% block scripts %}
+<script>
+const AID = {{ aid }};
+let idSide = "FRONT";
+
+function selectSide(card, side) {
+  idSide = side;
+  document.getElementById("id-front-btn").className = "btn btn-sm " + (side==="FRONT"?"btn-primary":"btn-outline");
+  document.getElementById("id-back-btn").className  = "btn btn-sm " + (side==="BACK" ?"btn-primary":"btn-outline");
+}
+
+function previewImg(inp, previewId) {
+  const f = inp.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById(previewId).innerHTML =
+      `<img src="${e.target.result}" style="max-width:100%;max-height:180px;border-radius:6px;display:block">`;
+  };
+  reader.readAsDataURL(f);
+}
+
+const OCR_URLS = {
+  id:     "/ocr/id-card",
+  degree: "/ocr/degree",
+  title:  "/ocr/title",
+  pro:    "/ocr/pro-cert",
+  ins:    "/ocr/social-insurance",
+};
+
+const FIELD_LABELS = {
+  name:           "姓名",
+  gender:         "性别",
+  birth_date:     "出生日期",
+  id_card:        "身份证号",
+  address:        "住址",
+  ethnicity:      "民族",
+  education:      "学历",
+  major:          "专业",
+  school:         "毕业院校",
+  graduation_year:"毕业年份",
+  grad_month:     "毕业年月",
+  degree:         "学位",
+  study_mode:     "学习形式",
+  title_level:    "职称等级",
+  title_year:     "取证年份",
+  title_month:    "取证年月",
+  title_specialty:"职称专业",
+  title_cert_no:  "证书编号",
+  title_issuer:   "发证机关",
+  cert_type:      "证书类型",
+  cert_no:        "证书编号",
+  reg_no:         "注册号",
+  specialty:      "专业",
+  valid_until:    "有效期至",
+};
+
+function doOcr(card) {
+  const fileEl = document.getElementById(card + "-file");
+  const f = fileEl.files[0];
+  if (!f) { alert("请先选择图片"); return; }
+  const resultEl = document.getElementById(card + "-result");
+  resultEl.className = "ocr-result-box";
+  resultEl.innerHTML = '<div style="color:#64748b">⏳ 识别中，请稍候…</div>';
+
+  const fd = new FormData();
+  fd.append("file", f);
+  if (card === "id") fd.append("side", idSide);
+
+  fetch(OCR_URLS[card], {method:"POST", body:fd})
+    .then(r => r.json())
+    .then(d => {
+      if (!d.success) {
+        resultEl.innerHTML = `<span style="color:#dc2626">❌ ${d.error}</span>`;
+        return;
+      }
+      if (card === "ins") {
+        showInsResult(d);
+        return;
+      }
+      showFields(card, d.fields || {});
+    })
+    .catch(e => {
+      resultEl.innerHTML = `<span style="color:#dc2626">❌ 请求失败：${e}</span>`;
+    });
+}
+
+function showFields(card, fields) {
+  const resultEl  = document.getElementById(card + "-result");
+  const fieldsEl  = document.getElementById(card + "-fields");
+  const formEl    = document.getElementById(card + "-apply-form");
+
+  const keys = Object.keys(fields).filter(k => fields[k]);
+  if (!keys.length) {
+    resultEl.innerHTML = '<span style="color:#d97706">⚠ 未识别到有效字段，请检查图片质量</span>';
+    formEl.style.display = "none";
+    return;
+  }
+
+  // 识别结果摘要
+  resultEl.innerHTML = keys.map(k =>
+    `<div><span style="color:#64748b">${FIELD_LABELS[k]||k}：</span><strong>${fields[k]}</strong></div>`
+  ).join("");
+
+  // 可编辑字段表单
+  fieldsEl.innerHTML = keys.map(k => `
+    <div class="ocr-field-row">
+      <label>${FIELD_LABELS[k]||k}</label>
+      <input type="text" name="${k}" value="${fields[k]}">
+    </div>
+  `).join("");
+  formEl.style.display = "block";
+}
+
+function applyOcr(e, mode) {
+  e.preventDefault();
+  const card = {id_card:"id", degree:"degree", title:"title", pro_cert:"pro"}[mode];
+  const form = document.getElementById(card + "-apply-form");
+  const fd = new FormData(form);
+  fetch(`/applicants/${AID}/ocr-apply`, {method:"POST", body:fd})
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) {
+        showToast(d.msg || "已写入档案");
+        form.style.display = "none";
+      } else {
+        alert("写入失败：" + d.error);
+      }
+    });
+}
+
+function showInsResult(d) {
+  const resultEl = document.getElementById("ins-result");
+  const segEl    = document.getElementById("ins-segments");
+
+  if (d.raw) {
+    resultEl.innerHTML = `<pre style="white-space:pre-wrap;font-size:11px">${d.raw.slice(0,400)}</pre>`;
+  }
+
+  const segs = d.segments || [];
+  if (!segs.length) {
+    segEl.innerHTML = '<div style="color:#d97706;font-size:13px">⚠ 未自动识别到参保时段，请手动在"社保记录"Tab中录入。</div>';
+    return;
+  }
+
+  segEl.innerHTML = segs.map((s, i) => `
+    <div class="ins-seg-card">
+      <div style="font-weight:600;margin-bottom:6px">识别到参保段 ${i+1}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div><span style="color:#64748b">开始：</span>
+          <input type="text" value="${s.insure_start}" id="ins-start-${i}" style="border:1px solid #86efac;border-radius:4px;padding:2px 6px;font-size:12px;width:90px">
+        </div>
+        <div><span style="color:#64748b">结束：</span>
+          <input type="text" value="${s.insure_end}" id="ins-end-${i}" style="border:1px solid #86efac;border-radius:4px;padding:2px 6px;font-size:12px;width:90px">
+        </div>
+      </div>
+      <button class="btn btn-sm btn-primary" style="margin-top:8px"
+              onclick="saveInsSeg(${i})">✅ 保存此段社保记录</button>
+    </div>
+  `).join("");
+}
+
+function saveInsSeg(i) {
+  const start  = document.getElementById(`ins-start-${i}`).value;
+  const end    = document.getElementById(`ins-end-${i}`).value;
+  const fd = new FormData();
+  fd.append("mode", "social_insurance");
+  fd.append("insure_start", start);
+  fd.append("insure_end", end);
+  // social_insurance segment saved via insurance_create endpoint
+  fetch(`/applicants/${AID}/insurances/new`, {method:"POST", body:fd})
+    .then(r => {
+      if (r.redirected || r.ok) showToast("社保记录已保存");
+    });
+}
+
+function showToast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = "✅ " + msg;
+  el.style.display = "block";
+  setTimeout(() => el.style.display = "none", 2500);
+}
+</script>
+{% endblock %}

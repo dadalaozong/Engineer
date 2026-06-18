@@ -58,6 +58,63 @@ def ocr_degree():
         try: os.unlink(tmp_path)
         except: pass
 
+@bp.route("/title", methods=["POST"])
+def ocr_title():
+    """职称证书识别。"""
+    if "file" not in request.files:
+        return jsonify({"success": False, "error": "未上传文件"})
+    sid, skey = _creds()
+    if not sid or not skey:
+        return jsonify({"success": False, "error": "腾讯云OCR未配置"})
+    tmp_path = _save_upload(request.files["file"])
+    try:
+        from core.ocr_reader import recognize_title_cert
+        fields = recognize_title_cert(tmp_path, sid, skey)
+        return jsonify({"success": True, "fields": fields})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+    finally:
+        try: os.unlink(tmp_path)
+        except: pass
+
+@bp.route("/pro-cert", methods=["POST"])
+def ocr_pro_cert():
+    """执业资格证书识别。"""
+    if "file" not in request.files:
+        return jsonify({"success": False, "error": "未上传文件"})
+    sid, skey = _creds()
+    if not sid or not skey:
+        return jsonify({"success": False, "error": "腾讯云OCR未配置"})
+    tmp_path = _save_upload(request.files["file"])
+    try:
+        from core.ocr_reader import recognize_pro_cert
+        fields = recognize_pro_cert(tmp_path, sid, skey)
+        return jsonify({"success": True, "fields": fields})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+    finally:
+        try: os.unlink(tmp_path)
+        except: pass
+
+@bp.route("/social-insurance", methods=["POST"])
+def ocr_social_insurance():
+    """社保记录截图识别。"""
+    if "file" not in request.files:
+        return jsonify({"success": False, "error": "未上传文件"})
+    sid, skey = _creds()
+    if not sid or not skey:
+        return jsonify({"success": False, "error": "腾讯云OCR未配置"})
+    tmp_path = _save_upload(request.files["file"])
+    try:
+        from core.ocr_reader import recognize_social_insurance
+        result = recognize_social_insurance(tmp_path, sid, skey)
+        return jsonify({"success": True, **result})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+    finally:
+        try: os.unlink(tmp_path)
+        except: pass
+
 @bp.route("/recognize", methods=["POST"])
 def recognize():
     """通用识别（原有接口兼容）。"""
