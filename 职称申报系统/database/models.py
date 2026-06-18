@@ -9,6 +9,8 @@ _APPLICANT_COLS = (
     "current_position","current_specialty",
     "title_level","title_year","title_month","title_specialty","title_cert_no","title_issuer",
     "politics","address","photo_path","folder_path","notes",
+    # Tab3-1·职称证书
+    "title_manage_no","title_scope","title_expire",
     # Tab2·学历情况
     "edu_cert_no","degree_cert_no","degree_school",
     # 广西职称网基本信息Tab字段

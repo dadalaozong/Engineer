@@ -234,6 +234,10 @@ def _migrate(conn):
         ("applicants",   "title_issuer",    "TEXT"),
         ("applicants",   "photo_path",          "TEXT"),
         ("applicants",   "folder_path",         "TEXT"),
+        # Tab3-1·职称证书新增字段
+        ("applicants",   "title_manage_no",     "TEXT"),
+        ("applicants",   "title_scope",         "TEXT"),
+        ("applicants",   "title_expire",        "TEXT"),
         # Tab2·学历情况新增字段
         ("applicants",   "edu_cert_no",         "TEXT"),
         ("applicants",   "degree_cert_no",       "TEXT"),

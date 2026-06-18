@@ -257,42 +257,56 @@
       </div>
     </div>
 
-    <div class="section-title" style="margin-top:16px">职称信息</div>
+    <div class="section-title" style="margin-top:16px">3-1. 现任专业技术资格（对应网站Tab3-1）</div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">现职称等级</label>
+        <label class="form-label">现任专业技术职务（职称级别）</label>
         <select class="form-control" name="title_level">
-          {% for lvl in ['','助理工程师','工程师','高级工程师','正高级工程师'] %}
+          {% for lvl in ['','技术员','助理工程师','工程师','高级工程师','正高级工程师'] %}
           <option value="{{ lvl }}" {{ 'selected' if v.get('title_level') == lvl }}>{{ lvl or '请选择' }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">取得年月
+        <label class="form-label">资格取得时间
           <span style="font-size:11px;color:#64748b;font-weight:400">（资历从次月起算）</span>
         </label>
         <input class="form-control" name="title_month" type="month"
-               value="{{ v.get('title_month','') }}"
-               placeholder="如：2018-06">
+               value="{{ v.get('title_month','') }}" placeholder="如：2014-12">
       </div>
       <div class="form-group">
         <label class="form-label">仅填年份（旧数据兼容）</label>
         <input class="form-control" name="title_year" value="{{ v.get('title_year','') }}"
-               placeholder="如：2018（优先用年月）">
+               placeholder="如：2014（优先用年月）">
       </div>
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">职称专业</label>
-        <input class="form-control" name="title_specialty" value="{{ v.get('title_specialty','') }}">
+        <label class="form-label">专业</label>
+        <input class="form-control" name="title_specialty" value="{{ v.get('title_specialty','') }}" placeholder="土木工程">
       </div>
       <div class="form-group">
-        <label class="form-label">职称证书编号</label>
-        <input class="form-control" name="title_cert_no" value="{{ v.get('title_cert_no','') }}">
+        <label class="form-label">证书编号</label>
+        <input class="form-control" name="title_cert_no" value="{{ v.get('title_cert_no','') }}" placeholder="1312087">
       </div>
       <div class="form-group">
-        <label class="form-label">发证机关</label>
-        <input class="form-control" name="title_issuer" value="{{ v.get('title_issuer','') }}">
+        <label class="form-label">管理号</label>
+        <input class="form-control" name="title_manage_no" value="{{ v.get('title_manage_no','') }}" placeholder="如无可留空">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label class="form-label">批准机关</label>
+        <input class="form-control" name="title_issuer" value="{{ v.get('title_issuer','') }}"
+               placeholder="广西壮族自治区人力资源和社会保障厅">
+      </div>
+      <div class="form-group">
+        <label class="form-label">证书适用范围</label>
+        <input class="form-control" name="title_scope" value="{{ v.get('title_scope','') }}" placeholder="如无可留空">
+      </div>
+      <div class="form-group">
+        <label class="form-label">获取时间（有效期）</label>
+        <input class="form-control" name="title_expire" type="month" value="{{ v.get('title_expire','') }}" placeholder="如：2025-07">
       </div>
     </div>
 
