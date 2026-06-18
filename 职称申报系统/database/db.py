@@ -232,8 +232,30 @@ def _migrate(conn):
         ("applicants",   "title_specialty", "TEXT"),
         ("applicants",   "title_cert_no",   "TEXT"),
         ("applicants",   "title_issuer",    "TEXT"),
-        ("applicants",   "photo_path",      "TEXT"),
-        ("applicants",   "folder_path",     "TEXT"),
+        ("applicants",   "photo_path",          "TEXT"),
+        ("applicants",   "folder_path",         "TEXT"),
+        # 基本信息 Tab 新增字段（对应广西职称网实际字段）
+        ("applicants",   "former_name",         "TEXT"),
+        ("applicants",   "native_place",        "TEXT"),
+        ("applicants",   "work_start_date",     "TEXT"),
+        ("applicants",   "identity_type",       "TEXT"),
+        ("applicants",   "is_first_apply",      "TEXT"),
+        ("applicants",   "apply_count",         "INTEGER DEFAULT 0"),
+        ("applicants",   "last_apply_date",     "TEXT"),
+        ("applicants",   "rural_revitalization","TEXT"),
+        ("applicants",   "is_skilled_talent",   "TEXT"),
+        ("applicants",   "skill_work_years",    "TEXT"),
+        ("applicants",   "unit_level",          "TEXT"),
+        ("applicants",   "admin_position",      "TEXT"),
+        ("applicants",   "admin_position_date", "TEXT"),
+        ("applicants",   "admin_position_note", "TEXT"),
+        ("applicants",   "archive_org",         "TEXT"),
+        # 申报项目新增字段
+        ("projects",     "title_series",        "TEXT"),
+        ("projects",     "apply_title",         "TEXT"),
+        ("projects",     "discipline",          "TEXT"),
+        ("projects",     "apply_method",        "TEXT"),
+        ("projects",     "batch_year",          "TEXT"),
     ]
     for table, col, col_type in migrations:
         try:

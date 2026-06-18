@@ -21,7 +21,13 @@ _A_COLS = [
     "work_unit","work_unit_type","work_start_year","work_unit_addr","work_unit_phone",
     "current_position","current_specialty",
     "title_level","title_year","title_month","title_specialty","title_cert_no","title_issuer",
-    "politics","address","photo_path","folder_path","notes"
+    "politics","address","photo_path","folder_path","notes",
+    # 广西职称网基本信息Tab新增字段
+    "former_name","native_place","work_start_date","identity_type",
+    "is_first_apply","apply_count","last_apply_date",
+    "rural_revitalization","is_skilled_talent","skill_work_years",
+    "unit_level","admin_position","admin_position_date","admin_position_note",
+    "archive_org",
 ]
 
 def _form(cols):

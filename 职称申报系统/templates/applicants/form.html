@@ -17,6 +17,10 @@
         <input class="form-control" name="name" value="{{ v.get('name','') }}" required>
       </div>
       <div class="form-group">
+        <label class="form-label">曾用名</label>
+        <input class="form-control" name="former_name" value="{{ v.get('former_name','') }}" placeholder="无则留空">
+      </div>
+      <div class="form-group">
         <label class="form-label">身份证号</label>
         <input class="form-control" name="id_card" value="{{ v.get('id_card','') }}">
       </div>
@@ -32,15 +36,37 @@
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">出生日期</label>
+        <label class="form-label">出生年月</label>
         <input class="form-control" name="birth_date" type="date" value="{{ v.get('birth_date','') }}">
       </div>
       <div class="form-group">
         <label class="form-label">民族</label>
-        <input class="form-control" name="ethnicity" value="{{ v.get('ethnicity','') }}" placeholder="汉族">
+        <input class="form-control" name="ethnicity" value="{{ v.get('ethnicity','') }}" placeholder="壮族">
+      </div>
+      <div class="form-group">
+        <label class="form-label">籍贯</label>
+        <input class="form-control" name="native_place" value="{{ v.get('native_place','') }}" placeholder="广西田东">
       </div>
     </div>
     <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">政治面貌</label>
+        <select class="form-control" name="politics">
+          <option value="">请选择</option>
+          {% for p in ['中共党员','中共预备党员','共青团员','民主党派成员','群众'] %}
+          <option value="{{ p }}" {{ 'selected' if v.get('politics') == p }}>{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">个人身份性质</label>
+        <select class="form-control" name="identity_type">
+          <option value="">请选择</option>
+          {% for t in ['非公单位人员','公单位人员','个体经营者','其他'] %}
+          <option value="{{ t }}" {{ 'selected' if v.get('identity_type') == t }}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
       <div class="form-group">
         <label class="form-label">电话</label>
         <input class="form-control" name="phone" value="{{ v.get('phone','') }}">
@@ -51,18 +77,79 @@
       </div>
     </div>
     <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label class="form-label">联系地址</label>
+        <input class="form-control" name="address" value="{{ v.get('address','') }}">
+      </div>
       <div class="form-group">
-        <label class="form-label">政治面貌</label>
-        <select class="form-control" name="politics">
+        <label class="form-label">档案所在地机构名称</label>
+        <input class="form-control" name="archive_org" value="{{ v.get('archive_org','') }}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">参加工作时间</label>
+        <input class="form-control" name="work_start_date" type="month" value="{{ v.get('work_start_date','') }}" placeholder="如：2003-07">
+      </div>
+      <div class="form-group">
+        <label class="form-label">是否第一次申报</label>
+        <select class="form-control" name="is_first_apply">
           <option value="">请选择</option>
-          {% for p in ['中共党员','中共预备党员','共青团员','民主党派','群众'] %}
-          <option value="{{ p }}" {{ 'selected' if v.get('politics') == p }}>{{ p }}</option>
+          {% for opt in ['是','否'] %}
+          <option value="{{ opt }}" {{ 'selected' if v.get('is_first_apply') == opt }}>{{ opt }}</option>
           {% endfor %}
         </select>
       </div>
-      <div class="form-group" style="flex:2">
-        <label class="form-label">家庭住址</label>
-        <input class="form-control" name="address" value="{{ v.get('address','') }}">
+      <div class="form-group">
+        <label class="form-label">曾申报次数</label>
+        <input class="form-control" name="apply_count" type="number" min="0" value="{{ v.get('apply_count','0') }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">上一次申报时间</label>
+        <input class="form-control" name="last_apply_date" type="month" value="{{ v.get('last_apply_date','') }}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">单位级别</label>
+        <select class="form-control" name="unit_level">
+          <option value="">请选择</option>
+          {% for t in ['市属','省属','国家级','区直','县属','其他'] %}
+          <option value="{{ t }}" {{ 'selected' if v.get('unit_level') == t }}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">行政职务</label>
+        <input class="form-control" name="admin_position" value="{{ v.get('admin_position','') }}" placeholder="如：副总经理">
+      </div>
+      <div class="form-group">
+        <label class="form-label">行政职务任命时间</label>
+        <input class="form-control" name="admin_position_date" type="month" value="{{ v.get('admin_position_date','') }}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">参加乡村振兴定向评价</label>
+        <select class="form-control" name="rural_revitalization">
+          <option value="">请选择</option>
+          {% for opt in ['是','否'] %}
+          <option value="{{ opt }}" {{ 'selected' if v.get('rural_revitalization') == opt }}>{{ opt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">是否高技能人才</label>
+        <select class="form-control" name="is_skilled_talent">
+          <option value="">请选择</option>
+          {% for opt in ['是','否'] %}
+          <option value="{{ opt }}" {{ 'selected' if v.get('is_skilled_talent') == opt }}>{{ opt }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">从事技术技能工作年限</label>
+        <input class="form-control" name="skill_work_years" value="{{ v.get('skill_work_years','') }}" placeholder="如无可留空">
       </div>
     </div>
 
