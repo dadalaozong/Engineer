@@ -234,6 +234,10 @@ def _migrate(conn):
         ("applicants",   "title_issuer",    "TEXT"),
         ("applicants",   "photo_path",          "TEXT"),
         ("applicants",   "folder_path",         "TEXT"),
+        # Tab2·学历情况新增字段
+        ("applicants",   "edu_cert_no",         "TEXT"),
+        ("applicants",   "degree_cert_no",       "TEXT"),
+        ("applicants",   "degree_school",        "TEXT"),
         # 基本信息 Tab 新增字段（对应广西职称网实际字段）
         ("applicants",   "former_name",         "TEXT"),
         ("applicants",   "native_place",        "TEXT"),

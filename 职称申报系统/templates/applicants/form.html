@@ -194,29 +194,48 @@
       </div>
     </div>
 
-    <div class="section-title" style="margin-top:16px">学历信息</div>
+    <div class="section-title" style="margin-top:16px">2. 学历情况（对应网站Tab2）</div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">学历</label>
         <select class="form-control" name="education">
-          {% for edu in ['','大专','本科','硕士','博士'] %}
+          {% for edu in ['','大专','本科','硕士研究生','博士研究生'] %}
           <option value="{{ edu }}" {{ 'selected' if v.get('education') == edu }}>{{ edu or '请选择' }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="form-group">
+        <label class="form-label">学习形式</label>
+        <select class="form-control" name="study_mode">
+          <option value="">请选择</option>
+          {% for m in ['全日制','在职','函授','自考'] %}
+          <option value="{{ m }}" {{ 'selected' if v.get('study_mode') == m }}>{{ m }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">毕业年月</label>
+        <input class="form-control" name="grad_month" type="month" value="{{ v.get('grad_month','') }}" placeholder="2003-07">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label class="form-label">毕业院校</label>
+        <input class="form-control" name="school" value="{{ v.get('school','') }}" placeholder="成都理工大学">
+      </div>
+      <div class="form-group" style="flex:2">
         <label class="form-label">专业</label>
-        <input class="form-control" name="major" value="{{ v.get('major','') }}">
+        <input class="form-control" name="major" value="{{ v.get('major','') }}" placeholder="土木工程">
       </div>
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">毕业院校</label>
-        <input class="form-control" name="school" value="{{ v.get('school','') }}">
+        <label class="form-label">学历证书编号</label>
+        <input class="form-control" name="edu_cert_no" value="{{ v.get('edu_cert_no','') }}" placeholder="OCR识别后填写">
       </div>
       <div class="form-group">
-        <label class="form-label">毕业年份</label>
-        <input class="form-control" name="graduation_year" value="{{ v.get('graduation_year','') }}" placeholder="2015">
+        <label class="form-label">毕业年份（旧数据兼容）</label>
+        <input class="form-control" name="graduation_year" value="{{ v.get('graduation_year','') }}" placeholder="2003">
       </div>
     </div>
     <div class="form-row">
@@ -229,17 +248,12 @@
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">毕业年月</label>
-        <input class="form-control" name="grad_month" type="month" value="{{ v.get('grad_month','') }}">
+        <label class="form-label">学位证书编号</label>
+        <input class="form-control" name="degree_cert_no" value="{{ v.get('degree_cert_no','') }}" placeholder="OCR识别后填写">
       </div>
-      <div class="form-group">
-        <label class="form-label">学习形式</label>
-        <select class="form-control" name="study_mode">
-          <option value="">请选择</option>
-          {% for m in ['全日制','在职','函授'] %}
-          <option value="{{ m }}" {{ 'selected' if v.get('study_mode') == m }}>{{ m }}</option>
-          {% endfor %}
-        </select>
+      <div class="form-group" style="flex:2">
+        <label class="form-label">学位授予单位（与毕业院校不同时填写）</label>
+        <input class="form-control" name="degree_school" value="{{ v.get('degree_school','') }}" placeholder="默认同毕业院校">
       </div>
     </div>
 

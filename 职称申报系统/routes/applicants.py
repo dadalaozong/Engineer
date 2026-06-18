@@ -22,6 +22,8 @@ _A_COLS = [
     "current_position","current_specialty",
     "title_level","title_year","title_month","title_specialty","title_cert_no","title_issuer",
     "politics","address","photo_path","folder_path","notes",
+    # Tab2·学历情况
+    "edu_cert_no","degree_cert_no","degree_school",
     # 广西职称网基本信息Tab新增字段
     "former_name","native_place","work_start_date","identity_type",
     "is_first_apply","apply_count","last_apply_date",
