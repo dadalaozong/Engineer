@@ -322,13 +322,23 @@ _TAB_MATERIALS = [
     },
     {
         "tab": "4",
-        "tab_name": "外语和计算机",
+        "tab_name": "职称外语和职称计算机",
         "folder": "04_外语和计算机",
         "items": [
-            {"name": "外语水平证书（如有）",      "fill": "file", "required_for": [],
-             "note": "英语等级证书、雅思/托福等，评委会要求时提供"},
-            {"name": "计算机水平证书（如有）",    "fill": "file", "required_for": [],
-             "note": "全国计算机等级证书等，评委会要求时提供"},
+            # ── 系统自动填写（由评委会政策决定，多数人均为"不作要求"）──
+            {"name": "职称外语计算机要求",              "fill": "auto", "required_for": [],
+             "note": "由评委会政策决定，默认【不作要求】"},
+            {"name": "外语考试合格情况",                "fill": "auto", "required_for": [],
+             "note": "默认【不作要求】"},
+            {"name": "计算机考试合格情况",              "fill": "auto", "required_for": [],
+             "note": "默认【不作要求】"},
+            {"name": "职称外语和计算机成绩核查结果",    "fill": "auto", "required_for": [],
+             "note": "默认【不作要求】"},
+            {"name": "参加外省职称外语、计算机考试的情况说明及查询路径", "fill": "auto", "required_for": [],
+             "note": "默认【不作要求】，如有外省考试经历填写说明"},
+            # ── 可选扫描件 ──
+            {"name": "职称外语和职称计算机免试证明材料", "fill": "file", "required_for": [],
+             "note": "有免试资格的才需提供，放入04_外语和计算机目录；无则不需要"},
         ],
     },
     {
@@ -643,13 +653,15 @@ def fill_preview_page(pid):
             {"label": "证书适用范围",   "value": a.get("title_scope",""),    "status": "ok"},
             {"label": "获取时间（有效期）", "value": a.get("title_expire",""), "status": "ok"},
         ]},
-        {"section": "Tab3-2·破格/直接申报 + 职称外语计算机", "items": [
-            {"label": "是否申请破格",       "value": a.get("apply_exception","否"),
-             "status": "ok"},
-            {"label": "职称外语计算机要求", "value": a.get("lang_comp_require","不作要求"),
-             "status": "ok"},
-            {"label": "外语考试合格情况",   "value": a.get("lang_exam_result","不作要求"),
-             "status": "ok"},
+        {"section": "Tab3-2·破格/直接申报", "items": [
+            {"label": "是否申请破格", "value": a.get("apply_exception","否"), "status": "ok"},
+        ]},
+        {"section": "Tab4·职称外语和职称计算机", "items": [
+            {"label": "职称外语计算机要求",   "value": a.get("lang_comp_require","不作要求"),   "status": "ok"},
+            {"label": "外语考试合格情况",     "value": a.get("lang_exam_result","不作要求"),    "status": "ok"},
+            {"label": "计算机考试合格情况",   "value": a.get("comp_exam_result","不作要求"),    "status": "ok"},
+            {"label": "外语和计算机成绩核查结果", "value": a.get("lang_comp_check","不作要求"), "status": "ok"},
+            {"label": "参加外省考试情况说明", "value": a.get("lang_comp_other_prov","不作要求"),"status": "ok"},
         ]},
     ]
 

@@ -234,10 +234,14 @@ def _migrate(conn):
         ("applicants",   "title_issuer",    "TEXT"),
         ("applicants",   "photo_path",          "TEXT"),
         ("applicants",   "folder_path",         "TEXT"),
-        # Tab3-2·破格/直接申报 + 职称外语计算机
-        ("applicants",   "apply_exception",     "TEXT DEFAULT '否'"),
-        ("applicants",   "lang_comp_require",   "TEXT DEFAULT '不作要求'"),
-        ("applicants",   "lang_exam_result",    "TEXT DEFAULT '不作要求'"),
+        # Tab3-2·破格/直接申报
+        ("applicants",   "apply_exception",       "TEXT DEFAULT '否'"),
+        # Tab4·职称外语和职称计算机
+        ("applicants",   "lang_comp_require",     "TEXT DEFAULT '不作要求'"),
+        ("applicants",   "lang_exam_result",      "TEXT DEFAULT '不作要求'"),
+        ("applicants",   "comp_exam_result",      "TEXT DEFAULT '不作要求'"),
+        ("applicants",   "lang_comp_check",       "TEXT DEFAULT '不作要求'"),
+        ("applicants",   "lang_comp_other_prov",  "TEXT DEFAULT '不作要求'"),
         # Tab3-1·职称证书新增字段
         ("applicants",   "title_manage_no",     "TEXT"),
         ("applicants",   "title_scope",         "TEXT"),
