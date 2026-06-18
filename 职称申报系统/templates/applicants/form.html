@@ -50,6 +50,21 @@
         <input class="form-control" name="email" type="email" value="{{ v.get('email','') }}">
       </div>
     </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">政治面貌</label>
+        <select class="form-control" name="politics">
+          <option value="">请选择</option>
+          {% for p in ['中共党员','中共预备党员','共青团员','民主党派','群众'] %}
+          <option value="{{ p }}" {{ 'selected' if v.get('politics') == p }}>{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group" style="flex:2">
+        <label class="form-label">家庭住址</label>
+        <input class="form-control" name="address" value="{{ v.get('address','') }}">
+      </div>
+    </div>
 
     <div class="section-title" style="margin-top:16px">工作信息</div>
     <div class="form-row">
@@ -69,6 +84,26 @@
       <div class="form-group">
         <label class="form-label">参加工作年份</label>
         <input class="form-control" name="work_start_year" value="{{ v.get('work_start_year','') }}" placeholder="2010">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label class="form-label">单位地址</label>
+        <input class="form-control" name="work_unit_addr" value="{{ v.get('work_unit_addr','') }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">单位电话</label>
+        <input class="form-control" name="work_unit_phone" value="{{ v.get('work_unit_phone','') }}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">现任职务</label>
+        <input class="form-control" name="current_position" value="{{ v.get('current_position','') }}" placeholder="如：项目负责人">
+      </div>
+      <div class="form-group">
+        <label class="form-label">现从事专业</label>
+        <input class="form-control" name="current_specialty" value="{{ v.get('current_specialty','') }}">
       </div>
     </div>
 
@@ -97,6 +132,29 @@
         <input class="form-control" name="graduation_year" value="{{ v.get('graduation_year','') }}" placeholder="2015">
       </div>
     </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">学位</label>
+        <select class="form-control" name="degree">
+          {% for d in ['','无','学士','硕士','博士'] %}
+          <option value="{{ d }}" {{ 'selected' if v.get('degree') == d }}>{{ d or '请选择' }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">毕业年月</label>
+        <input class="form-control" name="grad_month" type="month" value="{{ v.get('grad_month','') }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">学习形式</label>
+        <select class="form-control" name="study_mode">
+          <option value="">请选择</option>
+          {% for m in ['全日制','在职','函授'] %}
+          <option value="{{ m }}" {{ 'selected' if v.get('study_mode') == m }}>{{ m }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
 
     <div class="section-title" style="margin-top:16px">职称信息</div>
     <div class="form-row">
@@ -120,6 +178,20 @@
         <label class="form-label">仅填年份（旧数据兼容）</label>
         <input class="form-control" name="title_year" value="{{ v.get('title_year','') }}"
                placeholder="如：2018（优先用年月）">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">职称专业</label>
+        <input class="form-control" name="title_specialty" value="{{ v.get('title_specialty','') }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">职称证书编号</label>
+        <input class="form-control" name="title_cert_no" value="{{ v.get('title_cert_no','') }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">发证机关</label>
+        <input class="form-control" name="title_issuer" value="{{ v.get('title_issuer','') }}">
       </div>
     </div>
 

@@ -5,15 +5,23 @@ from database.models import (
     list_awards, insert_award, update_award, delete_award,
     list_papers, insert_paper, update_paper, delete_paper,
     list_contact_logs, insert_contact_log, delete_contact_log,
+    list_work_experiences, insert_work_experience, update_work_experience, delete_work_experience,
+    list_social_insurance, insert_social_insurance, update_social_insurance, delete_social_insurance,
+    total_insure_months,
+    list_edu_trainings, insert_edu_training, update_edu_training, delete_edu_training,
+    edu_hours_by_year,
+    list_pro_certificates, insert_pro_certificate, update_pro_certificate, delete_pro_certificate,
 )
 
 bp = Blueprint("applicants", __name__, url_prefix="/applicants")
 
 _A_COLS = [
     "name","id_card","gender","birth_date","phone","email","ethnicity",
-    "education","major","school","graduation_year",
-    "work_unit","work_unit_type","work_start_year",
-    "title_level","title_year","title_month","notes"
+    "education","major","school","graduation_year","grad_month","study_mode","degree",
+    "work_unit","work_unit_type","work_start_year","work_unit_addr","work_unit_phone",
+    "current_position","current_specialty",
+    "title_level","title_year","title_month","title_specialty","title_cert_no","title_issuer",
+    "politics","address","photo_path","notes"
 ]
 
 def _form(cols):
@@ -76,10 +84,14 @@ def detail(aid):
     if not applicant:
         flash("申报人不存在", "danger")
         return redirect(url_for("applicants.list_page"))
-    achievements = list_achievements(aid)
-    awards       = list_awards(aid)
-    papers       = list_papers(aid)
-    logs         = list_contact_logs(aid)
+    achievements  = list_achievements(aid)
+    awards        = list_awards(aid)
+    papers        = list_papers(aid)
+    logs          = list_contact_logs(aid)
+    work_exps     = list_work_experiences(aid)
+    insurances    = list_social_insurance(aid)
+    edu_trainings = list_edu_trainings(aid)
+    pro_certs     = list_pro_certificates(aid)
     from datetime import date
     return render_template("applicants/detail.html",
                            applicant=applicant,
@@ -87,6 +99,12 @@ def detail(aid):
                            awards=awards,
                            papers=papers,
                            logs=logs,
+                           work_exps=work_exps,
+                           insurances=insurances,
+                           insure_total=total_insure_months(aid),
+                           edu_trainings=edu_trainings,
+                           edu_by_year=edu_hours_by_year(aid),
+                           pro_certs=pro_certs,
                            today=date.today().isoformat())
 
 # ── 工程业绩 CRUD ─────────────────────────────────────────────────
@@ -181,6 +199,98 @@ def log_delete(aid, lid):
     delete_contact_log(lid)
     flash("已删除", "success")
     return redirect(url_for("applicants.detail", aid=aid) + "#logs")
+
+# ── 工作经历 CRUD ─────────────────────────────────────────────────
+
+_WE_COLS = ["start_date","end_date","work_unit","position","witness"]
+
+@bp.route("/<int:aid>/work_exps/new", methods=["POST"])
+def work_exp_create(aid):
+    d = _form(_WE_COLS); d["applicant_id"] = aid
+    insert_work_experience(**d)
+    flash("工作经历已添加", "success")
+    return redirect(url_for("applicants.detail", aid=aid) + "#work_exps")
+
+@bp.route("/<int:aid>/work_exps/<int:wid>/edit", methods=["POST"])
+def work_exp_update(aid, wid):
+    update_work_experience(wid, **_form(_WE_COLS))
+    flash("已保存", "success")
+    return redirect(url_for("applicants.detail", aid=aid) + "#work_exps")
+
+@bp.route("/<int:aid>/work_exps/<int:wid>/delete", methods=["POST"])
+def work_exp_delete(aid, wid):
+    delete_work_experience(wid)
+    flash("已删除", "success")
+    return redirect(url_for("applicants.detail", aid=aid) + "#work_exps")
+
+# ── 社保记录 CRUD ─────────────────────────────────────────────────
+
+_INS_COLS = ["insure_location","insure_unit","insure_start","insure_end","insure_months"]
+
+@bp.route("/<int:aid>/insurances/new", methods=["POST"])
+def insurance_create(aid):
+    d = _form(_INS_COLS); d["applicant_id"] = aid
+    insert_social_insurance(**d)
+    flash("社保记录已添加", "success")
+    return redirect(url_for("applicants.detail", aid=aid) + "#insurances")
+
+@bp.route("/<int:aid>/insurances/<int:sid>/edit", methods=["POST"])
+def insurance_update(aid, sid):
+    update_social_insurance(sid, **_form(_INS_COLS))
+    flash("已保存", "success")
+    return redirect(url_for("applicants.detail", aid=aid) + "#insurances")
+
+@bp.route("/<int:aid>/insurances/<int:sid>/delete", methods=["POST"])
+def insurance_delete(aid, sid):
+    delete_social_insurance(sid)
+    flash("已删除", "success")
+    return redirect(url_for("applicants.detail", aid=aid) + "#insurances")
+
+# ── 继续教育 CRUD ─────────────────────────────────────────────────
+
+_EDU_COLS = ["year","hours","institution","course_name"]
+
+@bp.route("/<int:aid>/edu_trainings/new", methods=["POST"])
+def edu_training_create(aid):
+    d = _form(_EDU_COLS); d["applicant_id"] = aid
+    insert_edu_training(**d)
+    flash("继续教育记录已添加", "success")
+    return redirect(url_for("applicants.detail", aid=aid) + "#edu_trainings")
+
+@bp.route("/<int:aid>/edu_trainings/<int:eid>/edit", methods=["POST"])
+def edu_training_update(aid, eid):
+    update_edu_training(eid, **_form(_EDU_COLS))
+    flash("已保存", "success")
+    return redirect(url_for("applicants.detail", aid=aid) + "#edu_trainings")
+
+@bp.route("/<int:aid>/edu_trainings/<int:eid>/delete", methods=["POST"])
+def edu_training_delete(aid, eid):
+    delete_edu_training(eid)
+    flash("已删除", "success")
+    return redirect(url_for("applicants.detail", aid=aid) + "#edu_trainings")
+
+# ── 执业资格 CRUD ─────────────────────────────────────────────────
+
+_CERT_COLS = ["cert_type","cert_no","reg_no","specialty","valid_until"]
+
+@bp.route("/<int:aid>/pro_certs/new", methods=["POST"])
+def pro_cert_create(aid):
+    d = _form(_CERT_COLS); d["applicant_id"] = aid
+    insert_pro_certificate(**d)
+    flash("执业资格已添加", "success")
+    return redirect(url_for("applicants.detail", aid=aid) + "#pro_certs")
+
+@bp.route("/<int:aid>/pro_certs/<int:cid>/edit", methods=["POST"])
+def pro_cert_update(aid, cid):
+    update_pro_certificate(cid, **_form(_CERT_COLS))
+    flash("已保存", "success")
+    return redirect(url_for("applicants.detail", aid=aid) + "#pro_certs")
+
+@bp.route("/<int:aid>/pro_certs/<int:cid>/delete", methods=["POST"])
+def pro_cert_delete(aid, cid):
+    delete_pro_certificate(cid)
+    flash("已删除", "success")
+    return redirect(url_for("applicants.detail", aid=aid) + "#pro_certs")
 
 # ── Excel 导出 ─────────────────────────────────────────────────────
 

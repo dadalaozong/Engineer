@@ -4,9 +4,11 @@ from database.db import get_conn
 
 _APPLICANT_COLS = (
     "name","id_card","gender","birth_date","phone","email","ethnicity",
-    "education","major","school","graduation_year",
-    "work_unit","work_unit_type","work_start_year",
-    "title_level","title_year","title_month","notes"
+    "education","major","school","graduation_year","grad_month","study_mode","degree",
+    "work_unit","work_unit_type","work_start_year","work_unit_addr","work_unit_phone",
+    "current_position","current_specialty",
+    "title_level","title_year","title_month","title_specialty","title_cert_no","title_issuer",
+    "politics","address","photo_path","notes"
 )
 
 def list_applicants(q=""):
@@ -356,6 +358,183 @@ def upsert_fee(project_id, **kw):
             (project_id, kw.get("total",0), kw.get("deposit",0), kw.get("paid",0),
              kw.get("paid_date",""), kw.get("note",""))
         )
+    conn.commit(); conn.close()
+
+
+# ── Work Experiences ──────────────────────────────────────────────
+
+def list_work_experiences(applicant_id):
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT * FROM work_experiences WHERE applicant_id=? ORDER BY start_date ASC, id ASC",
+        (applicant_id,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def insert_work_experience(**kw) -> int:
+    conn = get_conn()
+    cur = conn.execute(
+        "INSERT INTO work_experiences (applicant_id,start_date,end_date,work_unit,position,witness) VALUES (?,?,?,?,?,?)",
+        (kw.get("applicant_id"), kw.get("start_date"), kw.get("end_date"),
+         kw.get("work_unit"), kw.get("position"), kw.get("witness"))
+    )
+    conn.commit(); conn.close()
+    return cur.lastrowid
+
+def update_work_experience(wid, **kw):
+    conn = get_conn()
+    conn.execute(
+        "UPDATE work_experiences SET start_date=?,end_date=?,work_unit=?,position=?,witness=? WHERE id=?",
+        (kw.get("start_date"), kw.get("end_date"), kw.get("work_unit"),
+         kw.get("position"), kw.get("witness"), wid)
+    )
+    conn.commit(); conn.close()
+
+def delete_work_experience(wid):
+    conn = get_conn()
+    conn.execute("DELETE FROM work_experiences WHERE id=?", (wid,))
+    conn.commit(); conn.close()
+
+
+# ── Social Insurance ───────────────────────────────────────────────
+
+def list_social_insurance(applicant_id):
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT * FROM social_insurance WHERE applicant_id=? ORDER BY insure_start ASC, id ASC",
+        (applicant_id,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def total_insure_months(applicant_id):
+    conn = get_conn()
+    val = conn.execute(
+        "SELECT COALESCE(SUM(insure_months),0) FROM social_insurance WHERE applicant_id=?",
+        (applicant_id,)
+    ).fetchone()[0]
+    conn.close()
+    return int(val)
+
+def _calc_months(start: str, end: str) -> int:
+    try:
+        sy, sm = int(start[:4]), int(start[5:7])
+        ey, em = int(end[:4]),   int(end[5:7])
+        return max(0, (ey - sy) * 12 + (em - sm))
+    except Exception:
+        return 0
+
+def insert_social_insurance(**kw) -> int:
+    months = kw.get("insure_months") or _calc_months(
+        kw.get("insure_start",""), kw.get("insure_end","")
+    )
+    conn = get_conn()
+    cur = conn.execute(
+        "INSERT INTO social_insurance (applicant_id,insure_location,insure_unit,insure_start,insure_end,insure_months) VALUES (?,?,?,?,?,?)",
+        (kw.get("applicant_id"), kw.get("insure_location"), kw.get("insure_unit"),
+         kw.get("insure_start"), kw.get("insure_end"), int(months) if months else None)
+    )
+    conn.commit(); conn.close()
+    return cur.lastrowid
+
+def update_social_insurance(sid, **kw):
+    months = kw.get("insure_months") or _calc_months(
+        kw.get("insure_start",""), kw.get("insure_end","")
+    )
+    conn = get_conn()
+    conn.execute(
+        "UPDATE social_insurance SET insure_location=?,insure_unit=?,insure_start=?,insure_end=?,insure_months=? WHERE id=?",
+        (kw.get("insure_location"), kw.get("insure_unit"),
+         kw.get("insure_start"), kw.get("insure_end"),
+         int(months) if months else None, sid)
+    )
+    conn.commit(); conn.close()
+
+def delete_social_insurance(sid):
+    conn = get_conn()
+    conn.execute("DELETE FROM social_insurance WHERE id=?", (sid,))
+    conn.commit(); conn.close()
+
+
+# ── Edu Trainings ─────────────────────────────────────────────────
+
+def list_edu_trainings(applicant_id):
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT * FROM edu_trainings WHERE applicant_id=? ORDER BY year DESC, id DESC",
+        (applicant_id,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def edu_hours_by_year(applicant_id):
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT year, SUM(hours) as total FROM edu_trainings WHERE applicant_id=? GROUP BY year ORDER BY year DESC",
+        (applicant_id,)
+    ).fetchall()
+    conn.close()
+    return {r["year"]: r["total"] for r in rows}
+
+def insert_edu_training(**kw) -> int:
+    conn = get_conn()
+    cur = conn.execute(
+        "INSERT INTO edu_trainings (applicant_id,year,hours,institution,course_name) VALUES (?,?,?,?,?)",
+        (kw.get("applicant_id"), kw.get("year") or None, kw.get("hours") or None,
+         kw.get("institution"), kw.get("course_name"))
+    )
+    conn.commit(); conn.close()
+    return cur.lastrowid
+
+def update_edu_training(eid, **kw):
+    conn = get_conn()
+    conn.execute(
+        "UPDATE edu_trainings SET year=?,hours=?,institution=?,course_name=? WHERE id=?",
+        (kw.get("year") or None, kw.get("hours") or None,
+         kw.get("institution"), kw.get("course_name"), eid)
+    )
+    conn.commit(); conn.close()
+
+def delete_edu_training(eid):
+    conn = get_conn()
+    conn.execute("DELETE FROM edu_trainings WHERE id=?", (eid,))
+    conn.commit(); conn.close()
+
+
+# ── Pro Certificates ──────────────────────────────────────────────
+
+def list_pro_certificates(applicant_id):
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT * FROM pro_certificates WHERE applicant_id=? ORDER BY id DESC",
+        (applicant_id,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def insert_pro_certificate(**kw) -> int:
+    conn = get_conn()
+    cur = conn.execute(
+        "INSERT INTO pro_certificates (applicant_id,cert_type,cert_no,reg_no,specialty,valid_until) VALUES (?,?,?,?,?,?)",
+        (kw.get("applicant_id"), kw.get("cert_type"), kw.get("cert_no"),
+         kw.get("reg_no"), kw.get("specialty"), kw.get("valid_until"))
+    )
+    conn.commit(); conn.close()
+    return cur.lastrowid
+
+def update_pro_certificate(cid, **kw):
+    conn = get_conn()
+    conn.execute(
+        "UPDATE pro_certificates SET cert_type=?,cert_no=?,reg_no=?,specialty=?,valid_until=? WHERE id=?",
+        (kw.get("cert_type"), kw.get("cert_no"), kw.get("reg_no"),
+         kw.get("specialty"), kw.get("valid_until"), cid)
+    )
+    conn.commit(); conn.close()
+
+def delete_pro_certificate(cid):
+    conn = get_conn()
+    conn.execute("DELETE FROM pro_certificates WHERE id=?", (cid,))
     conn.commit(); conn.close()
 
 

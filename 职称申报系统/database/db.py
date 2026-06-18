@@ -144,6 +144,53 @@ def init_db():
             operator        TEXT DEFAULT '管理员',
             created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
         );
+
+        -- 工作经历
+        CREATE TABLE IF NOT EXISTS work_experiences (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            applicant_id    INTEGER REFERENCES applicants(id) ON DELETE CASCADE,
+            start_date      TEXT,
+            end_date        TEXT,
+            work_unit       TEXT,
+            position        TEXT,
+            witness         TEXT,
+            created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        -- 社保记录
+        CREATE TABLE IF NOT EXISTS social_insurance (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            applicant_id    INTEGER REFERENCES applicants(id) ON DELETE CASCADE,
+            insure_location TEXT,
+            insure_unit     TEXT,
+            insure_start    TEXT,
+            insure_end      TEXT,
+            insure_months   INTEGER,
+            created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        -- 继续教育
+        CREATE TABLE IF NOT EXISTS edu_trainings (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            applicant_id    INTEGER REFERENCES applicants(id) ON DELETE CASCADE,
+            year            INTEGER,
+            hours           INTEGER,
+            institution     TEXT,
+            course_name     TEXT,
+            created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+
+        -- 执业资格证书
+        CREATE TABLE IF NOT EXISTS pro_certificates (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            applicant_id    INTEGER REFERENCES applicants(id) ON DELETE CASCADE,
+            cert_type       TEXT,
+            cert_no         TEXT,
+            reg_no          TEXT,
+            specialty       TEXT,
+            valid_until     TEXT,
+            created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
     """)
     # 对已存在的旧表做列迁移（ALTER TABLE ADD COLUMN IF NOT EXISTS 不支持，用 try/except）
     _migrate(conn)
@@ -173,6 +220,19 @@ def _migrate(conn):
         ("projects",     "progress_stage",  "INTEGER DEFAULT 0"),
         ("contact_logs", "follow_up_date",  "TEXT"),
         ("applicants",   "title_month",     "TEXT"),
+        ("applicants",   "politics",        "TEXT"),
+        ("applicants",   "address",         "TEXT"),
+        ("applicants",   "degree",          "TEXT"),
+        ("applicants",   "grad_month",      "TEXT"),
+        ("applicants",   "study_mode",      "TEXT"),
+        ("applicants",   "work_unit_addr",  "TEXT"),
+        ("applicants",   "work_unit_phone", "TEXT"),
+        ("applicants",   "current_position","TEXT"),
+        ("applicants",   "current_specialty","TEXT"),
+        ("applicants",   "title_specialty", "TEXT"),
+        ("applicants",   "title_cert_no",   "TEXT"),
+        ("applicants",   "title_issuer",    "TEXT"),
+        ("applicants",   "photo_path",      "TEXT"),
     ]
     for table, col, col_type in migrations:
         try:
