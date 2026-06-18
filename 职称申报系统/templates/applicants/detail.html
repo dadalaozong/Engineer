@@ -1311,7 +1311,7 @@
 })();
 
 // ── Tab switching ──────────────────────────────────────────────
-const tabs   = ["achievements","awards","papers","logs","work_exps","insurances","edu_trainings","pro_certs","academic_roles"];
+const tabs   = ["achievements","ach_results","awards","papers","logs","work_exps","insurances","edu_trainings","pro_certs","academic_roles"];
 const tabBtns = document.querySelectorAll(".tab-btn");
 
 function switchTab(name) {
@@ -1332,7 +1332,7 @@ const hash = location.hash.replace("#","") || "achievements";
 switchTab(tabs.includes(hash) ? hash : "achievements");
 
 // ── Achievement edit ───────────────────────────────────────────
-function openAchEdit(id,name,type,scale,role,start,end,loc,owner,contr,inv,area,desc,rep,criteria,workunit) {
+function openAchEdit(id,name,type,scale,role,start,end,loc,owner,contr,inv,area,desc,rep,criteria,workunit,rankInProject) {
   const f = document.getElementById("ach-edit-form");
   f.action = `/applicants/{{ aid }}/achievements/${id}/edit`;
   document.getElementById("ach-name").value  = name;
@@ -1348,8 +1348,9 @@ function openAchEdit(id,name,type,scale,role,start,end,loc,owner,contr,inv,area,
   document.getElementById("ach-area").value        = area;
   document.getElementById("ach-desc").value        = desc;
   document.getElementById("ach-rep").checked       = rep === 1;
-  document.getElementById("ach-criteria-item").value = criteria || "";
-  document.getElementById("ach-work-unit").value     = workunit || "";
+  document.getElementById("ach-criteria-item").value  = criteria || "";
+  document.getElementById("ach-work-unit").value      = workunit || "";
+  document.getElementById("ach-rank-in-project").value = rankInProject || "";
   openModal("ach-edit-modal");
 }
 
