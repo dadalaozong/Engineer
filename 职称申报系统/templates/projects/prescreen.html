@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}资格预审 — {{ applicant.name }}{% endblock %}
+{% block page_title %}申报资格预审{% endblock %}
+{% block content %}
+
+{% set pid = project.id %}
+{% set aid = applicant.id %}
+
+<!-- 顶部摘要卡 -->
+<div class="card" style="margin-bottom:16px">
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:18px;font-weight:700;color:#1e293b">{{ applicant.name }}</div>
+      <div style="font-size:13px;color:#64748b;margin-top:2px">
+        申报：{{ project.apply_level or '—' }} · {{ project.specialty or '—' }}
+        {% if project.batch_year %} · {{ project.batch_year }}年度{% endif %}
+      </div>
+    </div>
+
+    <div style="margin-left:auto;text-align:center">
+      {% if stat.all_passed %}
+      <div style="font-size:32px">✅</div>
+      <div style="font-weight:700;color:#16a34a;font-size:15px">预审通过</div>
+      {% else %}
+      <div style="font-size:32px">❌</div>
+      <div style="font-weight:700;color:#dc2626;font-size:15px">预审未通过</div>
+      {% endif %}
+      <div style="font-size:12px;color:#64748b;margin-top:2px">
+        必要项 {{ stat.must_passed }}/{{ stat.must_total }} 通过
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a href="{{ url_for('applicants.detail', aid=aid) }}" class="btn btn-outline btn-sm">👤 申报人详情</a>
+      <a href="{{ url_for('projects.list_page', applicant_id=aid) }}" class="btn btn-outline btn-sm">← 返回项目列表</a>
+    </div>
+  </div>
+
+  <!-- 进度条 -->
+  <div style="margin-top:16px">
+    {% set pct = (stat.must_passed / stat.must_total * 100) | int if stat.must_total else 0 %}
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:4px">
+      <span>必要条件达标率</span><span>{{ pct }}%</span>
+    </div>
+    <div style="background:#e2e8f0;border-radius:6px;height:10px">
+      <div style="background:{{ '#16a34a' if stat.all_passed else ('#d97706' if pct >= 60 else '#dc2626') }};
+                  height:10px;border-radius:6px;width:{{ pct }}%;transition:width .5s"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 检查项列表 -->
+<div class="card">
+  <div class="section-title">详细检查结果</div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:40px">结果</th>
+        <th style="width:140px">检查项</th>
+        <th>说明</th>
+        <th style="width:70px">类型</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr style="background:{{ 'rgba(220,38,38,.04)' if not item.passed and item.level=='must' else ('rgba(251,191,36,.04)' if not item.passed else '') }}">
+        <td style="text-align:center;font-size:18px">
+          {{ '✅' if item.passed else ('❌' if item.level=='must' else '⚠️') }}
+        </td>
+        <td style="font-weight:600;font-size:13px">{{ item.name }}</td>
+        <td style="font-size:13px;color:#334155">{{ item.detail }}</td>
+        <td>
+          <span class="badge {{ 'badge-red' if item.level=='must' and not item.passed else ('badge-gray' if item.level=='must' else 'badge-orange') }}">
+            {{ '必须项' if item.level=='must' else '建议项' }}
+          </span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- 未通过项操作建议 -->
+{% set failed = items | selectattr('passed', 'equalto', false) | list %}
+{% if failed %}
+<div class="card" style="margin-top:16px">
+  <div class="section-title">⚡ 修复建议</div>
+  <ul style="font-size:13px;line-height:2;padding-left:20px;color:#334155">
+    {% for item in failed %}
+    <li>
+      <strong>{{ item.name }}</strong>：{{ item.detail }}
+      {% if item.name == '学历要求' %}
+        → <a href="{{ url_for('applicants.edit_page', aid=aid) }}">修改学历信息</a>
+      {% elif item.name == '资历年限' %}
+        → <a href="{{ url_for('applicants.edit_page', aid=aid) }}">填写职称取得年月</a>
+      {% elif item.name == '社保缴纳' %}
+        → <a href="{{ url_for('applicants.detail', aid=aid) }}#insurances">补录社保记录</a>
+      {% elif item.name == '继续教育' %}
+        → <a href="{{ url_for('applicants.detail', aid=aid) }}#edu_trainings">补录继续教育记录</a>
+      {% elif item.name == '代表性工程' or item.name == '工程业绩数量' %}
+        → <a href="{{ url_for('applicants.detail', aid=aid) }}#achievements">补录工程业绩</a>
+      {% elif item.name == '论文著作' %}
+        → <a href="{{ url_for('applicants.detail', aid=aid) }}#papers">补录论文著作</a>
+      {% elif item.name == '基本信息完整' %}
+        → <a href="{{ url_for('applicants.edit_page', aid=aid) }}">完善基本信息</a>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<!-- 通过后操作 -->
+{% if stat.all_passed %}
+<div class="card" style="margin-top:16px;border:2px solid #86efac">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <div style="font-size:15px;font-weight:700;color:#16a34a">🎉 资格条件全部满足，可以进入填报阶段</div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <a href="{{ url_for('auto_fill.index_page') }}" class="btn btn-primary">🤖 前往自动填报</a>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

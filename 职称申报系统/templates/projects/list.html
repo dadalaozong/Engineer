@@ -84,6 +84,7 @@
           </div>
         </td>
         <td>
+          <a href="{{ url_for('projects.prescreen_page', pid=p.id) }}" class="btn btn-sm btn-outline" title="资格预审">🔍</a>
           <a href="{{ url_for('projects.edit_page', pid=p.id) }}" class="btn btn-sm btn-outline">编辑</a>
           <button class="btn btn-sm btn-danger"
                   onclick="confirmDelete('{{ url_for('projects.delete', pid=p.id) }}', '项目')">删除</button>

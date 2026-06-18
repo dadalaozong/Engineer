@@ -1,5 +1,10 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from database.models import list_projects, get_project, insert_project, update_project, delete_project, list_applicants, list_batches, update_project_stage
+from database.models import (
+    list_projects, get_project, insert_project, update_project, delete_project,
+    list_applicants, list_batches, update_project_stage,
+    get_applicant, list_achievements, list_awards, list_papers,
+    list_social_insurance, list_edu_trainings,
+)
 
 bp = Blueprint("projects", __name__, url_prefix="/projects")
 
@@ -180,6 +185,31 @@ _MATERIALS = {
         {"name": "专家推荐信", "required": False},
     ],
 }
+
+@bp.route("/<int:pid>/prescreen")
+def prescreen_page(pid):
+    project   = get_project(pid)
+    if not project:
+        flash("项目不存在", "danger")
+        return redirect(url_for("projects.list_page"))
+    aid       = project.get("applicant_id")
+    applicant = get_applicant(aid) if aid else {}
+    if not applicant:
+        flash("申报人不存在", "danger")
+        return redirect(url_for("projects.list_page"))
+
+    from core.prescreen import prescreen, summary as ps_summary
+    achievements  = list_achievements(aid)
+    awards        = list_awards(aid)
+    papers        = list_papers(aid)
+    insurances    = list_social_insurance(aid)
+    edu_trainings = list_edu_trainings(aid)
+
+    items = prescreen(applicant, project, achievements, awards, papers, insurances, edu_trainings)
+    stat  = ps_summary(items)
+    return render_template("projects/prescreen.html",
+                           project=project, applicant=applicant,
+                           items=items, stat=stat)
 
 @bp.route("/checker/scan", methods=["POST"])
 def checker_scan():
