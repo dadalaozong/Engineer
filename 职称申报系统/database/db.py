@@ -285,6 +285,9 @@ def _migrate(conn):
         ("edu_trainings", "train_start",             "TEXT"),
         ("edu_trainings", "train_end",               "TEXT"),
         ("edu_trainings", "issuer",                  "TEXT"),
+        # Tab7-1·专业技术工作经历新增字段
+        ("achievements", "criteria_item", "TEXT"),
+        ("achievements", "ach_work_unit", "TEXT"),
     ]
     for table, col, col_type in migrations:
         try:

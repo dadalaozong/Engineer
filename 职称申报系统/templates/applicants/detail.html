@@ -97,47 +97,62 @@
   {% endfor %}
 </div>
 
-<!-- ══ Tab: 工程业绩 ══ -->
+<!-- ══ Tab: 专业技术工作经历（Tab7-1） ══ -->
 <div id="tab-achievements" class="tab-panel">
   <div class="toolbar">
-    <div class="section-title" style="margin:0">工程业绩</div>
+    <div class="section-title" style="margin:0">专业技术工作经历（能力）Tab7-1</div>
     <div class="toolbar-right">
-      <button class="btn btn-primary btn-sm" onclick="openModal('ach-add-modal')">➕ 添加业绩</button>
+      <button class="btn btn-primary btn-sm" onclick="openModal('ach-add-modal')">➕ 添加工作经历</button>
     </div>
   </div>
-  <div class="table-card">
-    <table>
+  <div style="font-size:12px;color:#64748b;margin-bottom:8px">
+    对应网站7-1，需提供业绩证明材料扫描件放入<code>07-1_专业技术工作经历</code>目录。"符合评审条件项"填写对应评审标准条款号（如：2-4）。
+  </div>
+  <div class="table-card" style="overflow-x:auto">
+    <table style="min-width:900px">
       <thead>
-        <tr><th>工程名称</th><th>类型</th><th>规模</th><th>担任职务</th>
-            <th>起止时间</th><th>投资(万)</th><th>代表性</th><th>操作</th></tr>
+        <tr>
+          <th style="width:36px">序号</th>
+          <th style="width:60px">符合评审<br>条件项</th>
+          <th>开始时间</th>
+          <th>截止时间</th>
+          <th>工作单位</th>
+          <th>项目名称</th>
+          <th>任职</th>
+          <th>操作</th>
+        </tr>
       </thead>
       <tbody>
         {% for a in achievements %}
         <tr>
-          <td><strong>{{ a.project_name }}</strong>
+          <td style="text-align:center;color:#94a3b8">{{ loop.index }}</td>
+          <td style="text-align:center">
+            <span class="badge badge-blue" style="font-size:11px">{{ a.criteria_item or '—' }}</span>
+          </td>
+          <td>{{ a.start_date or '—' }}</td>
+          <td>{{ a.end_date or '—' }}</td>
+          <td style="font-size:13px">{{ a.ach_work_unit or a.owner or '—' }}</td>
+          <td>
+            <strong style="font-size:13px">{{ a.project_name }}</strong>
             {% if a.description %}
-            <div style="font-size:11px;color:#64748b;margin-top:2px">{{ a.description[:40] }}...</div>
+            <div style="font-size:11px;color:#64748b;margin-top:2px">{{ a.description[:50] }}…</div>
             {% endif %}
           </td>
-          <td>{{ a.project_type or '—' }}</td>
-          <td>{{ a.scale or '—' }}</td>
           <td>{{ a.role or '—' }}</td>
-          <td style="font-size:12px">{{ a.start_date or '—' }}<br>{{ a.end_date or '' }}</td>
-          <td>{{ a.investment or '—' }}</td>
-          <td>{% if a.is_representative %}<span class="badge badge-blue">代表性</span>{% endif %}</td>
           <td>
             <button class="btn btn-sm btn-outline"
               onclick="openAchEdit({{ a.id }},'{{ a.project_name|e }}','{{ a.project_type or '' }}',
                 '{{ a.scale or '' }}','{{ a.role or '' }}','{{ a.start_date or '' }}','{{ a.end_date or '' }}',
                 '{{ a.location or '' }}','{{ a.owner or '' }}','{{ a.contractor or '' }}',
-                '{{ a.investment or '' }}','{{ a.area or '' }}','{{ a.description or ''|e }}',
-                {{ 1 if a.is_representative else 0 }})">编辑</button>
+                '{{ a.investment or '' }}','{{ a.area or '' }}','{{ a.description|e or '' }}',
+                {{ 1 if a.is_representative else 0 }},
+                '{{ a.criteria_item or '' }}','{{ a.ach_work_unit|e or '' }}')">编辑</button>
             <button class="btn btn-sm btn-danger"
-              onclick="confirmDelete('{{ url_for('applicants.achievement_delete', aid=aid, rid=a.id) }}','业绩')">删除</button>
+              onclick="confirmDelete('{{ url_for('applicants.achievement_delete', aid=aid, rid=a.id) }}','工作经历')">删除</button>
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="8" class="text-muted" style="text-align:center;padding:20px">暂无工程业绩</td></tr>
+        <tr><td colspan="8" class="text-muted" style="text-align:center;padding:20px">暂无专业技术工作经历，请点击【添加工作经历】</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -543,6 +558,12 @@
 </div>
 <div class="form-group"><label class="form-label">承建单位</label>
   <input class="form-control" name="contractor" id="ach-contractor"></div>
+<div class="form-row">
+  <div class="form-group"><label class="form-label">符合评审条件项</label>
+    <input class="form-control" name="criteria_item" id="ach-criteria-item" placeholder="如：第一条第(二)项"></div>
+  <div class="form-group"><label class="form-label">工作单位</label>
+    <input class="form-control" name="ach_work_unit" id="ach-work-unit" placeholder="填报时的工作单位"></div>
+</div>
 <div class="form-group"><label class="form-label">工程简介</label>
   <textarea class="form-control" name="description" id="ach-desc"></textarea></div>
 <div class="form-group">
@@ -1146,7 +1167,7 @@ const hash = location.hash.replace("#","") || "achievements";
 switchTab(tabs.includes(hash) ? hash : "achievements");
 
 // ── Achievement edit ───────────────────────────────────────────
-function openAchEdit(id,name,type,scale,role,start,end,loc,owner,contr,inv,area,desc,rep) {
+function openAchEdit(id,name,type,scale,role,start,end,loc,owner,contr,inv,area,desc,rep,criteria,workunit) {
   const f = document.getElementById("ach-edit-form");
   f.action = `/applicants/{{ aid }}/achievements/${id}/edit`;
   document.getElementById("ach-name").value  = name;
@@ -1162,6 +1183,8 @@ function openAchEdit(id,name,type,scale,role,start,end,loc,owner,contr,inv,area,
   document.getElementById("ach-area").value        = area;
   document.getElementById("ach-desc").value        = desc;
   document.getElementById("ach-rep").checked       = rep === 1;
+  document.getElementById("ach-criteria-item").value = criteria || "";
+  document.getElementById("ach-work-unit").value     = workunit || "";
   openModal("ach-edit-modal");
 }
 

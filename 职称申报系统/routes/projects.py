@@ -413,7 +413,7 @@ _TAB_MATERIALS = [
             {"name": "业绩证明材料",              "fill": "file", "required_for": [],
              "note": "建设单位出具的专业技术工作经历证明"},
             {"name": "专业技术工作经历（逐行）",  "fill": "auto", "required_for": [],
-             "note": "从系统数据自动填写"},
+             "note": "列包含：符合评审条件项、开始时间、截止时间、工作单位、项目名称、任职"},
         ],
     },
     {
@@ -730,6 +730,19 @@ def fill_preview_page(pid):
             {"label": "连续6个月要求",
              "value": f"已录入 {len(list_social_insurance(aid))} 月" if aid else "—",
              "status": "ok" if aid and len(list_social_insurance(aid)) >= 6 else "missing"},
+        ]},
+        {"section": "Tab7-1·专业技术工作经历", "items": [
+            {"label": "工作经历记录行数",
+             "value": f"{len(list_achievements(aid))} 条" if aid else "—",
+             "status": "ok" if aid and list_achievements(aid) else "missing"},
+            {"label": "符合评审条件项",
+             "value": "请在工程业绩中逐条填写[符合评审条件项]字段",
+             "status": "warn" if not any(r.get("criteria_item") for r in list_achievements(aid)) else "ok"
+             if aid else "missing"},
+            {"label": "工作单位（填报）",
+             "value": "请在工程业绩中逐条填写[工作单位]字段",
+             "status": "warn" if not any(r.get("ach_work_unit") for r in list_achievements(aid)) else "ok"
+             if aid else "missing"},
         ]},
     ]
 

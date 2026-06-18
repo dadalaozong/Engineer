@@ -124,7 +124,8 @@ def detail(aid):
 
 _ACH_COLS = [
     "project_name","project_type","scale","role","start_date","end_date",
-    "location","owner","contractor","investment","area","description","is_representative"
+    "location","owner","contractor","investment","area","description","is_representative",
+    "criteria_item","ach_work_unit"
 ]
 
 @bp.route("/<int:aid>/achievements/new", methods=["POST"])
