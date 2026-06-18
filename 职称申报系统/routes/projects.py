@@ -3,7 +3,7 @@ from database.models import (
     list_projects, get_project, insert_project, update_project, delete_project,
     list_applicants, list_batches, update_project_stage,
     get_applicant, list_achievements, list_awards, list_papers,
-    list_social_insurance, list_edu_trainings,
+    list_social_insurance, list_edu_trainings, list_work_experiences,
 )
 
 bp = Blueprint("projects", __name__, url_prefix="/projects")
@@ -373,8 +373,15 @@ _TAB_MATERIALS = [
         "tab_name": "工作简历",
         "folder": "06-1_工作简历",
         "items": [
-            {"name": "工作简历（逐行填表）",      "fill": "auto", "required_for": [],
-             "note": "网页直接填表，从申报人档案工作经历自动填写，无需扫描件"},
+            # ── 全部为系统自动填写，无需扫描件 ──
+            {"name": "开始时间",                  "fill": "auto", "required_for": [],
+             "note": "格式 YYYY-MM，从工作简历数据自动填写"},
+            {"name": "截止时间",                  "fill": "auto", "required_for": [],
+             "note": "格式 YYYY-MM，当前在职填至最新月份"},
+            {"name": "工作单位（学校）",          "fill": "auto", "required_for": [],
+             "note": "单位全称，从工作简历数据自动填写"},
+            {"name": "职务",                      "fill": "auto", "required_for": [],
+             "note": "当时担任的实际职务，从工作简历数据自动填写"},
         ],
     },
     {
@@ -694,6 +701,17 @@ def fill_preview_page(pid):
             {"label": "每年度≥90学时",
              "value": "请在继续教育记录中逐年核对",
              "status": "warn"},
+        ]},
+        {"section": "Tab6-1·工作简历", "items": [
+            {"label": "工作简历记录行数",
+             "value": f"{len(list_work_experiences(aid))} 条" if aid else "—",
+             "status": "ok" if aid and list_work_experiences(aid) else "missing"},
+            {"label": "最早开始时间",
+             "value": min((r.get("start_date","") for r in list_work_experiences(aid) if r.get("start_date")), default="—") if aid else "—",
+             "status": "ok"},
+            {"label": "最近工作单位",
+             "value": (list_work_experiences(aid) or [{}])[0].get("work_unit","—") if aid else "—",
+             "status": "ok"},
         ]},
     ]
 
