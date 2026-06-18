@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}材料清单 — {{ applicant.name or '—' }}{% endblock %}
+{% block page_title %}申报材料清单{% endblock %}
+{% block content %}
+
+{% set pid = project.id %}
+
+<div class="card" style="margin-bottom:16px">
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:18px;font-weight:700;color:#1e293b">{{ applicant.name or '—' }}</div>
+      <div style="font-size:13px;color:#64748b;margin-top:2px">
+        申报：{{ project.apply_level or '—' }}
+        {% if project.batch_year %} · {{ project.batch_year }}年度{% endif %}
+      </div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+      <a href="{{ url_for('projects.checklist_download', pid=pid) }}" class="btn btn-primary">⬇ 下载Word清单</a>
+      <a href="{{ url_for('projects.list_page') }}" class="btn btn-outline btn-sm">← 返回列表</a>
+    </div>
+  </div>
+</div>
+
+{% set received = materials | selectattr('name') | list %}
+{% set found_count = file_status.values() | list | select | list | length %}
+{% set total = materials | length %}
+{% set must = materials | selectattr('required') | list %}
+{% set must_ok = [] %}
+{% for m in must %}{% if file_status.get(m.name) %}{% set _ = must_ok.append(1) %}{% endif %}{% endfor %}
+
+<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+  <div class="card" style="flex:1;min-width:140px;padding:14px 18px;text-align:center">
+    <div style="font-size:28px;font-weight:700;color:#2563eb">{{ found_count }}</div>
+    <div style="font-size:12px;color:#64748b">已到位文件</div>
+  </div>
+  <div class="card" style="flex:1;min-width:140px;padding:14px 18px;text-align:center">
+    <div style="font-size:28px;font-weight:700;color:#64748b">{{ total }}</div>
+    <div style="font-size:12px;color:#64748b">材料总项</div>
+  </div>
+  <div class="card" style="flex:1;min-width:140px;padding:14px 18px;text-align:center">
+    <div style="font-size:28px;font-weight:700;color:{{ '#16a34a' if must_ok|length == must|length else '#dc2626' }}">
+      {{ must_ok|length }}/{{ must|length }}
+    </div>
+    <div style="font-size:12px;color:#64748b">必要材料到位</div>
+  </div>
+</div>
+
+<div class="table-card">
+  <div class="table-header">
+    <span class="table-header-title">材料清单（{{ project.apply_level or '职称' }}申报）</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:40px">#</th>
+        <th>材料名称</th>
+        <th style="width:80px">类型</th>
+        <th style="width:60px">份数</th>
+        <th style="width:80px">文件状态</th>
+        <th>备注</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in materials %}
+      {% set found = file_status.get(m.name, false) %}
+      <tr style="background:{{ 'rgba(220,38,38,.04)' if m.required and not found else '' }}">
+        <td style="color:#94a3b8;font-size:12px">{{ loop.index }}</td>
+        <td style="font-weight:600;font-size:13px">{{ m.name }}</td>
+        <td>
+          <span class="badge {{ 'badge-red' if m.required else 'badge-gray' }}">
+            {{ '必须' if m.required else '可选' }}
+          </span>
+        </td>
+        <td style="font-size:13px;color:#475569">{{ m.copies or 1 }} 份</td>
+        <td style="text-align:center;font-size:16px">
+          {% if found %}✅{% elif m.required %}❌{% else %}—{% endif %}
+        </td>
+        <td style="font-size:12px;color:#64748b">{{ m.note or '' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="text-muted" style="text-align:center;padding:24px">暂无材料要求</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if not applicant.folder_path %}
+<div class="card" style="margin-top:14px;border:1px solid #fde68a;background:#fffbeb">
+  <div style="font-size:13px;color:#92400e">
+    ⚠ 该申报人尚未创建资料目录，文件状态列均显示"—"。
+    <a href="{{ url_for('applicants.folder_scan', aid=applicant.id) }}">前往创建资料目录</a>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

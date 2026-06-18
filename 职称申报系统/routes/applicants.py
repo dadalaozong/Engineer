@@ -292,6 +292,14 @@ def pro_cert_delete(aid, cid):
     flash("已删除", "success")
     return redirect(url_for("applicants.detail", aid=aid) + "#pro_certs")
 
+@bp.route("/<int:aid>/json")
+def applicant_json(aid):
+    applicant = get_applicant(aid)
+    if not applicant:
+        return jsonify({"error": "not found"}), 404
+    return jsonify(dict(applicant))
+
+
 # ── 资料目录 & 批量OCR ────────────────────────────────────────────
 
 @bp.route("/<int:aid>/folder/create", methods=["POST"])

@@ -79,6 +79,10 @@
      class="nav-item {{ 'active' if ep == 'auto_fill.index_page' else '' }}">
     <span class="ico">🤖</span> 自动填报
   </a>
+  <a href="{{ url_for('monitor.index_page') }}"
+     class="nav-item {{ 'active' if ep == 'monitor.index_page' else '' }}">
+    <span class="ico">👁</span> 文件监控
+  </a>
 
   <div class="nav-group-label">系统</div>
   <a href="{{ url_for('settings.index_page') }}"

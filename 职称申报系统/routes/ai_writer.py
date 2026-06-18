@@ -11,7 +11,61 @@ _DOC_TYPES = [
 
 @bp.route("/")
 def index_page():
-    return render_template("ai/writer.html", doc_types=_DOC_TYPES)
+    return render_template("ai/writer.html", doc_types=_DOC_TYPES, prefill={})
+
+@bp.route("/with-applicant")
+def writer_with_applicant():
+    """AI写作页面，自动从申报人/项目数据中预填字段。"""
+    from database.models import get_applicant, get_project, list_achievements, list_papers
+    from datetime import date
+
+    aid = request.args.get("applicant_id", type=int)
+    pid = request.args.get("project_id", type=int)
+    doc_type = request.args.get("doc_type", "work_summary")
+
+    applicant = get_applicant(aid) if aid else {}
+    project   = get_project(pid) if pid else {}
+    a = applicant or {}
+    p = dict(project) if project else {}
+
+    cur_year = date.today().year
+    work_age = ""
+    if a.get("work_start_year"):
+        try: work_age = str(cur_year - int(a["work_start_year"]))
+        except Exception: pass
+
+    achievements = list_achievements(aid) if aid else []
+    papers       = list_papers(aid) if aid else []
+    proj_names   = "、".join(r["project_name"] for r in achievements[:3] if r.get("project_name"))
+    paper_titles = "、".join(r["title"] for r in papers[:2] if r.get("title"))
+
+    prefill = {
+        "work_summary": {
+            "name":           a.get("name",""),
+            "years":          work_age,
+            "specialties":    a.get("title_specialty") or a.get("current_specialty",""),
+            "major_projects": proj_names,
+            "achievements":   paper_titles or a.get("notes",""),
+        },
+        "masterwork": {
+            "name":         a.get("name",""),
+            "project_name": achievements[0].get("project_name","") if achievements else "",
+            "project_type": achievements[0].get("project_type","") if achievements else "",
+            "project_scale":achievements[0].get("scale","") if achievements else "",
+            "role":         achievements[0].get("role","") if achievements else "",
+            "duration":     "",
+        },
+        "achievement": {
+            "name":             a.get("name",""),
+            "achievement_name": paper_titles or "",
+            "achievement_type": "论文" if papers else "",
+            "description":      "",
+        },
+    }
+
+    return render_template("ai/writer.html", doc_types=_DOC_TYPES,
+                           prefill=prefill, active_doc_type=doc_type,
+                           applicant=a, project=p)
 
 @bp.route("/generate", methods=["POST"])
 def generate():

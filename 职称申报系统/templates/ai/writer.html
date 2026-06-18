@@ -2,6 +2,15 @@
 {% block title %}AI 辅助写作{% endblock %}
 {% block page_title %}AI 辅助写作{% endblock %}
 {% block content %}
+{% if applicant is defined and applicant %}
+<div class="card" style="margin-bottom:12px;padding:10px 16px;display:flex;align-items:center;gap:12px">
+  <div style="font-size:13px;color:#334155">
+    👤 已加载申报人数据：<strong>{{ applicant.name }}</strong>
+    {% if project is defined and project %} · 申报 {{ project.apply_level or '—' }}{% endif %}
+  </div>
+  <a href="{{ url_for('ai_writer.index_page') }}" class="btn btn-outline btn-sm" style="margin-left:auto">清除数据</a>
+</div>
+{% endif %}
 
 <div style="display:grid;grid-template-columns:320px 1fr;gap:20px;height:calc(100vh - 140px)">
   <!-- Left panel -->
@@ -62,17 +71,6 @@ const FIELDS = {
     {key:"achievement_type", label:"成果类型"}, {key:"description", label:"成果描述"},
   ],
 };
-
-function updateFormFields() {
-  const type = document.getElementById("doc-type").value;
-  const flds = FIELDS[type] || [];
-  document.getElementById("dynamic-fields").innerHTML = flds.map(f => `
-    <div class="form-group">
-      <label class="form-label">${f.label}</label>
-      <input class="form-control" id="f_${f.key}" placeholder="${f.label}">
-    </div>
-  `).join("");
-}
 
 function getInfo() {
   const type = document.getElementById("doc-type").value;
@@ -146,6 +144,30 @@ function exportDoc() {
   });
 }
 
+const PREFILL = {{ prefill | tojson if prefill is defined else '{}' }};
+const ACTIVE_TYPE = {{ (active_doc_type | tojson) if active_doc_type is defined else '"work_summary"' }};
+
+function updateFormFields() {
+  const type = document.getElementById("doc-type").value;
+  const flds = FIELDS[type] || [];
+  const pre  = PREFILL[type] || {};
+  document.getElementById("dynamic-fields").innerHTML = flds.map(f => `
+    <div class="form-group">
+      <label class="form-label">${f.label}</label>
+      <input class="form-control" id="f_${f.key}" placeholder="${f.label}" value="${(pre[f.key]||'').replace(/"/g,'&quot;')}">
+    </div>
+  `).join("");
+}
+
+// Set active type from server if provided
+if (ACTIVE_TYPE) {
+  const sel = document.getElementById("doc-type");
+  if (sel) {
+    for (let i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === ACTIVE_TYPE) { sel.selectedIndex = i; break; }
+    }
+  }
+}
 updateFormFields();
 </script>
 {% endblock %}

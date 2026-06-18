@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}文件到达监控{% endblock %}
+{% block page_title %}文件到达监控{% endblock %}
+{% block content %}
+
+<div style="display:grid;grid-template-columns:300px 1fr;gap:16px;height:calc(100vh - 140px)">
+
+  <!-- 左：申报人列表 -->
+  <div style="display:flex;flex-direction:column;gap:10px;overflow-y:auto">
+    {% for a in applicants %}
+    {% set mon = active.get(a.id) %}
+    <div class="card" style="padding:12px 14px;cursor:pointer;border:2px solid {{ '#2563eb' if mon and mon.running else '#e2e8f0' }}"
+         onclick="selectApplicant({{ a.id }}, '{{ a.name }}', {{ 'true' if mon and mon.running else 'false' }})">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:13px">{{ a.name }}</div>
+          <div style="font-size:11px;color:#64748b;margin-top:2px">
+            {% if a.folder_path %}{{ a.folder_path }}{% else %}未设置资料目录{% endif %}
+          </div>
+        </div>
+        {% if mon and mon.running %}
+        <span class="badge badge-green">监控中</span>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <div class="text-muted" style="font-size:13px;padding:16px">暂无申报人</div>
+    {% endfor %}
+  </div>
+
+  <!-- 右：监控面板 -->
+  <div class="card" style="display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+      <div>
+        <div style="font-weight:700;font-size:15px" id="panel-name">请从左侧选择申报人</div>
+        <div style="font-size:12px;color:#64748b;margin-top:2px" id="panel-folder">—</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" id="btn-start" onclick="startMonitor()" disabled>▶ 开始监控</button>
+        <button class="btn btn-outline btn-sm" id="btn-stop" onclick="stopMonitor()" disabled>⏹ 停止</button>
+        <button class="btn btn-outline btn-sm" onclick="clearLog()">清空日志</button>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div id="status-dot" style="width:10px;height:10px;border-radius:50%;background:#e2e8f0"></div>
+      <div id="status-text" style="font-size:12px;color:#64748b">未监控</div>
+      <div style="margin-left:auto;font-size:12px;color:#94a3b8">新文件到达时实时显示</div>
+    </div>
+
+    <div id="log" style="flex:1;overflow-y:auto;background:#0f172a;border-radius:8px;padding:12px;
+                          font-family:monospace;font-size:12px;color:#94a3b8;line-height:1.7">
+      <div style="color:#475569">等待监控启动...</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+let currentAid = null;
+let currentRunning = false;
+let eventSource = null;
+
+function selectApplicant(aid, name, running) {
+  currentAid = aid;
+  currentRunning = running;
+  document.getElementById("panel-name").textContent = name;
+  document.getElementById("btn-start").disabled = false;
+  document.getElementById("btn-stop").disabled = !running;
+
+  // Fetch folder path
+  fetch(`/applicants/${aid}/json`).then(r => r.json()).then(d => {
+    document.getElementById("panel-folder").textContent = d.folder_path || "未设置资料目录";
+  }).catch(() => {});
+
+  if (running) {
+    setStatus("running");
+    connectSSE(aid);
+  } else {
+    setStatus("idle");
+    disconnectSSE();
+  }
+}
+
+function setStatus(state) {
+  const dot  = document.getElementById("status-dot");
+  const text = document.getElementById("status-text");
+  if (state === "running") {
+    dot.style.background = "#16a34a";
+    text.textContent = "监控中 — 等待文件到达";
+    text.style.color = "#16a34a";
+  } else {
+    dot.style.background = "#e2e8f0";
+    text.textContent = "未监控";
+    text.style.color = "#64748b";
+  }
+}
+
+function log(msg, color) {
+  const el = document.getElementById("log");
+  const d = document.createElement("div");
+  d.style.color = color || "#94a3b8";
+  d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  el.appendChild(d);
+  el.scrollTop = el.scrollHeight;
+}
+
+function clearLog() {
+  document.getElementById("log").innerHTML = "";
+}
+
+function connectSSE(aid) {
+  disconnectSSE();
+  eventSource = new EventSource(`/monitor/events?applicant_id=${aid}`);
+  eventSource.onmessage = (e) => {
+    try {
+      const d = JSON.parse(e.data);
+      if (d.type === "connected") { log("已连接，监听文件变更...", "#2563eb"); return; }
+      if (d.type === "timeout")   { log("监控超时，请重新启动", "#d97706"); setStatus("idle"); return; }
+      const icon = d.type === "created" ? "📥 新文件" : "✏ 已修改";
+      log(`${icon}: ${d.filename}  （${d.path}）`, d.type === "created" ? "#16a34a" : "#d97706");
+    } catch(ex) {}
+  };
+  eventSource.onerror = () => {
+    log("连接中断", "#dc2626");
+  };
+}
+
+function disconnectSSE() {
+  if (eventSource) { eventSource.close(); eventSource = null; }
+}
+
+function startMonitor() {
+  if (!currentAid) return;
+  fetch("/monitor/start", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({applicant_id: currentAid})
+  }).then(r => r.json()).then(d => {
+    if (d.ok) {
+      setStatus("running");
+      document.getElementById("btn-stop").disabled = false;
+      document.getElementById("panel-folder").textContent = d.folder;
+      log(`开始监控：${d.folder}`, "#2563eb");
+      connectSSE(currentAid);
+    } else {
+      log(`启动失败：${d.error}`, "#dc2626");
+    }
+  });
+}
+
+function stopMonitor() {
+  if (!currentAid) return;
+  disconnectSSE();
+  fetch("/monitor/stop", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({applicant_id: currentAid})
+  }).then(r => r.json()).then(() => {
+    setStatus("idle");
+    document.getElementById("btn-stop").disabled = true;
+    log("监控已停止", "#64748b");
+  });
+}
+</script>
+{% endblock %}
