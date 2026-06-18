@@ -13,6 +13,8 @@
     {% endif %}
   </form>
   <div class="toolbar-right">
+    <a href="{{ url_for('applicants.export_excel') }}{% if request.args.get('q') %}?q={{ request.args.get('q') }}{% endif %}"
+       class="btn btn-outline">📊 导出 Excel</a>
     <button class="btn btn-primary" onclick="openModal('ocr-modal')">
       📷 扫描证件新增
     </button>

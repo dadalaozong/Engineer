@@ -90,7 +90,7 @@ body {
   border-radius: var(--radius);
   padding: 20px;
 }
-.stat-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px; }
+.stat-row { display: grid; grid-template-columns: repeat(auto-fill,minmax(140px,1fr)); gap: 14px; margin-bottom: 20px; }
 .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
 .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
 .stat-num { font-size: 28px; font-weight: 700; color: var(--accent); }
@@ -233,6 +233,57 @@ textarea.form-control { resize: vertical; min-height: 80px; }
   display: inline-block;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Mobile Hamburger ── */
+#sidebar-toggle {
+  display: none;
+  background: none; border: none; cursor: pointer;
+  padding: 4px 8px; font-size: 20px; color: #334155;
+}
+#sidebar-close {
+  display: none;
+  position: absolute; top: 14px; right: 14px;
+  background: none; border: none; cursor: pointer;
+  font-size: 20px; color: #94a3b8;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  body { overflow: auto; flex-direction: column; }
+
+  #sidebar {
+    position: fixed; top: 0; left: -240px;
+    width: 240px; height: 100vh;
+    z-index: 900; transition: left .25s;
+  }
+  #sidebar.open { left: 0; }
+  #sidebar-close { display: block; }
+
+  #sidebar-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.4); z-index: 800;
+  }
+  #sidebar.open ~ #sidebar-overlay,
+  body.sidebar-open #sidebar-overlay { display: block; }
+
+  #sidebar-toggle { display: block; }
+
+  #main-area { width: 100%; }
+  #topbar { padding: 0 12px; }
+  #page-content { padding: 12px; overflow-y: auto; }
+
+  .stat-row { grid-template-columns: 1fr 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  .form-row-3 { grid-template-columns: 1fr; }
+  .deadline-row { grid-template-columns: 1fr; }
+
+  /* Tables: horizontal scroll */
+  .table-card { overflow-x: auto; }
+  table { min-width: 540px; }
+
+  /* AI writer: stack panels */
+  #ai-grid { grid-template-columns: 1fr !important; }
+}
 
 /* ── Misc ── */
 .text-muted { color: var(--text-muted); }

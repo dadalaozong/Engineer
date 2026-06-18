@@ -3,9 +3,9 @@
 {% block page_title %}OCR 证件识别{% endblock %}
 {% block content %}
 
-{% if not ocr_available %}
+{% if not configured %}
 <div class="alert alert-warning">
-  ⚠ PaddleOCR 未安装，OCR功能不可用。请运行：<code>pip install paddlepaddle paddleocr</code>
+  ⚠ 腾讯云OCR未配置，请在系统设置中填写 SecretId 和 SecretKey。
 </div>
 {% endif %}
 
@@ -25,7 +25,7 @@
       <input class="form-control" type="file" id="ocr-file" accept="image/*">
     </div>
     <div id="preview-area" style="margin:8px 0"></div>
-    <button class="btn btn-primary" style="width:100%" onclick="doOcr()" {{ 'disabled' if not ocr_available }}>
+    <button class="btn btn-primary" style="width:100%" onclick="doOcr()" {{ 'disabled' if not configured }}>
       🔎 开始识别
     </button>
   </div>

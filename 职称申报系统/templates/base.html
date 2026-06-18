@@ -8,7 +8,9 @@
 </head>
 <body>
 
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
 <div id="sidebar">
+  <button id="sidebar-close" onclick="closeSidebar()">✕</button>
   <div class="sidebar-logo">📋&nbsp; 职称申报系统</div>
 
   {% set ep = request.endpoint %}
@@ -90,6 +92,7 @@
 
 <div id="main-area">
   <div id="topbar">
+    <button id="sidebar-toggle" onclick="openSidebar()">☰</button>
     <span id="topbar-title">{% block page_title %}工作台{% endblock %}</span>
     <span id="topbar-right">管理员</span>
   </div>
@@ -106,6 +109,16 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+function openSidebar() {
+  document.getElementById("sidebar").classList.add("open");
+  document.getElementById("sidebar-overlay").style.display = "block";
+}
+function closeSidebar() {
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebar-overlay").style.display = "none";
+}
+</script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

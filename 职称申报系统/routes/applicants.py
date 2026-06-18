@@ -181,3 +181,47 @@ def log_delete(aid, lid):
     delete_contact_log(lid)
     flash("已删除", "success")
     return redirect(url_for("applicants.detail", aid=aid) + "#logs")
+
+# ── Excel 导出 ─────────────────────────────────────────────────────
+
+@bp.route("/export/excel")
+def export_excel():
+    from io import BytesIO
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from flask import make_response
+
+    q = request.args.get("q", "")
+    rows = list_applicants(q)
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "申报人列表"
+
+    headers = ["姓名","身份证号","性别","出生日期","电话","邮箱","工作单位",
+               "学历","专业","毕业院校","毕业年份","参加工作年份",
+               "现职称等级","取得年月","备注"]
+    keys    = ["name","id_card","gender","birth_date","phone","email","work_unit",
+               "education","major","school","graduation_year","work_start_year",
+               "title_level","title_month","notes"]
+
+    hdr_fill = PatternFill("solid", fgColor="2563EB")
+    hdr_font = Font(color="FFFFFF", bold=True, size=11)
+    for col, h in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=h)
+        cell.fill = hdr_fill
+        cell.font = hdr_font
+        cell.alignment = Alignment(horizontal="center")
+        ws.column_dimensions[cell.column_letter].width = max(12, len(h) * 2 + 2)
+
+    for r, row in enumerate(rows, 2):
+        for col, key in enumerate(keys, 1):
+            ws.cell(row=r, column=col, value=row.get(key) or "")
+
+    buf = BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    resp = make_response(buf.read())
+    resp.headers["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    resp.headers["Content-Disposition"] = "attachment; filename=applicants.xlsx"
+    return resp
