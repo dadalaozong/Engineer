@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>职称申报管理系统 — 开发需求文档 v2.0</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--blue:#2563eb;--blue-dark:#1d4ed8;--blue-light:#dbeafe;--green:#16a34a;--green-light:#dcfce7;--orange:#d97706;--orange-light:#fef3c7;--red:#dc2626;--red-light:#fee2e2;--gray:#64748b;--gray-light:#f1f5f9;--border:#e2e8f0;--text:#1e293b;--text-muted:#64748b}
+body{font-family:"Microsoft YaHei","PingFang SC","Segoe UI",sans-serif;font-size:14px;color:var(--text);background:#f8fafc;display:flex;min-height:100vh}
+
+/* ── 左侧目录 ── */
+#nav{width:240px;min-width:240px;background:#1e293b;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100}
+#nav::-webkit-scrollbar{width:4px}
+#nav::-webkit-scrollbar-thumb{background:#475569;border-radius:2px}
+.nav-logo{padding:20px 16px 14px;font-size:14px;font-weight:700;color:#f1f5f9;border-bottom:1px solid #334155}
+.nav-logo small{display:block;font-size:11px;color:#64748b;font-weight:400;margin-top:2px}
+.nav-group{padding:12px 16px 4px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#64748b}
+.nav-link{display:block;padding:7px 16px;color:#94a3b8;text-decoration:none;font-size:12px;border-left:2px solid transparent;transition:all .15s}
+.nav-link:hover{color:#f1f5f9;background:#334155}
+.nav-link.active{color:#60a5fa;border-color:#2563eb;background:rgba(37,99,235,.15)}
+
+/* ── 主内容 ── */
+#main{margin-left:240px;flex:1;padding:40px 48px;max-width:1100px}
+h1{font-size:26px;font-weight:800;color:var(--text);margin-bottom:6px}
+.doc-meta{color:var(--text-muted);font-size:13px;margin-bottom:32px;padding-bottom:16px;border-bottom:2px solid var(--border)}
+.doc-meta span{margin-right:20px}
+.badge-draft{background:#fef3c7;color:#854d0e;padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700}
+
+h2{font-size:20px;font-weight:700;color:var(--blue);margin:48px 0 16px;padding-bottom:8px;border-bottom:2px solid var(--blue-light)}
+h3{font-size:15px;font-weight:700;color:var(--text);margin:24px 0 10px}
+h4{font-size:13px;font-weight:700;color:var(--gray);margin:16px 0 8px}
+p{line-height:1.8;margin-bottom:12px;color:#374151}
+ul,ol{padding-left:20px;line-height:1.9;margin-bottom:12px;color:#374151}
+li{margin-bottom:2px}
+
+/* ── 表格 ── */
+.tbl-wrap{overflow-x:auto;margin:12px 0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{background:var(--blue);color:#fff;padding:9px 12px;text-align:left;font-weight:600;white-space:nowrap}
+tbody td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:hover td{background:var(--gray-light)}
+tbody tr:last-child td{border-bottom:none}
+.tbl-wrap table{border:1px solid var(--border);border-radius:6px;overflow:hidden}
+
+/* ── 代码块 ── */
+pre{background:#0f172a;color:#e2e8f0;padding:16px 20px;border-radius:8px;font-size:12px;line-height:1.7;overflow-x:auto;margin:10px 0}
+code{background:#f1f5f9;color:#be185d;padding:1px 6px;border-radius:4px;font-size:12px}
+pre code{background:none;color:inherit;padding:0}
+
+/* ── 状态徽章 ── */
+.done{color:var(--green);font-weight:700}
+.todo{color:var(--gray)}
+.warn{color:var(--orange);font-weight:700}
+.danger{color:var(--red);font-weight:700}
+.badge{display:inline-block;padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.badge-blue{background:var(--blue-light);color:#1e40af}
+.badge-green{background:var(--green-light);color:#166534}
+.badge-orange{background:var(--orange-light);color:#854d0e}
+.badge-red{background:var(--red-light);color:#991b1b}
+.badge-gray{background:var(--gray-light);color:#475569}
+
+/* ── 流程图 ── */
+.flow{display:flex;flex-direction:column;gap:0;margin:16px 0}
+.flow-item{display:flex;align-items:stretch;gap:0}
+.flow-left{display:flex;flex-direction:column;align-items:center;width:44px;flex-shrink:0}
+.flow-num{width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1}
+.flow-line{width:2px;background:var(--blue-light);flex:1;margin:0 auto}
+.flow-body{flex:1;background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin:0 0 8px 12px}
+.flow-title{font-weight:700;color:var(--text);font-size:13px;margin-bottom:4px}
+.flow-desc{font-size:12px;color:var(--text-muted);line-height:1.7}
+.flow-tags{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}
+
+/* ── 对比卡 ── */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.compare-card{border-radius:8px;padding:16px}
+.compare-bad{background:#fff0f0;border:1px solid #fecaca}
+.compare-good{background:#f0fdf4;border:1px solid #bbf7d0}
+.compare-card h4{margin:0 0 10px;font-size:13px}
+
+/* ── 章节号 ── */
+.sec-num{display:inline-block;background:var(--blue);color:#fff;border-radius:4px;padding:1px 8px;font-size:12px;font-weight:700;margin-right:8px}
+
+/* ── 注意框 ── */
+.callout{border-left:4px solid var(--blue);background:var(--blue-light);padding:12px 16px;border-radius:0 8px 8px 0;margin:12px 0;font-size:13px}
+.callout-warn{border-color:var(--orange);background:var(--orange-light)}
+.callout-danger{border-color:var(--red);background:var(--red-light)}
+.callout-title{font-weight:700;margin-bottom:4px}
+
+/* ── 进度条 ── */
+.roadmap-item{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)}
+.roadmap-item:last-child{border-bottom:none}
+.ri-status{width:20px;text-align:center;font-size:15px;flex-shrink:0}
+.ri-name{flex:1;font-size:13px}
+.ri-phase{font-size:11px;color:var(--text-muted)}
+
+/* ── 映射卡片 ── */
+.map-card{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:10px}
+.map-doc{font-weight:700;color:var(--text);font-size:13px;margin-bottom:6px}
+.map-fields{display:flex;flex-wrap:wrap;gap:6px}
+.map-field{background:var(--blue-light);color:#1e40af;padding:2px 10px;border-radius:10px;font-size:12px}
+.map-method{font-size:11px;color:var(--text-muted);margin-top:6px}
+
+footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);color:var(--text-muted);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- ══ 左侧导航 ══ -->
+<nav id="nav">
+  <div class="nav-logo">📋 职称申报管理系统<small>开发需求文档 v2.0</small></div>
+  <div class="nav-group">概述</div>
+  <a class="nav-link" href="#ch1">第一章 系统定位</a>
+  <a class="nav-link" href="#ch2">第二章 核心业务流程</a>
+  <div class="nav-group">数据设计</div>
+  <a class="nav-link" href="#ch3">第三章 数据模型</a>
+  <a class="nav-link" href="#ch4">第四章 材料与字段映射</a>
+  <div class="nav-group">功能设计</div>
+  <a class="nav-link" href="#ch5">第五章 模块功能设计</a>
+  <a class="nav-link" href="#ch6">第六章 技术架构</a>
+  <div class="nav-group">规划</div>
+  <a class="nav-link" href="#ch7">第七章 开发路线图</a>
+  <a class="nav-link" href="#ch8">第八章 待确认事项</a>
+</nav>
+
+<!-- ══ 主内容 ══ -->
+<main id="main">
+
+<h1>职称申报管理系统</h1>
+<div class="doc-meta">
+  <span>开发需求文档</span>
+  <span>版本：<strong>v2.0</strong></span>
+  <span>更新日期：<strong>2026-06-18</strong></span>
+  <span class="badge-draft badge">草稿 · 待业务确认</span>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<h2 id="ch1"><span class="sec-num">第一章</span>系统定位与核心价值</h2>
+
+<h3>1.1 背景</h3>
+<p>本系统面向建筑工程职称申报中介机构（广西），服务于职称评审申报全流程管理。操作人员为中介机构工作人员（单人或小团队），在本地单机运行 Flask Web 服务，通过浏览器访问。</p>
+<p>客户（申报人）委托中介代办职称申报，中介需要收集客户材料、整理信息、在广西职称网完成在线填报，并跟踪审核结果。</p>
+
+<h3>1.2 核心设计原则</h3>
+
+<div class="callout">
+  <div class="callout-title">⚡ 最核心原则</div>
+  系统的价值是<strong>「减少录入」，而不是「换个地方录入」</strong>。客户手中已持有大量原始证件材料，这些材料包含了申报所需约 70% 的信息。系统的职责是：从原始材料中自动提取 → 组织校验 → 辅助或自动完成在线填报。
+</div>
+
+<div class="compare">
+  <div class="compare-card compare-bad">
+    <h4>❌ 错误方向（不能做）</h4>
+    <ul>
+      <li>把广西职称网的所有字段搬到本地，要求人工逐个填写</li>
+      <li>系统字段越多，录入工作量越大</li>
+      <li>与直接在官网填写相比，工作量不减反增</li>
+    </ul>
+  </div>
+  <div class="compare-card compare-good">
+    <h4>✅ 正确方向（要做到）</h4>
+    <ul>
+      <li>客户上传证件图片 → OCR自动提取字段</li>
+      <li>人工只做"确认/纠正"，不做"录入"</li>
+      <li>最终实现一键自动填写广西职称网</li>
+    </ul>
+  </div>
+</div>
+
+<h3>1.3 工作量对比</h3>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>环节</th><th>传统方式（中介手动）</th><th>本系统目标</th><th>节省比例</th></tr></thead>
+  <tbody>
+    <tr><td>基本信息录入</td><td>手动查看身份证逐字填写</td><td>OCR自动提取，秒级完成</td><td class="done">~95%</td></tr>
+    <tr><td>学历职称信息</td><td>手动查看各类证书填写</td><td>OCR自动提取，人工确认</td><td class="done">~80%</td></tr>
+    <tr><td>社保信息</td><td>手动数月份、计算总数</td><td>OCR + 规则自动计算</td><td class="done">~90%</td></tr>
+    <tr><td>工程业绩</td><td>手动整理多份材料填写</td><td>OCR辅助提取 + 人工确认</td><td class="warn">~50%</td></tr>
+    <tr><td>在线填报</td><td>逐页手动填写（2-3小时/人）</td><td>自动填报（15-30分钟/人）</td><td class="done">~85%</td></tr>
+    <tr><td><strong>综合估算</strong></td><td><strong>每位客户约 3-4 小时</strong></td><td><strong>每位客户约 30-45 分钟</strong></td><td class="done">~75%</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>1.4 使用场景</h3>
+<ol>
+  <li>为新客户创建档案，根据其条件生成个性化材料清单</li>
+  <li>发送清单给客户，收集材料后存入本地目录</li>
+  <li>批量 OCR 处理客户证件，自动填入档案</li>
+  <li>资格预审，提前发现不满足条件的问题</li>
+  <li>辅助或自动完成广西职称网在线填报</li>
+  <li>跟踪申报进度、费用收款和最终结果</li>
+</ol>
+
+<!-- ══════════════════════════════════════════════ -->
+<h2 id="ch2"><span class="sec-num">第二章</span>核心业务流程</h2>
+
+<p>整个流程分为 10 个阶段，覆盖从政策解析到结果归档的完整生命周期。</p>
+
+<div class="flow">
+
+  <div class="flow-item">
+    <div class="flow-left"><div class="flow-num">0</div><div class="flow-line"></div></div>
+    <div class="flow-body">
+      <div class="flow-title">政策文件解析（年度更新）</div>
+      <div class="flow-desc">上传新一年申报通知文件（PDF/Word）→ AI 解析申报条件、材料要求、截止日期 → 自动更新材料清单模板和资格规则库。每年申报季开始前执行一次。</div>
+      <div class="flow-tags"><span class="badge badge-blue">AI解析</span><span class="badge badge-gray">年度任务</span></div>
+    </div>
+  </div>
+
+  <div class="flow-item">
+    <div class="flow-left"><div class="flow-num">1</div><div class="flow-line"></div></div>
+    <div class="flow-body">
+      <div class="flow-title">创建申报人 + 智能生成材料清单</div>
+      <div class="flow-desc">录入客户基本信息（姓名、现职称级别、学历、目标级别、申报批次）→ 系统根据政策规则生成个性化材料清单（专科比本科多2项、不同级别要求不同）。</div>
+      <div class="flow-tags"><span class="badge badge-blue">规则引擎</span><span class="badge badge-green">个性化清单</span></div>
+    </div>
+  </div>
+
+  <div class="flow-item">
+    <div class="flow-left"><div class="flow-num">2</div><div class="flow-line"></div></div>
+    <div class="flow-body">
+      <div class="flow-title">创建本地目录结构</div>
+      <div class="flow-desc">在本地硬盘自动创建标准化目录（可配置根路径），用于存放客户所有原始材料文件。</div>
+      <pre>/clients/2026/张三_高级工程师/
+  ├── 00_资料清单.pdf
+  ├── 01_身份证/
+  ├── 02_学历证书/
+  ├── 03_学位证书/
+  ├── 04_职称证书/
+  ├── 05_社保记录/
+  ├── 06_在职证明/
+  ├── 07_注册证书/
+  ├── 08_工程业绩/
+  ├── 09_论文著作/
+  ├── 10_获奖证书/
+  ├── 11_继续教育/
+  └── 99_其他材料/</pre>
+      <div class="flow-tags"><span class="badge badge-gray">自动创建</span></div>
+    </div>
+  </div>
+
+  <div class="flow-item">
+    <div class="flow-left"><div class="flow-num">3</div><div class="flow-line"></div></div>
+    <div class="flow-body">
+      <div class="flow-title">向客户发送材料清单</div>
+      <div class="flow-desc">导出两种格式：<br>
+        • <strong>PDF打印版</strong>：含每项材料的具体要求（格式、时效、是否盖章等）<br>
+        • <strong>纯文字版</strong>：直接复制粘贴发送微信，方便客户查看</div>
+      <div class="flow-tags"><span class="badge badge-green">PDF导出</span><span class="badge badge-green">文字版导出</span></div>
+    </div>
+  </div>
+
+  <div class="flow-item">
+    <div class="flow-left"><div class="flow-num">4</div><div class="flow-line"></div></div>
+    <div class="flow-body">
+      <div class="flow-title">材料收集跟踪（文件监听）</div>
+      <div class="flow-desc">系统监控客户目录的文件变化（Python watchdog），自动识别哪些材料已收到、哪些还缺失，生成催收提醒。客户把文件发来后，中介保存到对应子目录即触发更新。</div>
+      <div class="flow-tags"><span class="badge badge-blue">watchdog监听</span><span class="badge badge-orange">催收提醒</span></div>
+    </div>
+  </div>
+
+  <div class="flow-item">
+    <div class="flow-left"><div class="flow-num">5</div><div class="flow-line"></div></div>
+    <div class="flow-body">
+      <div class="flow-title">材料预检（质量验证）</div>
+      <div class="flow-desc">
+        • 图片清晰度检测（模糊自动提示重拍）<br>
+        • 材料有效期校验：社保需近3个月内、在职证明需6个月内<br>
+        • 完整性校验：身份证需正反面，缺一面提示<br>
+        • 文件格式检查（支持 JPG/PNG/PDF）
+      </div>
+      <div class="flow-tags"><span class="badge badge-orange">质量检测</span><span class="badge badge-orange">有效期验证</span></div>
+    </div>
+  </div>
+
+  <div class="flow-item">
+    <div class="flow-left"><div class="flow-num">6</div><div class="flow-line"></div></div>
+    <div class="flow-body">
+      <div class="flow-title">OCR 批量处理 + 人工复核</div>
+      <div class="flow-desc">按目录分类自动识别（身份证用腾讯云专用接口，其他用高精度通用接口）。输出置信度分数，低于阈值的字段标红。<br><br>
+        <strong>人工复核界面：</strong>左侧显示原始图片，右侧显示识别出的字段，绿色=高置信度，黄色=需确认，红色=识别失败。点击确认即写入档案。
+      </div>
+      <div class="flow-tags"><span class="badge badge-blue">腾讯云OCR</span><span class="badge badge-green">置信度评分</span><span class="badge badge-green">左图右字段</span></div>
+    </div>
+  </div>
+
+  <div class="flow-item">
+    <div class="flow-left"><div class="flow-num">7</div><div class="flow-line"></div></div>
+    <div class="flow-body">
+      <div class="flow-title">资格预审（提前发现问题）</div>
+      <div class="flow-desc">在正式提交前自动校验所有申报条件，生成预审报告：</div>
+      <pre style="margin-top:8px">✅ 资历年限：已满5年（5年3个月）— 达标
+✅ 学历要求：本科 — 达标
+❌ 社保月数：仅28个月，不足36个月 — 不达标
+⚠️ 论文：1篇（建议至少2篇，否则竞争力弱）
+⚠️ 继续教育：2024年度学时未录入</pre>
+      <div class="flow-tags"><span class="badge badge-red">提前发现问题</span><span class="badge badge-blue">预审报告</span></div>
+    </div>
+  </div>
+
+  <div class="flow-item">
+    <div class="flow-left"><div class="flow-num">8</div><div class="flow-line"></div></div>
+    <div class="flow-body">
+      <div class="flow-title">准备填报数据</div>
+      <div class="flow-desc">按广西职称网表单数据结构组织所有字段，生成填报预览页面（仿照官网样式展示最终内容），确认无误后进入自动填报。同时导出 JSON/Excel 备份，防止网站故障导致数据丢失。</div>
+      <div class="flow-tags"><span class="badge badge-green">填报预览</span><span class="badge badge-green">JSON备份</span></div>
+    </div>
+  </div>
+
+  <div class="flow-item">
+    <div class="flow-left"><div class="flow-num">9</div><div class="flow-line"></div></div>
+    <div class="flow-body">
+      <div class="flow-title">网上自动填报</div>
+      <div class="flow-desc">Playwright 驱动浏览器自动填写广西职称网，支持断点续传（记录每个模块的填报进度）。填报完成后截图存档，记录受理号。</div>
+      <pre style="margin-top:8px">填报进度记录：
+{"basic_info":"done","education":"done",
+ "work_exp":"done","achievements":"pending",
+ "papers":"not_started","submit":"not_started"}</pre>
+      <div class="flow-tags"><span class="badge badge-blue">Playwright</span><span class="badge badge-green">断点续传</span><span class="badge badge-green">截图存档</span></div>
+    </div>
+  </div>
+
+  <div class="flow-item">
+    <div class="flow-left"><div class="flow-num">10</div></div>
+    <div class="flow-body">
+      <div class="flow-title">后续跟踪与归档</div>
+      <div class="flow-desc">记录提交时间、受理号。定期查询广西职称网审核状态，结果出来后记录通过/未通过，完整归档客户材料和系统数据。</div>
+      <div class="flow-tags"><span class="badge badge-gray">进度查询</span><span class="badge badge-gray">结果归档</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<h2 id="ch3"><span class="sec-num">第三章</span>数据模型设计</h2>
+
+<div class="callout">
+  <div class="callout-title">设计原则</div>
+  所有字段均对标广西职称网实际填报表单。新增字段通过 <code>_migrate()</code> 向后兼容添加，不破坏现有数据。"来源方式"一列说明该字段如何获取，优先 OCR 自动提取。
+</div>
+
+<h3>3.1 申报人主表（applicants）</h3>
+
+<h4>① 基本信息组</h4>
+<div class="tbl-wrap"><table>
+  <thead><tr><th>字段名</th><th>类型</th><th>说明</th><th>来源方式</th><th>状态</th></tr></thead>
+  <tbody>
+    <tr><td>name</td><td>TEXT</td><td>姓名</td><td>身份证 OCR</td><td class="done">✅ 已有</td></tr>
+    <tr><td>id_card</td><td>TEXT</td><td>身份证号</td><td>身份证 OCR</td><td class="done">✅ 已有</td></tr>
+    <tr><td>gender</td><td>TEXT</td><td>性别</td><td>身份证 OCR</td><td class="done">✅ 已有</td></tr>
+    <tr><td>birth_date</td><td>TEXT</td><td>出生日期</td><td>身份证 OCR</td><td class="done">✅ 已有</td></tr>
+    <tr><td>ethnicity</td><td>TEXT</td><td>民族</td><td>身份证 OCR</td><td class="done">✅ 已有</td></tr>
+    <tr><td>phone</td><td>TEXT</td><td>手机号</td><td>人工录入</td><td class="done">✅ 已有</td></tr>
+    <tr><td>email</td><td>TEXT</td><td>电子邮箱</td><td>人工录入</td><td class="done">✅ 已有</td></tr>
+    <tr><td>photo_path</td><td>TEXT</td><td>证件照片本地路径</td><td>人工上传</td><td class="todo">🔲 待新增</td></tr>
+    <tr><td>politics</td><td>TEXT</td><td>政治面貌（党员/群众等）</td><td>人工录入</td><td class="todo">🔲 待新增</td></tr>
+    <tr><td>address</td><td>TEXT</td><td>通讯地址</td><td>身份证OCR（住址）</td><td class="todo">🔲 待新增</td></tr>
+  </tbody>
+</table></div>
+
+<h4>② 单位信息组</h4>
+<div class="tbl-wrap"><table>
+  <thead><tr><th>字段名</th><th>类型</th><th>说明</th><th>来源方式</th><th>状态</th></tr></thead>
+  <tbody>
+    <tr><td>work_unit</td><td>TEXT</td><td>工作单位全称</td><td>在职证明 OCR</td><td class="done">✅ 已有</td></tr>
+    <tr><td>work_unit_type</td><td>TEXT</td><td>单位性质</td><td>人工选择</td><td class="done">✅ 已有</td></tr>
+    <tr><td>work_start_year</td><td>TEXT</td><td>参加工作年份</td><td>劳动合同 OCR</td><td class="done">✅ 已有</td></tr>
+    <tr><td>work_unit_addr</td><td>TEXT</td><td>单位地址</td><td>在职证明 OCR</td><td class="todo">🔲 待新增</td></tr>
+    <tr><td>work_unit_zip</td><td>TEXT</td><td>单位邮编</td><td>人工录入</td><td class="todo">🔲 待新增</td></tr>
+    <tr><td>work_unit_phone</td><td>TEXT</td><td>单位联系电话</td><td>在职证明 OCR</td><td class="todo">🔲 待新增</td></tr>
+    <tr><td>current_position</td><td>TEXT</td><td>现任职务</td><td>在职证明 OCR</td><td class="todo">🔲 待新增</td></tr>
+    <tr><td>current_specialty</td><td>TEXT</td><td>现从事专业</td><td>人工录入</td><td class="todo">🔲 待新增</td></tr>
+  </tbody>
+</table></div>
+
+<h4>③ 学历学位组</h4>
+<div class="tbl-wrap"><table>
+  <thead><tr><th>字段名</th><th>类型</th><th>说明</th><th>来源方式</th><th>状态</th></tr></thead>
+  <tbody>
+    <tr><td>education</td><td>TEXT</td><td>学历（大专/本科/硕士/博士）</td><td>毕业证 OCR</td><td class="done">✅ 已有</td></tr>
+    <tr><td>major</td><td>TEXT</td><td>所学专业</td><td>毕业证 OCR</td><td class="done">✅ 已有</td></tr>
+    <tr><td>school</td><td>TEXT</td><td>毕业院校</td><td>毕业证 OCR</td><td class="done">✅ 已有</td></tr>
+    <tr><td>graduation_year</td><td>TEXT</td><td>毕业年份（兼容旧数据）</td><td>毕业证 OCR</td><td class="done">✅ 已有</td></tr>
+    <tr><td>degree</td><td>TEXT</td><td>学位（学士/硕士/博士）</td><td>学位证 OCR</td><td class="todo">🔲 待新增</td></tr>
+    <tr><td>grad_month</td><td>TEXT</td><td>毕业年月 YYYY-MM</td><td>毕业证 OCR</td><td class="todo">🔲 待新增</td></tr>
+    <tr><td>study_mode</td><td>TEXT</td><td>学习形式（全日制/在职）</td><td>毕业证 OCR</td><td class="todo">🔲 待新增</td></tr>
+  </tbody>
+</table></div>
+
+<h4>④ 职称信息组</h4>
+<div class="tbl-wrap"><table>
+  <thead><tr><th>字段名</th><th>类型</th><th>说明</th><th>来源方式</th><th>状态</th></tr></thead>
+  <tbody>
+    <tr><td>title_level</td><td>TEXT</td><td>现职称等级</td><td>职称证 OCR</td><td class="done">✅ 已有</td></tr>
+    <tr><td>title_month</td><td>TEXT</td><td>取得年月 YYYY-MM</td><td>职称证 OCR</td><td class="done">✅ 已有</td></tr>
+    <tr><td>title_year</td><td>TEXT</td><td>取得年份（兼容旧数据）</td><td>职称证 OCR</td><td class="done">✅ 已有</td></tr>
+    <tr><td>title_specialty</td><td>TEXT</td><td>职称专业/类别</td><td>职称证 OCR</td><td class="todo">🔲 待新增</td></tr>
+    <tr><td>title_cert_no</td><td>TEXT</td><td>职称证书编号</td><td>职称证 OCR</td><td class="todo">🔲 待新增</td></tr>
+    <tr><td>title_issuer</td><td>TEXT</td><td>发证单位</td><td>职称证 OCR</td><td class="todo">🔲 待新增</td></tr>
+  </tbody>
+</table></div>
+
+<h3>3.2 工作经历表（work_experiences）— 新增</h3>
+<div class="tbl-wrap"><table>
+  <thead><tr><th>字段名</th><th>类型</th><th>说明</th><th>来源方式</th></tr></thead>
+  <tbody>
+    <tr><td>id</td><td>INTEGER PK</td><td>主键</td><td>—</td></tr>
+    <tr><td>applicant_id</td><td>INTEGER FK</td><td>关联申报人</td><td>—</td></tr>
+    <tr><td>start_date</td><td>TEXT</td><td>起始年月</td><td>劳动合同/在职证明 OCR</td></tr>
+    <tr><td>end_date</td><td>TEXT</td><td>截止年月（至今填空）</td><td>劳动合同/在职证明 OCR</td></tr>
+    <tr><td>work_unit</td><td>TEXT</td><td>工作单位</td><td>劳动合同 OCR</td></tr>
+    <tr><td>position</td><td>TEXT</td><td>担任职务</td><td>在职证明 OCR</td></tr>
+    <tr><td>witness</td><td>TEXT</td><td>证明人</td><td>人工录入</td></tr>
+  </tbody>
+</table></div>
+
+<h3>3.3 社保记录表（social_insurance）— 新增（关键）</h3>
+<div class="callout callout-warn">
+  <div class="callout-title">⚠️ 重要</div>
+  广西职称申报要求申报人近3年内在本地连续参保。社保月数不足是最常见的退件原因，必须在提交前自动验证。
+</div>
+<div class="tbl-wrap"><table>
+  <thead><tr><th>字段名</th><th>类型</th><th>说明</th><th>来源方式</th></tr></thead>
+  <tbody>
+    <tr><td>id</td><td>INTEGER PK</td><td>主键</td><td>—</td></tr>
+    <tr><td>applicant_id</td><td>INTEGER FK</td><td>关联申报人</td><td>—</td></tr>
+    <tr><td>insure_location</td><td>TEXT</td><td>参保地</td><td>社保记录单 OCR</td></tr>
+    <tr><td>insure_unit</td><td>TEXT</td><td>参保单位（缴费单位）</td><td>社保记录单 OCR</td></tr>
+    <tr><td>insure_start</td><td>TEXT</td><td>起始年月 YYYY-MM</td><td>社保记录单 OCR</td></tr>
+    <tr><td>insure_end</td><td>TEXT</td><td>截止年月 YYYY-MM</td><td>社保记录单 OCR</td></tr>
+    <tr><td>insure_months</td><td>INTEGER</td><td>总月数（系统自动计算）</td><td>系统计算</td></tr>
+  </tbody>
+</table></div>
+
+<h3>3.4 工程业绩表（achievements）— 扩展现有字段</h3>
+<p>在现有字段基础上新增：</p>
+<div class="tbl-wrap"><table>
+  <thead><tr><th>字段名</th><th>类型</th><th>说明</th><th>来源方式</th><th>状态</th></tr></thead>
+  <tbody>
+    <tr><td>permit_no</td><td>TEXT</td><td>施工许可证号</td><td>施工许可证 OCR</td><td class="todo">🔲 待新增</td></tr>
+    <tr><td>completion_cert_no</td><td>TEXT</td><td>竣工验收证号</td><td>竣工验收报告 OCR</td><td class="todo">🔲 待新增</td></tr>
+  </tbody>
+</table></div>
+
+<h3>3.5 继续教育表（edu_trainings）— 新增</h3>
+<div class="tbl-wrap"><table>
+  <thead><tr><th>字段名</th><th>类型</th><th>说明</th><th>备注</th></tr></thead>
+  <tbody>
+    <tr><td>id</td><td>INTEGER PK</td><td>主键</td><td>—</td></tr>
+    <tr><td>applicant_id</td><td>INTEGER FK</td><td>关联申报人</td><td>—</td></tr>
+    <tr><td>year</td><td>INTEGER</td><td>年度</td><td>广西建工类要求每年≥90学时</td></tr>
+    <tr><td>hours</td><td>INTEGER</td><td>学时数</td><td>系统自动累计并预警</td></tr>
+    <tr><td>institution</td><td>TEXT</td><td>培训机构</td><td>培训证书 OCR</td></tr>
+    <tr><td>course_name</td><td>TEXT</td><td>课程名称</td><td>培训证书 OCR</td></tr>
+  </tbody>
+</table></div>
+
+<h3>3.6 执业资格证书表（pro_certificates）— 新增</h3>
+<div class="tbl-wrap"><table>
+  <thead><tr><th>字段名</th><th>类型</th><th>说明</th><th>备注</th></tr></thead>
+  <tbody>
+    <tr><td>id</td><td>INTEGER PK</td><td>主键</td><td>—</td></tr>
+    <tr><td>applicant_id</td><td>INTEGER FK</td><td>关联申报人</td><td>—</td></tr>
+    <tr><td>cert_type</td><td>TEXT</td><td>证书类型</td><td>如：注册建造师、监理工程师</td></tr>
+    <tr><td>cert_no</td><td>TEXT</td><td>证书编号</td><td>注册证书 OCR</td></tr>
+    <tr><td>reg_no</td><td>TEXT</td><td>注册号</td><td>注册证书 OCR</td></tr>
+    <tr><td>specialty</td><td>TEXT</td><td>专业/类别</td><td>注册证书 OCR</td></tr>
+    <tr><td>valid_until</td><td>TEXT</td><td>有效期至</td><td>注册证书 OCR，临期自动提醒</td></tr>
+  </tbody>
+</table></div>
+
+<h3>3.7 材料文件表（materials）— 新增（核心）</h3>
+<div class="tbl-wrap"><table>
+  <thead><tr><th>字段名</th><th>类型</th><th>说明</th><th>备注</th></tr></thead>
+  <tbody>
+    <tr><td>id</td><td>INTEGER PK</td><td>主键</td><td>—</td></tr>
+    <tr><td>applicant_id</td><td>INTEGER FK</td><td>关联申报人</td><td>—</td></tr>
+    <tr><td>file_type</td><td>TEXT</td><td>文件类型枚举</td><td>id_card_front / degree / title_cert / social_insurance / ...</td></tr>
+    <tr><td>file_path</td><td>TEXT</td><td>本地文件路径</td><td>绝对路径</td></tr>
+    <tr><td>ocr_status</td><td>TEXT</td><td>OCR状态</td><td>pending / processing / done / failed</td></tr>
+    <tr><td>ocr_confidence</td><td>REAL</td><td>平均置信度 0-1</td><td>&lt;0.8 标红</td></tr>
+    <tr><td>ocr_result</td><td>TEXT</td><td>OCR原始结果（JSON）</td><td>完整保留，便于重新解析</td></tr>
+    <tr><td>confirmed_at</td><td>TEXT</td><td>人工确认时间</td><td>NULL=未确认</td></tr>
+    <tr><td>created_at</td><td>TEXT</td><td>文件入库时间</td><td>watchdog监听触发</td></tr>
+  </tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════ -->
+<h2 id="ch4"><span class="sec-num">第四章</span>原始材料与字段映射关系</h2>
+
+<p>以下列出客户需提交的所有材料类型，以及系统能从每种材料中自动提取的字段。</p>
+
+<div class="map-card">
+  <div class="map-doc">① 身份证（正面 + 反面）</div>
+  <div class="map-fields">
+    <span class="map-field">姓名</span><span class="map-field">身份证号</span><span class="map-field">性别</span>
+    <span class="map-field">出生日期</span><span class="map-field">民族</span><span class="map-field">住址（通讯地址）</span>
+  </div>
+  <div class="map-method">提取方式：腾讯云身份证专用OCR接口（识别率 >99%）✅ 已接入</div>
+</div>
+
+<div class="map-card">
+  <div class="map-doc">② 毕业证书</div>
+  <div class="map-fields">
+    <span class="map-field">学历</span><span class="map-field">毕业院校</span><span class="map-field">所学专业</span>
+    <span class="map-field">毕业时间</span><span class="map-field">学习形式</span>
+  </div>
+  <div class="map-method">提取方式：通用高精度OCR + 规则解析（关键词匹配）🔲 待开发</div>
+</div>
+
+<div class="map-card">
+  <div class="map-doc">③ 学位证书</div>
+  <div class="map-fields">
+    <span class="map-field">学位</span><span class="map-field">授予院校</span><span class="map-field">授予日期</span>
+  </div>
+  <div class="map-method">提取方式：通用OCR + 规则解析 🔲 待开发</div>
+</div>
+
+<div class="map-card">
+  <div class="map-doc">④ 现职称证书</div>
+  <div class="map-fields">
+    <span class="map-field">职称等级</span><span class="map-field">职称专业</span><span class="map-field">证书编号</span>
+    <span class="map-field">发证单位</span><span class="map-field">发证日期</span>
+  </div>
+  <div class="map-method">提取方式：通用OCR + 规则解析 🔲 待开发</div>
+</div>
+
+<div class="map-card" style="border-color:#fca5a5">
+  <div class="map-doc">⑤ 社保缴费记录打印单 ⚠️ 关键材料</div>
+  <div class="map-fields">
+    <span class="map-field">参保地</span><span class="map-field">参保单位</span><span class="map-field">参保起始年月</span>
+    <span class="map-field">参保截止年月</span><span class="map-field">总月数（自动计算）</span>
+  </div>
+  <div class="map-method">提取方式：通用OCR + 月份统计规则（广西人社局打印格式相对固定）🔲 待开发 | 注意：必须是近3个月内打印</div>
+</div>
+
+<div class="map-card">
+  <div class="map-doc">⑥ 在职证明 / 劳动合同</div>
+  <div class="map-fields">
+    <span class="map-field">工作单位全称</span><span class="map-field">现任职务</span><span class="map-field">入职时间</span>
+    <span class="map-field">单位地址</span><span class="map-field">单位电话</span>
+  </div>
+  <div class="map-method">提取方式：通用OCR + 规则解析 🔲 待开发</div>
+</div>
+
+<div class="map-card">
+  <div class="map-doc">⑦ 注册证书（注册建造师 / 监理工程师等）</div>
+  <div class="map-fields">
+    <span class="map-field">证书类型</span><span class="map-field">证书编号</span><span class="map-field">注册号</span>
+    <span class="map-field">专业</span><span class="map-field">有效期</span>
+  </div>
+  <div class="map-method">提取方式：通用OCR 🔲 待开发</div>
+</div>
+
+<div class="map-card">
+  <div class="map-doc">⑧ 获奖证书（每张单独上传）</div>
+  <div class="map-fields">
+    <span class="map-field">奖项名称</span><span class="map-field">颁奖单位</span><span class="map-field">获奖年份</span>
+  </div>
+  <div class="map-method">提取方式：通用OCR | 注：奖励级别（省部级/市厅级）需人工核对 🔲 待开发</div>
+</div>
+
+<div class="map-card">
+  <div class="map-doc">⑨ 论文首页（每篇单独上传）</div>
+  <div class="map-fields">
+    <span class="map-field">论文题目</span><span class="map-field">期刊名称</span><span class="map-field">发表时间</span>
+    <span class="map-field">作者姓名（排名）</span>
+  </div>
+  <div class="map-method">提取方式：通用OCR + 规则解析 | 注：期刊级别（核心/非核心）需人工判断 🔲 待开发</div>
+</div>
+
+<div class="map-card">
+  <div class="map-doc">⑩ 工程业绩相关材料（合同/竣工单/发票等）</div>
+  <div class="map-fields">
+    <span class="map-field">工程名称</span><span class="map-field">工程造价（部分）</span>
+    <span class="map-field">施工时间</span><span class="map-field">施工许可证号</span><span class="map-field">竣工验收证号</span>
+  </div>
+  <div class="map-method">提取方式：OCR辅助提取，人工整合（材料分散于多份文件）| 注：这30%需要人工处理的部分主要集中在此</div>
+</div>
+
+<div class="callout callout-warn" style="margin-top:16px">
+  <div class="callout-title">整体提取率估算</div>
+  约 <strong>70% 的字段</strong>可从原始材料中自动提取，人工只需快速确认；
+  约 <strong>30% 字段</strong>（主要是工程业绩详情和部分判断类字段）仍需人工录入或确认。
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<h2 id="ch5"><span class="sec-num">第五章</span>模块功能设计</h2>
+
+<h3>5.1 资料上传中心（核心新模块）</h3>
+<p>这是整个系统减负效果最显著的模块，是 Phase 3 的核心。</p>
+<ul>
+  <li>申报人详情页内嵌"资料上传"标签页</li>
+  <li>按证件类型分类上传（下拉选择文件类型）</li>
+  <li>上传后立即触发对应类型的 OCR 识别</li>
+  <li>人工复核界面：左侧显示原图，右侧展示识别字段</li>
+  <li>字段状态：🟢 高置信度自动确认 · 🟡 低置信度待确认 · 🔴 识别失败需人工输入</li>
+  <li>点击"确认导入"→ 字段写入对应数据库，无需重复填写</li>
+</ul>
+
+<h3>5.2 智能材料清单生成</h3>
+<ul>
+  <li>根据申报条件动态生成：现职称级别 + 目标级别 + 学历 → 不同清单</li>
+  <li>每项材料附带具体要求说明（格式、时效、是否需盖章、复印件数量）</li>
+  <li>导出格式：PDF（A4打印版）+ 纯文本（微信转发版）</li>
+  <li>清单模板随政策文件年度更新</li>
+</ul>
+
+<h3>5.3 本地目录管理 + 文件监听</h3>
+<ul>
+  <li>系统设置中配置"客户材料根目录"（如 D:\职称材料）</li>
+  <li>创建申报人时自动生成标准子目录结构</li>
+  <li>Python watchdog 监听目录变化：新文件进入时自动更新材料收集状态</li>
+  <li>材料收集状态看板：绿色=已收 · 橙色=已催 · 红色=未收</li>
+</ul>
+
+<h3>5.4 资格预审引擎</h3>
+<ul>
+  <li>资历年限计算（从次月起算，已实现）</li>
+  <li>社保月数自动验证（新增，与广西要求比对）</li>
+  <li>学历+学位要求验证</li>
+  <li>论文/获奖条件最低要求验证</li>
+  <li>继续教育学时验证</li>
+  <li>输出预审报告，颜色标注，可导出 PDF 发给客户确认</li>
+</ul>
+
+<h3>5.5 填报数据准备</h3>
+<ul>
+  <li>按广西职称网实际表单结构（经过页面分析）组织所有字段</li>
+  <li>填报预览：仿照官网样式展示最终填报效果</li>
+  <li>导出 JSON 备份（防止网站故障）</li>
+  <li>字段映射配置化（官网表单变化时只需更新配置，无需改代码）</li>
+</ul>
+
+<h3>5.6 自动填报（Playwright）</h3>
+<ul>
+  <li>Playwright Python 驱动 Chromium/Edge 浏览器</li>
+  <li>分模块填报，每完成一个模块记录状态（断点续传）</li>
+  <li>截图存档：每个关键步骤保存截图</li>
+  <li>验证码处理策略：
+    <ul>
+      <li>图形验证码 → 接入打码平台API（如超级鹰）</li>
+      <li>短信验证码 → 弹窗提示中介手动输入，10分钟超时</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>5.7 进度看板（优化现有）</h3>
+<ul>
+  <li>申报人列表显示当前所处流程阶段（10阶段图标）</li>
+  <li>批次管理：截止日期预警（已实现）</li>
+  <li>费用收款状态跟踪</li>
+  <li>工作台跟进提醒（已实现）</li>
+</ul>
+
+<!-- ══════════════════════════════════════════════ -->
+<h2 id="ch6"><span class="sec-num">第六章</span>技术架构</h2>
+
+<h3>6.1 技术栈</h3>
+<div class="tbl-wrap"><table>
+  <thead><tr><th>层次</th><th>技术选型</th><th>说明</th></tr></thead>
+  <tbody>
+    <tr><td>Web框架</td><td>Python 3.x + Flask 3.x</td><td>Blueprint架构，11个蓝图</td></tr>
+    <tr><td>数据库</td><td>SQLite（WAL模式）</td><td>_migrate() 向后兼容扩展字段</td></tr>
+    <tr><td>前端</td><td>Vanilla JS + 自定义CSS</td><td>无外部框架依赖，轻量快速</td></tr>
+    <tr><td>OCR</td><td>腾讯云OCR API v3</td><td>身份证专用接口 + 通用高精度接口</td></tr>
+    <tr><td>文件监听</td><td>Python watchdog</td><td>监听本地目录变化</td></tr>
+    <tr><td>自动填报</td><td>Playwright（Python）</td><td>浏览器自动化，支持Chromium</td></tr>
+    <tr><td>AI写作/解析</td><td>DeepSeek API（OpenAI兼容）</td><td>政策文件解析、AI辅助写作</td></tr>
+    <tr><td>Word导出</td><td>python-docx</td><td>生成.docx格式申报材料</td></tr>
+    <tr><td>Excel导出</td><td>openpyxl</td><td>申报人列表、费用报表导出</td></tr>
+    <tr><td>PDF生成</td><td>reportlab / weasyprint</td><td>材料清单、预审报告</td></tr>
+  </tbody>
+</table></div>
+
+<h3>6.2 运行环境</h3>
+<ul>
+  <li>本地单机运行（Windows 为主，兼容 macOS/Linux）</li>
+  <li>Flask 开发服务器，浏览器访问 <code>http://localhost:5000</code></li>
+  <li>不需要公网服务器，数据完全本地存储</li>
+  <li>所有客户材料文件保存在本地硬盘，路径可配置</li>
+</ul>
+
+<h3>6.3 目录结构</h3>
+<pre>职称申报系统/
+├── app.py                  # 入口，注册蓝图
+├── config.py               # 配置（API密钥、客户目录根路径等）
+├── database/
+│   ├── db.py               # 数据库连接 + _migrate()（自动扩展字段）
+│   └── models.py           # 所有数据库操作函数
+├── routes/                 # 蓝图（每个模块一个文件）
+│   ├── dashboard.py        # 工作台
+│   ├── applicants.py       # 申报人管理
+│   ├── projects.py         # 项目管理
+│   ├── batches.py          # 批次管理
+│   ├── fees.py             # 费用报表
+│   ├── docs.py             # 材料目录
+│   ├── ocr.py              # OCR识别入口
+│   ├── materials.py        # 资料上传中心（新增）
+│   ├── ai_writer.py        # AI辅助写作
+│   ├── auto_fill.py        # 自动填报
+│   ├── img_proc.py         # 图像处理
+│   └── settings.py         # 系统设置
+├── core/                   # 业务逻辑
+│   ├── ai_writer.py        # DeepSeek流式写作
+│   ├── ocr_engine.py       # OCR处理 + 字段映射（新增）
+│   ├── field_parser.py     # 各类证件字段解析规则（新增）
+│   ├── file_watcher.py     # 目录监听（新增）
+│   ├── qualifier.py        # 资格预审引擎（新增）
+│   ├── checklist.py        # 材料清单生成（新增）
+│   └── auto_filler.py      # Playwright自动填报（新增）
+├── static/
+│   ├── css/style.css
+│   └── js/main.js
+└── templates/              # Jinja2模板
+    ├── base.html
+    ├── dashboard.html
+    ├── applicants/
+    ├── projects/
+    ├── batches/
+    ├── fees/
+    ├── materials/          # 资料上传中心模板（新增）
+    ├── ocr/
+    ├── ai/
+    └── settings/</pre>
+
+<!-- ══════════════════════════════════════════════ -->
+<h2 id="ch7"><span class="sec-num">第七章</span>开发路线图</h2>
+
+<h3>Phase 1：基础数据层（已完成约65%）</h3>
+<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px">
+  <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">申报人CRUD（列表/新增/编辑/删除/详情）</span><span class="ri-phase">Phase 1</span></div>
+  <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">工程业绩 / 获奖 / 论文 / 沟通记录 CRUD</span><span class="ri-phase">Phase 1</span></div>
+  <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">批次管理 + 截止日期预警（双截止日期）</span><span class="ri-phase">Phase 1</span></div>
+  <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">费用报表（收款状态跟踪）</span><span class="ri-phase">Phase 1</span></div>
+  <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">工作台进度看板（5阶段进度条）</span><span class="ri-phase">Phase 1</span></div>
+  <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">跟进提醒（工作台 + 逾期/当日预警）</span><span class="ri-phase">Phase 1</span></div>
+  <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">资历年限自动计算（从次月起算）</span><span class="ri-phase">Phase 1</span></div>
+  <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">身份证 OCR（腾讯云接入）</span><span class="ri-phase">Phase 1</span></div>
+  <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">AI 辅助写作（DeepSeek 流式输出）</span><span class="ri-phase">Phase 1</span></div>
+  <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">Excel 申报人导出</span><span class="ri-phase">Phase 1</span></div>
+  <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">移动端适配（汉堡菜单 + 响应式布局）</span><span class="ri-phase">Phase 1</span></div>
+</div>
+
+<h3>Phase 2：字段扩展（对标广西职称网）— 下一步</h3>
+<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px">
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">申报人表新增字段（政治面貌/单位详情/学位/学习形式等）</span><span class="ri-phase">Phase 2</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">职称信息新增字段（职称专业/证书编号/发证单位）</span><span class="ri-phase">Phase 2</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">工作经历模块（独立表 + CRUD）</span><span class="ri-phase">Phase 2</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">社保信息模块（含月数自动计算 + 达标验证）</span><span class="ri-phase">Phase 2</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">继续教育模块（学时统计 + 年度达标检查）</span><span class="ri-phase">Phase 2</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">执业资格证书模块（含临期提醒）</span><span class="ri-phase">Phase 2</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">证件照片上传 + 显示</span><span class="ri-phase">Phase 2</span></div>
+</div>
+
+<h3>Phase 3：资料上传中心（核心减负模块）</h3>
+<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px">
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">多类型证件上传入口（含类型选择）</span><span class="ri-phase">Phase 3</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">各类证件OCR识别（毕业证/职称证/社保单等）</span><span class="ri-phase">Phase 3</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">字段解析规则库（field_parser.py）</span><span class="ri-phase">Phase 3</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">人工复核界面（左图右字段 + 置信度标色）</span><span class="ri-phase">Phase 3</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">一键确认导入（字段写入数据库）</span><span class="ri-phase">Phase 3</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">材料文件表（materials）CRUD</span><span class="ri-phase">Phase 3</span></div>
+</div>
+
+<h3>Phase 4：智能材料清单 + 目录管理</h3>
+<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px">
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">本地客户目录自动创建（标准结构）</span><span class="ri-phase">Phase 4</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">文件监听（watchdog 自动感知材料入库）</span><span class="ri-phase">Phase 4</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">个性化材料清单生成（规则引擎）</span><span class="ri-phase">Phase 4</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">清单导出：PDF版 + 微信文字版</span><span class="ri-phase">Phase 4</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">材料收集状态看板（已收/未收/已催）</span><span class="ri-phase">Phase 4</span></div>
+</div>
+
+<h3>Phase 5：资格预审引擎</h3>
+<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px">
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">社保月数自动验证（对标政策要求）</span><span class="ri-phase">Phase 5</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">多条件联合预审（学历+资历+社保+论文）</span><span class="ri-phase">Phase 5</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">预审报告生成（PDF导出）</span><span class="ri-phase">Phase 5</span></div>
+</div>
+
+<h3>Phase 6：填报数据准备 + 自动填报</h3>
+<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px">
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">广西职称网表单结构分析（字段映射配置）</span><span class="ri-phase">Phase 6</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">填报预览页面</span><span class="ri-phase">Phase 6</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">Playwright 自动填报脚本</span><span class="ri-phase">Phase 6</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">断点续传机制</span><span class="ri-phase">Phase 6</span></div>
+  <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">截图存档 + 受理号记录</span><span class="ri-phase">Phase 6</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<h2 id="ch8"><span class="sec-num">第八章</span>待确认事项</h2>
+
+<p>以下问题需要业务方确认后，才能确定对应模块的技术方案。</p>
+
+<div class="tbl-wrap"><table>
+  <thead><tr><th>#</th><th>问题</th><th>影响模块</th><th>状态</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>广西职称网登录和填报过程中是否有验证码？是图形验证码还是短信验证码？</td>
+      <td>自动填报</td>
+      <td><span class="badge badge-orange">待确认</span></td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>广西职称网是否有API接口或接口文档？还是只能通过页面操作？</td>
+      <td>自动填报</td>
+      <td><span class="badge badge-orange">待确认</span></td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>广西社保记录打印单的格式是否固定（广西人社局统一格式）？是否有电子版PDF可导出？</td>
+      <td>社保OCR解析</td>
+      <td><span class="badge badge-orange">待确认</span></td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>材料清单是否每年随新政策文件更新？由谁负责上传新政策文件到系统？</td>
+      <td>政策解析、清单生成</td>
+      <td><span class="badge badge-orange">待确认</span></td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>客户材料主要通过哪种方式传送给中介？微信？邮件？现场扫描？</td>
+      <td>文件监听、上传流程</td>
+      <td><span class="badge badge-orange">待确认</span></td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>系统是否只有一位中介使用（单用户）？还是多人共用（需要账号区分）？</td>
+      <td>认证、权限</td>
+      <td><span class="badge badge-orange">待确认</span></td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>自动填报时，中介需要在旁边监督（处理验证码等）还是希望完全无人值守？</td>
+      <td>自动填报体验设计</td>
+      <td><span class="badge badge-orange">待确认</span></td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>广西职称网是否有申报进度公示页面可以查询审核状态？</td>
+      <td>后续跟踪</td>
+      <td><span class="badge badge-orange">待确认</span></td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>工程业绩材料（合同/竣工单）客户会提供原件扫描还是电子版？格式是否统一？</td>
+      <td>业绩OCR、人工录入判断</td>
+      <td><span class="badge badge-orange">待确认</span></td>
+    </tr>
+    <tr>
+      <td>10</td>
+      <td>本地客户目录的根路径，中介希望放在哪里（D盘？NAS？移动硬盘？）？</td>
+      <td>目录管理、文件监听</td>
+      <td><span class="badge badge-orange">待确认</span></td>
+    </tr>
+  </tbody>
+</table></div>
+
+<footer>
+  <p>职称申报管理系统 · 开发需求文档 v2.0 · 2026-06-18</p>
+  <p style="margin-top:4px">草稿版本，待业务确认后转为正式需求基线</p>
+</footer>
+
+</main>
+
+<script>
+// 导航高亮
+const links = document.querySelectorAll('.nav-link');
+const heads = document.querySelectorAll('h2[id]');
+window.addEventListener('scroll', () => {
+  let cur = '';
+  heads.forEach(h => { if (h.offsetTop - 80 <= window.scrollY) cur = h.id; });
+  links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + cur));
+}, {passive: true});
+</script>
+</body>
+</html>
