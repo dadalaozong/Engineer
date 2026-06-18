@@ -4,93 +4,135 @@
 {% block content %}
 
 {% set pid = project.id %}
+{% set aid = applicant.id %}
 
+<!-- 顶部摘要 -->
 <div class="card" style="margin-bottom:16px">
   <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
     <div>
       <div style="font-size:18px;font-weight:700;color:#1e293b">{{ applicant.name or '—' }}</div>
       <div style="font-size:13px;color:#64748b;margin-top:2px">
-        申报：{{ project.apply_level or '—' }}
+        申报：<strong>{{ project.apply_level or '—' }}</strong>
         {% if project.batch_year %} · {{ project.batch_year }}年度{% endif %}
+        {% if project.committee %} · {{ project.committee }}{% endif %}
       </div>
     </div>
     <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
       <a href="{{ url_for('projects.checklist_download', pid=pid) }}" class="btn btn-primary">⬇ 下载Word清单</a>
-      <a href="{{ url_for('projects.list_page') }}" class="btn btn-outline btn-sm">← 返回列表</a>
+      <a href="{{ url_for('applicants.folder_scan', aid=aid) }}" class="btn btn-outline btn-sm">📂 资料目录</a>
+      <a href="{{ url_for('projects.list_page') }}" class="btn btn-outline btn-sm">← 返回</a>
     </div>
   </div>
 </div>
 
-{% set received = materials | selectattr('name') | list %}
-{% set found_count = file_status.values() | list | select | list | length %}
-{% set total = materials | length %}
-{% set must = materials | selectattr('required') | list %}
-{% set must_ok = [] %}
-{% for m in must %}{% if file_status.get(m.name) %}{% set _ = must_ok.append(1) %}{% endif %}{% endfor %}
+<!-- 统计卡 -->
+{% set file_items = materials | selectattr('fill', 'equalto', 'file') | list %}
+{% set need_count = file_items | length %}
+{% set done_count = file_items | selectattr('name') | list | selectattr('name') | map(attribute='name') | list %}
+{% set ok_count = namespace(v=0) %}
+{% for m in file_items %}{% if file_status.get(m.name) %}{% set ok_count.v = ok_count.v + 1 %}{% endif %}{% endfor %}
+{% set must_items = file_items | selectattr('required') | list %}
+{% set must_ok = namespace(v=0) %}
+{% for m in must_items %}{% if file_status.get(m.name) %}{% set must_ok.v = must_ok.v + 1 %}{% endif %}{% endfor %}
 
-<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-  <div class="card" style="flex:1;min-width:140px;padding:14px 18px;text-align:center">
-    <div style="font-size:28px;font-weight:700;color:#2563eb">{{ found_count }}</div>
-    <div style="font-size:12px;color:#64748b">已到位文件</div>
+<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+  <div class="card" style="flex:1;min-width:130px;padding:14px 18px;text-align:center">
+    <div style="font-size:26px;font-weight:700;color:#2563eb">{{ ok_count.v }}/{{ need_count }}</div>
+    <div style="font-size:12px;color:#64748b">扫描件已到位</div>
   </div>
-  <div class="card" style="flex:1;min-width:140px;padding:14px 18px;text-align:center">
-    <div style="font-size:28px;font-weight:700;color:#64748b">{{ total }}</div>
-    <div style="font-size:12px;color:#64748b">材料总项</div>
-  </div>
-  <div class="card" style="flex:1;min-width:140px;padding:14px 18px;text-align:center">
-    <div style="font-size:28px;font-weight:700;color:{{ '#16a34a' if must_ok|length == must|length else '#dc2626' }}">
-      {{ must_ok|length }}/{{ must|length }}
+  <div class="card" style="flex:1;min-width:130px;padding:14px 18px;text-align:center">
+    <div style="font-size:26px;font-weight:700;color:{{ '#16a34a' if must_ok.v == must_items|length else '#dc2626' }}">
+      {{ must_ok.v }}/{{ must_items|length }}
     </div>
-    <div style="font-size:12px;color:#64748b">必要材料到位</div>
+    <div style="font-size:12px;color:#64748b">必填扫描件到位</div>
+  </div>
+  <div class="card" style="flex:1;min-width:130px;padding:14px 18px;text-align:center">
+    <div style="font-size:26px;font-weight:700;color:#16a34a">{{ materials | selectattr('fill','equalto','auto') | list | length }}</div>
+    <div style="font-size:12px;color:#64748b">系统自动填写项</div>
   </div>
 </div>
 
-<div class="table-card">
-  <div class="table-header">
-    <span class="table-header-title">材料清单（{{ project.apply_level or '职称' }}申报）</span>
+{% if not applicant.folder_path %}
+<div class="card" style="margin-bottom:14px;border:1px solid #fde68a;background:#fffbeb;padding:10px 16px">
+  <div style="font-size:13px;color:#92400e">
+    ⚠ 该申报人尚未创建本地资料目录，文件到位状态无法检测。
+    <a href="{{ url_for('applicants.folder_scan', aid=aid) }}" style="color:#d97706;font-weight:600">立即创建 →</a>
+  </div>
+</div>
+{% endif %}
+
+<!-- 按 Tab 分组展示 -->
+{% set current_tab = namespace(v='') %}
+{% for m in materials %}
+{% if m.tab != current_tab.v %}
+{% set current_tab.v = m.tab %}
+
+<div class="table-card" style="margin-bottom:14px">
+  <div class="table-header" style="display:flex;align-items:center;gap:10px">
+    <span class="badge badge-blue" style="font-size:11px">{{ m.tab }}</span>
+    <span class="table-header-title">{{ m.tab_name }}</span>
+    {% if m.folder %}
+    <span style="font-size:11px;color:#94a3b8;font-family:monospace;margin-left:auto">📁 {{ m.folder }}/</span>
+    {% endif %}
   </div>
   <table>
     <thead>
       <tr>
-        <th style="width:40px">#</th>
+        <th style="width:40px">状态</th>
         <th>材料名称</th>
-        <th style="width:80px">类型</th>
-        <th style="width:60px">份数</th>
-        <th style="width:80px">文件状态</th>
-        <th>备注</th>
+        <th style="width:70px">填写方式</th>
+        <th style="width:70px">类型</th>
+        <th>说明</th>
       </tr>
     </thead>
     <tbody>
-      {% for m in materials %}
+{% endif %}
       {% set found = file_status.get(m.name, false) %}
-      <tr style="background:{{ 'rgba(220,38,38,.04)' if m.required and not found else '' }}">
-        <td style="color:#94a3b8;font-size:12px">{{ loop.index }}</td>
+      <tr style="background:{{ 'rgba(220,38,38,.04)' if m.required and not found and m.fill=='file' else '' }}">
+        <td style="text-align:center;font-size:16px">
+          {% if m.fill in ('auto','ai') %}
+            <span title="系统处理">🔄</span>
+          {% elif found %}✅
+          {% elif m.required %}❌
+          {% else %}—{% endif %}
+        </td>
         <td style="font-weight:600;font-size:13px">{{ m.name }}</td>
+        <td style="text-align:center">
+          {% if m.fill == 'auto' %}
+          <span class="badge badge-gray" title="从数据库自动填写">自动填写</span>
+          {% elif m.fill == 'ai' %}
+          <span class="badge" style="background:#ede9fe;color:#7c3aed">AI生成</span>
+          {% else %}
+          <span class="badge badge-orange">需扫描件</span>
+          {% endif %}
+        </td>
         <td>
+          {% if m.fill == 'file' %}
           <span class="badge {{ 'badge-red' if m.required else 'badge-gray' }}">
             {{ '必须' if m.required else '可选' }}
           </span>
-        </td>
-        <td style="font-size:13px;color:#475569">{{ m.copies or 1 }} 份</td>
-        <td style="text-align:center;font-size:16px">
-          {% if found %}✅{% elif m.required %}❌{% else %}—{% endif %}
+          {% endif %}
         </td>
         <td style="font-size:12px;color:#64748b">{{ m.note or '' }}</td>
       </tr>
-      {% else %}
-      <tr><td colspan="6" class="text-muted" style="text-align:center;padding:24px">暂无材料要求</td></tr>
-      {% endfor %}
+{% if loop.last or materials[loop.index].tab != m.tab %}
     </tbody>
   </table>
 </div>
+{% endif %}
+{% endfor %}
 
-{% if not applicant.folder_path %}
-<div class="card" style="margin-top:14px;border:1px solid #fde68a;background:#fffbeb">
-  <div style="font-size:13px;color:#92400e">
-    ⚠ 该申报人尚未创建资料目录，文件状态列均显示"—"。
-    <a href="{{ url_for('applicants.folder_scan', aid=applicant.id) }}">前往创建资料目录</a>
+<!-- 操作建议 -->
+<div class="card" style="margin-top:4px">
+  <div class="section-title">📋 操作说明</div>
+  <div style="font-size:13px;color:#334155;line-height:2">
+    <div>🔄 <strong>自动填写</strong>：系统从申报人档案数据自动填入网站表单，无需提供扫描件</div>
+    <div>🟠 <strong>需扫描件</strong>：需将对应材料扫描后放入本地资料目录对应子文件夹</div>
+    <div>🟣 <strong>AI生成</strong>：由AI写作模块生成工作总结，导出Word后放入 <code>12_工作总结/</code></div>
+    <div style="margin-top:8px;color:#64748b">
+      文件夹编号与广西职称网左侧菜单Tab编号一致，方便逐Tab核对。
+    </div>
   </div>
 </div>
-{% endif %}
 
 {% endblock %}

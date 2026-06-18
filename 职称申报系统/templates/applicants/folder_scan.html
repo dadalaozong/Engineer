@@ -6,10 +6,11 @@
 {% set aid = applicant.id %}
 
 {% set CERT_LABELS = {
-  'id_card':'身份证','degree':'学历证','title':'职称证',
-  'pro_cert':'执业资格','social_insurance':'社保记录',
-  'edu_training':'继续教育','achievement':'工程业绩',
-  'award':'获奖证书','paper':'论文著作','annual_review':'年度考核'
+  'id_card':'Tab1·基本信息','degree':'Tab2·学历学位',
+  'title':'Tab4·职称证书','pro_cert':'Tab5·执业资格',
+  'social_insurance':'Tab6·社保记录','edu_training':'Tab7·继续教育',
+  'achievement':'Tab8·工程业绩','award':'Tab9·获奖证书',
+  'paper':'Tab10·论文著作','annual_review':'Tab11·年度考核'
 } %}
 
 <!-- 顶部信息栏 -->
@@ -85,10 +86,15 @@
     <br><br>
     <strong>子目录说明：</strong>
     <ul style="margin-top:8px;font-size:13px">
-      {% for name, cert_type in subfolders %}
+      {% for name, cert_type, desc in subfolders %}
       <li style="margin-bottom:4px">
         <code>{{ name }}/</code>
-        {% if cert_type %}— 自动识别为"{{ CERT_LABELS.get(cert_type, cert_type) }}"{% endif %}
+        {% if cert_type %}
+        — 自动OCR识别
+        {% else %}
+        — 仅归档，无需识别
+        {% endif %}
+        <span style="color:#94a3b8;font-size:11px">（{{ desc }}）</span>
       </li>
       {% endfor %}
     </ul>

@@ -140,50 +140,187 @@ def checker_page():
     projects = list_projects()
     return render_template("projects/checker.html", projects=projects)
 
-# Material checklists per apply level
+# ── 材料清单（按广西职称网左侧菜单Tab结构）────────────────────────
+#
+# fill: "auto"  = 系统从数据库自动填写，无需提供扫描件
+#       "file"  = 需申报人提供扫描件放入对应目录
+#       "ai"    = 由AI写作模块生成
+#
+# folder: 对应 core/folder_manager.py SUBFOLDERS 中的目录名
+#
+# required_for: 哪些申报级别是必填项（空列表=所有级别）
+#
+_TAB_MATERIALS = [
+    {
+        "tab": "Tab1",
+        "tab_name": "基本信息",
+        "folder": "01_基本信息",
+        "items": [
+            {"name": "身份证（正反面）",   "fill": "file", "required_for": [],
+             "note": "放入01_基本信息目录，OCR自动识别姓名、身份证号、民族、地址"},
+            {"name": "近期免冠照片",       "fill": "file", "required_for": [],
+             "note": "证件照，白底或蓝底，JPG格式"},
+            {"name": "姓名/性别/出生日期等基础字段", "fill": "auto", "required_for": [],
+             "note": "从申报人档案自动填写"},
+        ],
+    },
+    {
+        "tab": "Tab2",
+        "tab_name": "学历学位",
+        "folder": "02_学历学位",
+        "items": [
+            {"name": "最高学历证书",       "fill": "file", "required_for": [],
+             "note": "放入02_学历学位目录，OCR识别学校/专业/毕业年份"},
+            {"name": "学位证书",           "fill": "file", "required_for": ["高级工程师", "正高级工程师"],
+             "note": "有学位的必须提供"},
+            {"name": "学历/学校/专业字段", "fill": "auto", "required_for": [],
+             "note": "OCR识别后自动填写"},
+        ],
+    },
+    {
+        "tab": "Tab3",
+        "tab_name": "工作经历",
+        "folder": "03_工作经历",
+        "items": [
+            {"name": "工作经历（逐行填表）", "fill": "auto", "required_for": [],
+             "note": "工作经历 数据自动填写，无需扫描件"},
+            {"name": "在职证明（可选）",    "fill": "file", "required_for": [],
+             "note": "部分评委会要求，可放入03_工作经历目录备用"},
+        ],
+    },
+    {
+        "tab": "Tab4",
+        "tab_name": "现职称情况",
+        "folder": "04_职称证书",
+        "items": [
+            {"name": "现职称证书",         "fill": "file", "required_for": [],
+             "note": "放入04_职称证书目录，OCR识别职称级别/证书编号/取证年月"},
+            {"name": "职称信息字段",       "fill": "auto", "required_for": [],
+             "note": "OCR识别后自动填写"},
+        ],
+    },
+    {
+        "tab": "Tab5",
+        "tab_name": "执业资格",
+        "folder": "05_执业资格",
+        "items": [
+            {"name": "注册证书（如有）",   "fill": "file", "required_for": [],
+             "note": "注册建造师/监理工程师等，放入05_执业资格目录"},
+        ],
+    },
+    {
+        "tab": "Tab6",
+        "tab_name": "社保记录",
+        "folder": "06_社保记录",
+        "items": [
+            {"name": "社保缴纳证明/截图",  "fill": "file", "required_for": [],
+             "note": "需体现参保单位和起止时间，OCR自动解析时段"},
+            {"name": "社保记录（逐行）",   "fill": "auto", "required_for": [],
+             "note": "社保记录 数据自动填写"},
+        ],
+    },
+    {
+        "tab": "Tab7",
+        "tab_name": "继续教育",
+        "folder": "07_继续教育",
+        "items": [
+            {"name": "继续教育/培训证书",  "fill": "file", "required_for": [],
+             "note": "近3年每年≥90学时，放入07_继续教育目录"},
+            {"name": "继续教育记录（逐行）", "fill": "auto", "required_for": [],
+             "note": "继续教育 数据自动填写"},
+        ],
+    },
+    {
+        "tab": "Tab8",
+        "tab_name": "工程业绩",
+        "folder": "08_工程业绩",
+        "items": [
+            {"name": "工程业绩证明书",     "fill": "file", "required_for": [],
+             "note": "建设单位出具，放入08_工程业绩目录"},
+            {"name": "施工合同首页及签章页", "fill": "file", "required_for": ["高级工程师", "正高级工程师"],
+             "note": "高级及以上必须提供"},
+            {"name": "竣工验收报告首页",   "fill": "file", "required_for": ["高级工程师", "正高级工程师"],
+             "note": "高级及以上必须提供"},
+            {"name": "业绩信息（逐行）",   "fill": "auto", "required_for": [],
+             "note": "工程业绩 数据自动填写"},
+        ],
+    },
+    {
+        "tab": "Tab9",
+        "tab_name": "获奖情况",
+        "folder": "09_获奖证书",
+        "items": [
+            {"name": "获奖证书",           "fill": "file", "required_for": ["正高级工程师"],
+             "note": "正高级必须提供；中高级可选"},
+            {"name": "获奖记录（逐行）",   "fill": "auto", "required_for": [],
+             "note": "获奖情况 数据自动填写"},
+        ],
+    },
+    {
+        "tab": "Tab10",
+        "tab_name": "论文著作",
+        "folder": "10_论文著作",
+        "items": [
+            {"name": "论文首页+目录页",    "fill": "file", "required_for": ["高级工程师", "正高级工程师"],
+             "note": "高级及以上必须提供，放入10_论文著作目录"},
+            {"name": "期刊收录证明（可选）", "fill": "file", "required_for": [],
+             "note": "核心期刊收录证明"},
+            {"name": "论文记录（逐行）",   "fill": "auto", "required_for": [],
+             "note": "论文著作 数据自动填写"},
+        ],
+    },
+    {
+        "tab": "Tab11",
+        "tab_name": "年度考核",
+        "folder": "11_年度考核",
+        "items": [
+            {"name": "近5年年度考核表",    "fill": "file", "required_for": [],
+             "note": "每年一份，单位盖章，放入11_年度考核目录"},
+            {"name": "考核记录（逐行）",   "fill": "auto", "required_for": [],
+             "note": "从系统数据自动填写"},
+        ],
+    },
+    {
+        "tab": "Tab12",
+        "tab_name": "工程技术工作总结",
+        "folder": "12_工作总结",
+        "items": [
+            {"name": "工程技术工作总结",   "fill": "ai", "required_for": [],
+             "note": "由AI写作模块生成，导出Word后放入12_工作总结目录，网站粘贴正文"},
+        ],
+    },
+]
+
+def _get_materials_for_level(apply_level: str) -> list[dict]:
+    """按申报级别过滤材料清单，标注必填/可选。"""
+    result = []
+    for tab in _TAB_MATERIALS:
+        tab_items = []
+        for item in tab["items"]:
+            required_for = item.get("required_for", [])
+            # required_for=[] 表示所有级别必填（fill=auto/ai的视为"系统处理"）
+            if item["fill"] in ("auto", "ai"):
+                is_required = False   # 系统自动处理，不列为申报人需提交
+            elif not required_for:
+                is_required = True    # 所有级别必填
+            else:
+                is_required = apply_level in required_for
+            tab_items.append({
+                "tab":      tab["tab"],
+                "tab_name": tab["tab_name"],
+                "folder":   tab["folder"],
+                "name":     item["name"],
+                "fill":     item["fill"],
+                "required": is_required,
+                "note":     item.get("note", ""),
+            })
+        result.extend(tab_items)
+    return result
+
+# 向后兼容旧的 _MATERIALS 调用
 _MATERIALS = {
-    "工程师": [
-        {"name": "职称申报表", "required": True},
-        {"name": "身份证复印件", "required": True},
-        {"name": "学历证书复印件", "required": True},
-        {"name": "学位证书复印件", "required": False},
-        {"name": "现职称证书复印件", "required": True},
-        {"name": "工程技术工作总结", "required": True},
-        {"name": "代表性工程业绩证明", "required": True},
-        {"name": "继续教育证明", "required": True},
-        {"name": "专业技术人员年度考核表", "required": True},
-    ],
-    "高级工程师": [
-        {"name": "职称申报表", "required": True},
-        {"name": "身份证复印件", "required": True},
-        {"name": "学历证书复印件", "required": True},
-        {"name": "学位证书复印件", "required": False},
-        {"name": "现职称证书复印件", "required": True},
-        {"name": "工程技术工作总结", "required": True},
-        {"name": "代表性工程业绩证明", "required": True},
-        {"name": "业绩工程施工合同", "required": True},
-        {"name": "业绩工程竣工验收报告", "required": True},
-        {"name": "论文或著作证明", "required": False},
-        {"name": "获奖证书复印件", "required": False},
-        {"name": "继续教育证明", "required": True},
-        {"name": "专业技术人员年度考核表", "required": True},
-    ],
-    "正高级工程师": [
-        {"name": "职称申报表", "required": True},
-        {"name": "身份证复印件", "required": True},
-        {"name": "学历证书复印件", "required": True},
-        {"name": "学位证书复印件", "required": True},
-        {"name": "现职称证书复印件", "required": True},
-        {"name": "工程技术工作总结", "required": True},
-        {"name": "代表性工程业绩证明", "required": True},
-        {"name": "业绩工程施工合同", "required": True},
-        {"name": "业绩工程竣工验收报告", "required": True},
-        {"name": "核心期刊论文", "required": True},
-        {"name": "获奖证书复印件", "required": True},
-        {"name": "继续教育证明", "required": True},
-        {"name": "专业技术人员年度考核表", "required": True},
-        {"name": "专家推荐信", "required": False},
-    ],
+    level: _get_materials_for_level(level)
+    for level in ["工程师", "高级工程师", "正高级工程师"]
 }
 
 @bp.route("/<int:pid>/prescreen")
@@ -335,39 +472,22 @@ def fill_preview_page(pid):
 
 
 def _scan_material_files(folder: str, materials: list) -> dict:
-    """检查资料目录中各材料是否已有文件，返回 {材料名: True/False}"""
-    import os, re
-    status = {m["name"]: False for m in materials}
-    if not folder or not os.path.isdir(folder):
-        return status
-    # 收集所有子目录下的文件名
-    all_files = []
-    for root, _, files in os.walk(folder):
-        all_files.extend(files)
-    all_lower = " ".join(all_files).lower()
-    keywords = {
-        "身份证":       ["身份证"],
-        "学历证书":     ["学历"],
-        "学位证书":     ["学位"],
-        "职称证书":     ["职称"],
-        "工程技术工作总结": ["工作总结","总结"],
-        "代表性工程业绩证明": ["业绩"],
-        "业绩工程施工合同": ["合同"],
-        "业绩工程竣工验收报告": ["竣工","验收"],
-        "论文":         ["论文","著作"],
-        "获奖证书":     ["获奖","奖励"],
-        "继续教育证明": ["继续教育","培训"],
-        "年度考核":     ["考核"],
-        "专家推荐信":   ["推荐"],
-        "申报表":       ["申报表"],
-    }
-    for mat_name in status:
-        for key, kws in keywords.items():
-            if key in mat_name:
-                if any(kw in all_lower for kw in kws):
-                    status[mat_name] = True
-                break
-    return status
+    """
+    检查资料目录中各Tab子目录是否已有文件。
+    返回 {材料名: True/False}
+    auto/ai类型的材料直接标记为True（系统处理，无需文件）。
+    """
+    from core.folder_manager import tab_file_status
+    tab_status = tab_file_status(folder) if folder else {}
+
+    result = {}
+    for m in materials:
+        if m.get("fill") in ("auto", "ai"):
+            result[m["name"]] = True   # 系统自动处理
+        else:
+            folder_name = m.get("folder", "")
+            result[m["name"]] = tab_status.get(folder_name, False)
+    return result
 
 
 def _build_checklist_word(applicant: dict, project: dict,
