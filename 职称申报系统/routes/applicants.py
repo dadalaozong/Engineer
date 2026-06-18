@@ -208,6 +208,18 @@ def paper_delete(aid, pid):
 
 _LOG_COLS = ["contact_date","contact_type","content","follow_up","follow_up_date","operator"]
 
+@bp.route("/contact-logs")
+def contact_logs_page():
+    from database.db import get_conn
+    with get_conn() as conn:
+        logs = conn.execute("""
+            SELECT cl.*, a.name as applicant_name
+            FROM contact_logs cl
+            LEFT JOIN applicants a ON cl.applicant_id = a.id
+            ORDER BY cl.contact_date DESC, cl.created_at DESC
+        """).fetchall()
+    return render_template("contact_logs/index.html", logs=logs)
+
 @bp.route("/<int:aid>/logs/new", methods=["POST"])
 def log_create(aid):
     d = _form(_LOG_COLS); d["applicant_id"] = aid

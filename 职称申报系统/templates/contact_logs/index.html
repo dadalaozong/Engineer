@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}沟通记录{% endblock %}
+{% block page_title %}沟通记录{% endblock %}
+{% block content %}
+
+<div class="card">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+    <div class="section-title" style="margin:0">全部沟通记录</div>
+    <span style="color:#64748b;font-size:13px">共 {{ logs|length }} 条</span>
+  </div>
+
+  {% if logs %}
+  <div style="overflow-x:auto">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>日期</th>
+          <th>申报人</th>
+          <th>类型</th>
+          <th>内容</th>
+          <th>跟进事项</th>
+          <th>操作员</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td style="white-space:nowrap">{{ log.contact_date or '—' }}</td>
+          <td>
+            {% if log.applicant_id %}
+            <a href="{{ url_for('applicants.detail', aid=log.applicant_id) }}#logs"
+               style="color:#2563eb">{{ log.applicant_name or '—' }}</a>
+            {% else %}
+            —
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge" style="background:{% if log.contact_type == '电话' %}#dbeafe;color:#1d4ed8{% elif log.contact_type == '微信' %}#dcfce7;color:#15803d{% else %}#f1f5f9;color:#475569{% endif %}">
+              {{ log.contact_type or '—' }}
+            </span>
+          </td>
+          <td style="max-width:300px;word-break:break-all">{{ log.content or '—' }}</td>
+          <td style="max-width:200px;word-break:break-all">{{ log.follow_up or '—' }}</td>
+          <td>{{ log.operator or '—' }}</td>
+          <td>
+            {% if log.applicant_id %}
+            <form method="post"
+                  action="{{ url_for('applicants.log_delete', aid=log.applicant_id, lid=log.id) }}"
+                  onsubmit="return confirm('确认删除这条沟通记录？')">
+              <button type="submit" class="btn btn-sm btn-danger">删除</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:40px;color:#94a3b8">暂无沟通记录</div>
+  {% endif %}
+</div>
+
+{% endblock %}

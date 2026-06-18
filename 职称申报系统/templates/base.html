@@ -20,7 +20,7 @@
     <span class="ico">🏠</span> 工作台
   </a>
 
-  <div class="nav-group-label">申报人管理</div>
+  <div class="nav-group-label">── 客户管理 ──</div>
   <a href="{{ url_for('applicants.list_page') }}"
      class="nav-item {{ 'active' if ep == 'applicants.list_page' else '' }}">
     <span class="ico">👤</span> 申报人列表
@@ -29,62 +29,66 @@
      class="nav-item {{ 'active' if ep == 'applicants.new_page' else '' }}">
     <span class="ico">➕</span> 新增申报人
   </a>
+  <a href="{{ url_for('applicants.contact_logs_page') }}"
+     class="nav-item {{ 'active' if ep == 'applicants.contact_logs_page' else '' }}">
+    <span class="ico">💬</span> 沟通记录
+  </a>
 
-  <div class="nav-group-label">项目管理</div>
+  <div class="nav-group-label">── 申报管理 ──</div>
   <a href="{{ url_for('projects.list_page') }}"
      class="nav-item {{ 'active' if ep == 'projects.list_page' else '' }}">
-    <span class="ico">📁</span> 项目列表
+    <span class="ico">📁</span> 申报项目
   </a>
-  <a href="{{ url_for('projects.scale_page') }}"
-     class="nav-item {{ 'active' if ep == 'projects.scale_page' else '' }}">
-    <span class="ico">📊</span> 工程规模判断
-  </a>
-  <a href="{{ url_for('projects.checker_page') }}"
-     class="nav-item {{ 'active' if ep == 'projects.checker_page' else '' }}">
-    <span class="ico">✅</span> 完整性检查
-  </a>
-
-  <div class="nav-group-label">批次管理</div>
   <a href="{{ url_for('batches.list_page') }}"
      class="nav-item {{ 'active' if ep == 'batches.list_page' else '' }}">
     <span class="ico">📅</span> 申报批次
   </a>
+  <a href="{{ url_for('projects.checker_page') }}"
+     class="nav-item {{ 'active' if ep == 'projects.checker_page' else '' }}">
+    <span class="ico">✅</span> 资料完整性检查
+  </a>
+
+  <div class="nav-group-label">── 费用管理 ──</div>
   <a href="{{ url_for('fees.report_page') }}"
      class="nav-item {{ 'active' if ep == 'fees.report_page' else '' }}">
     <span class="ico">💰</span> 费用报表
   </a>
 
-  <div class="nav-group-label">材料管理</div>
+  <div class="nav-group-label">── 材料处理 ──</div>
   <a href="{{ url_for('docs.manager_page') }}"
      class="nav-item {{ 'active' if ep == 'docs.manager_page' else '' }}">
     <span class="ico">📄</span> 材料目录
   </a>
   <a href="{{ url_for('ocr.index_page') }}"
      class="nav-item {{ 'active' if ep == 'ocr.index_page' else '' }}">
-    <span class="ico">🔎</span> OCR 识别
-  </a>
-
-  <div class="nav-group-label">AI 辅助</div>
-  <a href="{{ url_for('ai_writer.index_page') }}"
-     class="nav-item {{ 'active' if ep == 'ai_writer.index_page' else '' }}">
-    <span class="ico">✨</span> AI 写作
+    <span class="ico">🔎</span> OCR识别
   </a>
   <a href="{{ url_for('img_proc.index_page') }}"
      class="nav-item {{ 'active' if ep == 'img_proc.index_page' else '' }}">
     <span class="ico">🖼</span> 图像处理
   </a>
 
-  <div class="nav-group-label">自动填报</div>
+  <div class="nav-group-label">── AI辅助 ──</div>
+  <a href="{{ url_for('ai_writer.index_page') }}"
+     class="nav-item {{ 'active' if ep == 'ai_writer.index_page' else '' }}">
+    <span class="ico">✨</span> AI写作
+  </a>
+
+  <div class="nav-group-label">── 自动填报 ──</div>
   <a href="{{ url_for('auto_fill.index_page') }}"
      class="nav-item {{ 'active' if ep == 'auto_fill.index_page' else '' }}">
     <span class="ico">🤖</span> 自动填报
   </a>
+  <a href="{{ url_for('dom_crawler.index_page') }}"
+     class="nav-item {{ 'active' if ep == 'dom_crawler.index_page' else '' }}">
+    <span class="ico">🕷</span> DOM抓取
+  </a>
+
+  <div class="nav-group-label">── 系统 ──</div>
   <a href="{{ url_for('monitor.index_page') }}"
      class="nav-item {{ 'active' if ep == 'monitor.index_page' else '' }}">
     <span class="ico">👁</span> 文件监控
   </a>
-
-  <div class="nav-group-label">系统</div>
   <a href="{{ url_for('settings.index_page') }}"
      class="nav-item {{ 'active' if ep == 'settings.index_page' else '' }}">
     <span class="ico">⚙️</span> 系统设置

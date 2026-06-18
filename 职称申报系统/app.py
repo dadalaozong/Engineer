@@ -17,6 +17,7 @@ from routes.img_proc import bp as img_proc_bp
 from routes.auto_fill import bp as auto_fill_bp
 from routes.settings import bp as settings_bp
 from routes.monitor import bp as monitor_bp
+from routes.dom_crawler import bp as dom_crawler_bp
 
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(applicants_bp)
@@ -30,6 +31,7 @@ app.register_blueprint(img_proc_bp)
 app.register_blueprint(auto_fill_bp)
 app.register_blueprint(settings_bp)
 app.register_blueprint(monitor_bp)
+app.register_blueprint(dom_crawler_bp)
 
 if __name__ == "__main__":
     init_db()
