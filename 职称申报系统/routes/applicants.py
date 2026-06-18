@@ -13,7 +13,7 @@ _A_COLS = [
     "name","id_card","gender","birth_date","phone","email","ethnicity",
     "education","major","school","graduation_year",
     "work_unit","work_unit_type","work_start_year",
-    "title_level","title_year","notes"
+    "title_level","title_year","title_month","notes"
 ]
 
 def _form(cols):
@@ -80,12 +80,14 @@ def detail(aid):
     awards       = list_awards(aid)
     papers       = list_papers(aid)
     logs         = list_contact_logs(aid)
+    from datetime import date
     return render_template("applicants/detail.html",
                            applicant=applicant,
                            achievements=achievements,
                            awards=awards,
                            papers=papers,
-                           logs=logs)
+                           logs=logs,
+                           today=date.today().isoformat())
 
 # ── 工程业绩 CRUD ─────────────────────────────────────────────────
 
@@ -165,7 +167,7 @@ def paper_delete(aid, pid):
 
 # ── 沟通记录 ──────────────────────────────────────────────────────
 
-_LOG_COLS = ["contact_date","contact_type","content","follow_up","operator"]
+_LOG_COLS = ["contact_date","contact_type","content","follow_up","follow_up_date","operator"]
 
 @bp.route("/<int:aid>/logs/new", methods=["POST"])
 def log_create(aid):

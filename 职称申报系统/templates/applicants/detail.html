@@ -43,6 +43,36 @@
   </div>
 </div>
 
+<!-- 资历计算卡 -->
+<div class="card" id="seniority-card" style="margin-bottom:16px">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+
+    <!-- 资历年限 -->
+    <div>
+      <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">资历年限计算</div>
+      <div id="seniority-result" style="font-size:14px;color:#1e293b">
+        {% if applicant.title_month %}
+          {% set tm = applicant.title_month %}
+          计算中…
+        {% elif applicant.title_year %}
+          计算中…
+        {% else %}
+          <span class="text-muted">尚未填写现职称取得时间</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 申报资格预检 -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap" id="qualify-checks">
+      <div class="badge badge-gray" id="qc-edu">📚 学历</div>
+      <div class="badge badge-gray" id="qc-seniority">📅 资历年限</div>
+      <div class="badge badge-gray" id="qc-paper">📝 论文</div>
+      <div class="badge badge-gray" id="qc-award">🏆 获奖</div>
+    </div>
+
+  </div>
+</div>
+
 <!-- Tab导航 -->
 <div style="display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:16px">
   {% for tab_id, tab_label, count in [
@@ -204,7 +234,7 @@
   <div class="table-card">
     <table>
       <thead>
-        <tr><th>日期</th><th>方式</th><th>内容</th><th>后续跟进</th><th>经办人</th><th>操作</th></tr>
+        <tr><th>日期</th><th>方式</th><th>内容</th><th>跟进事项</th><th>提醒日期</th><th>经办人</th><th>操作</th></tr>
       </thead>
       <tbody>
         {% for lg in logs %}
@@ -213,6 +243,13 @@
           <td><span class="badge badge-gray">{{ lg.contact_type }}</span></td>
           <td>{{ lg.content or '—' }}</td>
           <td>{{ lg.follow_up or '—' }}</td>
+          <td>
+            {% if lg.follow_up_date %}
+              <span class="badge {{ 'badge-red' if lg.follow_up_date < today else ('badge-orange' if lg.follow_up_date == today else 'badge-gray') }}">
+                {{ lg.follow_up_date }}
+              </span>
+            {% else %}—{% endif %}
+          </td>
           <td>{{ lg.operator or '—' }}</td>
           <td>
             <button class="btn btn-sm btn-danger"
@@ -220,7 +257,7 @@
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="6" class="text-muted" style="text-align:center;padding:20px">暂无沟通记录</td></tr>
+        <tr><td colspan="7" class="text-muted" style="text-align:center;padding:20px">暂无沟通记录</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -454,8 +491,11 @@
       </div>
       <div class="form-group"><label class="form-label">沟通内容</label>
         <textarea class="form-control" name="content" rows="3" required></textarea></div>
-      <div class="form-group"><label class="form-label">后续跟进</label>
-        <input class="form-control" name="follow_up"></div>
+      <div class="form-group"><label class="form-label">后续跟进事项</label>
+        <input class="form-control" name="follow_up" placeholder="如：7天后催促提交学历证书"></div>
+      <div class="form-group"><label class="form-label">跟进提醒日期</label>
+        <input class="form-control" name="follow_up_date" type="date"
+               title="设置后会在工作台显示提醒"></div>
       <div class="form-group"><label class="form-label">经办人</label>
         <input class="form-control" name="operator" value="管理员"></div>
       <div class="modal-footer">
@@ -469,6 +509,73 @@
 {% endblock %}
 {% block scripts %}
 <script>
+// ── 资历年限计算 ────────────────────────────────────────────────
+(function() {
+  const titleMonth = "{{ applicant.title_month or '' }}";
+  const titleYear  = "{{ applicant.title_year or '' }}";
+  const titleLevel = "{{ applicant.title_level or '' }}";
+  const education  = "{{ applicant.education or '' }}";
+  const papers     = {{ papers|length }};
+  const awards     = {{ awards|length }};
+
+  // 确定起算月份
+  let startYM = null;  // "YYYY-MM"
+  if (titleMonth && /^\d{4}-\d{2}$/.test(titleMonth)) {
+    startYM = titleMonth;
+  } else if (titleYear && /^\d{4}$/.test(titleYear)) {
+    startYM = titleYear + "-01";  // 兼容旧数据，按1月算
+  }
+
+  if (!startYM) return;
+
+  // 从次月开始计算（通知原文规定）
+  const [sy, sm] = startYM.split("-").map(Number);
+  let countY = sy, countM = sm + 1;
+  if (countM > 12) { countY++; countM = 1; }
+
+  const today = new Date();
+  const ty = today.getFullYear(), tm = today.getMonth() + 1;
+  const totalMonths = (ty - countY) * 12 + (tm - countM);
+  const years  = Math.floor(totalMonths / 12);
+  const months = totalMonths % 12;
+
+  // 需要的年限（按通知：本科→高工5年，专科→高工7年，高工→正高5年）
+  let required = 5;
+  if (titleLevel === "工程师") {
+    required = (education === "大专") ? 7 : 5;
+  }
+
+  const met = totalMonths >= required * 12;
+  const color = met ? "#16a34a" : (totalMonths >= (required-1)*12 ? "#d97706" : "#dc2626");
+  const icon  = met ? "✅" : (totalMonths >= (required-1)*12 ? "⚠️" : "❌");
+
+  const nextLevel = {
+    "助理工程师": "工程师",
+    "工程师":     "高级工程师",
+    "高级工程师": "正高级工程师",
+  }[titleLevel] || "上一级职称";
+
+  document.getElementById("seniority-result").innerHTML =
+    `现职称取得：<strong>${startYM}</strong>，从次月起算 · 已满
+     <strong style="color:${color}">${years}年${months > 0 ? months+"个月" : ""}</strong>
+     · 申报${nextLevel}需满
+     <strong>${required}年</strong>
+     <span style="color:${color};margin-left:4px">${icon} ${met ? "资历达标" : `还差${required*12-totalMonths}个月`}</span>`;
+
+  // 资格预检徽章
+  function badge(id, ok, label) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = label;
+    el.className = "badge " + (ok ? "badge-green" : "badge-red");
+  }
+  const eduOk = ["本科","硕士","博士"].includes(education);
+  badge("qc-edu",       eduOk,   "📚 " + (education || "未填学历"));
+  badge("qc-seniority", met,     "📅 " + (met ? "资历达标" : `资历不足`));
+  badge("qc-paper",     papers > 0, "📝 " + (papers > 0 ? `${papers}篇论文` : "暂无论文"));
+  badge("qc-award",     awards > 0, "🏆 " + (awards > 0 ? `${awards}项获奖` : "暂无获奖"));
+})();
+
 // ── Tab switching ──────────────────────────────────────────────
 const tabs   = ["achievements","awards","papers","logs"];
 const tabBtns = document.querySelectorAll(".tab-btn");

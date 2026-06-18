@@ -109,8 +109,17 @@
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">取得年份</label>
-        <input class="form-control" name="title_year" value="{{ v.get('title_year','') }}" placeholder="2018">
+        <label class="form-label">取得年月
+          <span style="font-size:11px;color:#64748b;font-weight:400">（资历从次月起算）</span>
+        </label>
+        <input class="form-control" name="title_month" type="month"
+               value="{{ v.get('title_month','') }}"
+               placeholder="如：2018-06">
+      </div>
+      <div class="form-group">
+        <label class="form-label">仅填年份（旧数据兼容）</label>
+        <input class="form-control" name="title_year" value="{{ v.get('title_year','') }}"
+               placeholder="如：2018（优先用年月）">
       </div>
     </div>
 

@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from database.models import list_projects, get_project, insert_project, update_project, delete_project, list_applicants, list_batches
+from database.models import list_projects, get_project, insert_project, update_project, delete_project, list_applicants, list_batches, update_project_stage
 
 bp = Blueprint("projects", __name__, url_prefix="/projects")
 
@@ -122,6 +122,13 @@ def scale_judge():
     indicators = data.get("indicators", {})
     scale, color, detail = judge(specialty, indicators)
     return jsonify({"scale": scale, "color": color, "detail": detail})
+
+@bp.route("/<int:pid>/stage", methods=["POST"])
+def set_stage(pid):
+    d = request.get_json(silent=True) or {}
+    stage = int(d.get("stage", 0))
+    update_project_stage(pid, stage)
+    return jsonify({"ok": True, "stage": stage})
 
 @bp.route("/checker")
 def checker_page():

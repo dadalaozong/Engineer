@@ -6,7 +6,7 @@ _APPLICANT_COLS = (
     "name","id_card","gender","birth_date","phone","email","ethnicity",
     "education","major","school","graduation_year",
     "work_unit","work_unit_type","work_start_year",
-    "title_level","title_year","notes"
+    "title_level","title_year","title_month","notes"
 )
 
 def list_applicants(q=""):
@@ -301,12 +301,31 @@ def list_contact_logs(applicant_id):
 def insert_contact_log(**kw) -> int:
     conn = get_conn()
     cur = conn.execute(
-        "INSERT INTO contact_logs (applicant_id,contact_date,contact_type,content,follow_up,operator) VALUES (?,?,?,?,?,?)",
+        "INSERT INTO contact_logs (applicant_id,contact_date,contact_type,content,follow_up,follow_up_date,operator) VALUES (?,?,?,?,?,?,?)",
         (kw.get("applicant_id"), kw.get("contact_date"), kw.get("contact_type","电话"),
-         kw.get("content"), kw.get("follow_up"), kw.get("operator","管理员"))
+         kw.get("content"), kw.get("follow_up"), kw.get("follow_up_date") or None,
+         kw.get("operator","管理员"))
     )
     conn.commit(); conn.close()
     return cur.lastrowid
+
+def list_pending_followups():
+    conn = get_conn()
+    rows = conn.execute("""
+        SELECT cl.*, a.name as applicant_name
+        FROM contact_logs cl
+        JOIN applicants a ON a.id = cl.applicant_id
+        WHERE cl.follow_up_date IS NOT NULL AND cl.follow_up_date != ''
+        ORDER BY cl.follow_up_date ASC
+        LIMIT 20
+    """).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def update_project_stage(pid, stage: int):
+    conn = get_conn()
+    conn.execute("UPDATE projects SET progress_stage=? WHERE id=?", (int(stage), pid))
+    conn.commit(); conn.close()
 
 def delete_contact_log(cid):
     conn = get_conn()

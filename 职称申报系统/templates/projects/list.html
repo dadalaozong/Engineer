@@ -3,6 +3,8 @@
 {% block page_title %}项目列表{% endblock %}
 {% block content %}
 
+{% set STAGES = ['准备材料','单位审核','已提交','评审中','已出结果'] %}
+
 <div class="toolbar">
   <form method="get" style="display:flex;gap:8px;align-items:center">
     <select class="form-control" name="applicant_id" style="min-width:160px"
@@ -21,6 +23,24 @@
   </div>
 </div>
 
+<!-- 进度统计 -->
+{% if rows %}
+<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+  {% for stage in STAGES %}
+  {% set i = loop.index0 %}
+  {% set cnt = rows|selectattr('progress_stage','equalto', i)|list|length %}
+  {% set bg_colors = ['#e2e8f0','#fef3c7','#dbeafe','#ede9fe','#dcfce7'] %}
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:8px 14px;
+              display:flex;align-items:center;gap:8px;font-size:13px">
+    <span style="width:20px;height:20px;border-radius:50%;background:{{ bg_colors[i] }};
+                 display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">{{ i+1 }}</span>
+    <span style="color:#64748b">{{ stage }}</span>
+    <span style="font-weight:700;color:#1e293b">{{ cnt }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <div class="table-card">
   <div class="table-header">
     <span class="table-header-title">项目列表（共 {{ rows|length }} 个）</span>
@@ -28,21 +48,41 @@
   <table>
     <thead>
       <tr>
-        <th>申报人</th><th>行业</th><th>评委会</th><th>申报级别</th>
-        <th>工程规模</th><th>批次</th><th>操作</th>
+        <th>申报人</th><th>申报级别</th><th>评委会</th><th>批次</th>
+        <th style="min-width:300px">申报进度</th><th>操作</th>
       </tr>
     </thead>
     <tbody>
       {% for p in rows %}
+      {% set stage = p.progress_stage or 0 %}
       <tr>
-        <td><strong>{{ p.applicant_name or '—' }}</strong></td>
-        <td>{{ p.industry or '—' }}</td>
-        <td>{{ p.committee or '—' }}</td>
         <td>
-          <span class="badge badge-blue">{{ p.apply_level or '—' }}</span>
+          <strong>{{ p.applicant_name or '—' }}</strong>
+          {% if p.specialty %}
+          <div style="font-size:11px;color:#64748b">{{ p.specialty }}</div>
+          {% endif %}
         </td>
-        <td>{{ p.scale or '未判断' }}</td>
-        <td>{{ p.batch_year or '—' }}</td>
+        <td>
+          {% if p.apply_level %}
+          <span class="badge badge-blue">{{ p.apply_level }}</span>
+          {% else %}—{% endif %}
+        </td>
+        <td style="font-size:12px">{{ p.committee or p.industry or '—' }}</td>
+        <td style="font-size:12px">{{ p.batch_year or '—' }}</td>
+        <td>
+          <!-- 进度条 -->
+          <div class="progress-stepper" data-pid="{{ p.id }}" data-stage="{{ stage }}">
+            {% for i in range(5) %}
+            <div class="progress-step {{ 'done' if i < stage else ('active' if i == stage else '') }}"
+                 onclick="setStage({{ p.id }}, {{ i }}, this)"
+                 title="{{ STAGES[i] }}">
+              <div class="step-dot">{{ i+1 }}</div>
+              <div class="step-label">{{ STAGES[i] }}</div>
+            </div>
+            {% if i < 4 %}<div class="step-line {{ 'done' if i < stage else '' }}"></div>{% endif %}
+            {% endfor %}
+          </div>
+        </td>
         <td>
           <a href="{{ url_for('projects.edit_page', pid=p.id) }}" class="btn btn-sm btn-outline">编辑</a>
           <button class="btn btn-sm btn-danger"
@@ -50,10 +90,91 @@
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="7" class="text-muted" style="text-align:center;padding:24px">暂无项目</td></tr>
+      <tr><td colspan="6" class="text-muted" style="text-align:center;padding:24px">暂无项目</td></tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 
+{% endblock %}
+{% block scripts %}
+<style>
+.progress-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 4px 0;
+}
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.step-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  background: #fff;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s;
+}
+.step-label {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+.progress-step.done .step-dot {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+.progress-step.done .step-label { color: #2563eb; }
+.progress-step.active .step-dot {
+  background: #fff;
+  border-color: #2563eb;
+  border-width: 2px;
+  color: #2563eb;
+  box-shadow: 0 0 0 3px #dbeafe;
+}
+.progress-step.active .step-label { color: #2563eb; font-weight: 600; }
+.progress-step:hover .step-dot { border-color: #2563eb; }
+.step-line {
+  width: 24px;
+  height: 2px;
+  background: #e2e8f0;
+  flex-shrink: 0;
+  margin-bottom: 14px;
+  transition: background .15s;
+}
+.step-line.done { background: #2563eb; }
+</style>
+<script>
+function setStage(pid, stage, el) {
+  const stepper = el.closest(".progress-stepper");
+  fetch(`/projects/${pid}/stage`, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({stage})
+  }).then(r => r.json()).then(d => {
+    if (!d.ok) return;
+    stepper.dataset.stage = stage;
+    stepper.querySelectorAll(".progress-step").forEach((s, i) => {
+      s.classList.toggle("done",   i < stage);
+      s.classList.toggle("active", i === stage);
+    });
+    stepper.querySelectorAll(".step-line").forEach((l, i) => {
+      l.classList.toggle("done", i < stage);
+    });
+  });
+}
+</script>
 {% endblock %}

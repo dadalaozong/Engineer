@@ -52,6 +52,37 @@
   </div>
 </div>
 
+<!-- 跟进提醒 -->
+{% set urgent = followups|selectattr('_fu_cls','equalto','danger')|list %}
+{% set today_fu = followups|selectattr('_fu_cls','equalto','warning')|list %}
+{% if urgent or today_fu %}
+<div class="card" style="margin-bottom:16px;border-left:4px solid #dc2626">
+  <div class="section-title" style="color:#dc2626;margin-bottom:8px">📋 待跟进提醒（{{ (urgent+today_fu)|length }} 条）</div>
+  <table>
+    <thead>
+      <tr><th>申报人</th><th>跟进日期</th><th>跟进事项</th><th>操作</th></tr>
+    </thead>
+    <tbody>
+      {% for f in (urgent + today_fu)[:8] %}
+      <tr>
+        <td><a href="{{ url_for('applicants.detail', aid=f.applicant_id) }}#logs"
+               style="color:#1e293b;font-weight:500">{{ f.applicant_name }}</a></td>
+        <td>
+          <span class="badge badge-{{ f._fu_cls == 'danger' and 'red' or 'orange' }}">
+            {{ f._fu_label }}
+          </span>
+          {{ f.follow_up_date }}
+        </td>
+        <td style="color:#64748b;font-size:13px">{{ f.follow_up or '—' }}</td>
+        <td><a href="{{ url_for('applicants.detail', aid=f.applicant_id) }}#logs"
+               class="btn btn-sm btn-outline">查看</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
 
   <!-- 最近申报人 -->

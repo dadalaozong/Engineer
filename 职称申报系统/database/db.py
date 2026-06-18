@@ -167,9 +167,12 @@ def _migrate(conn):
         ("projects",   "folder_path",      "TEXT"),
         ("projects",   "check_result",     "TEXT"),
         ("projects",   "submit_time",      "TEXT"),
-        ("projects",   "review_result",    "TEXT"),
-        ("projects",   "review_date",      "TEXT"),
-        ("projects",   "review_comment",   "TEXT"),
+        ("projects",     "review_result",   "TEXT"),
+        ("projects",     "review_date",     "TEXT"),
+        ("projects",     "review_comment",  "TEXT"),
+        ("projects",     "progress_stage",  "INTEGER DEFAULT 0"),
+        ("contact_logs", "follow_up_date",  "TEXT"),
+        ("applicants",   "title_month",     "TEXT"),
     ]
     for table, col, col_type in migrations:
         try:
