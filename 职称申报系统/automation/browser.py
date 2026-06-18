@@ -25,6 +25,7 @@ class BrowserManager:
         self._context = self._browser.new_context(
             viewport={"width": 1280, "height": 800},
             locale="zh-CN",
+            ignore_https_errors=True,
             user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
