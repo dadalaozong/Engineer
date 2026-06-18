@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>职称申报管理系统 · 开发文档 v3.0</title>
+<style>
+* { box-sizing: border-box; }
+body { display:flex; font-family:"Microsoft YaHei",sans-serif; margin:0; background:#f8fafc; color:#1e293b; }
+#nav { width:240px; position:fixed; top:0; left:0; height:100vh; background:#1e293b; overflow-y:auto; padding:20px 0; z-index:100; }
+#nav .nav-logo { color:#fff; font-size:14px; font-weight:700; padding:0 20px 16px; border-bottom:1px solid #334155; margin-bottom:12px; line-height:1.4; }
+#nav .nav-logo small { display:block; color:#94a3b8; font-size:11px; font-weight:400; margin-top:2px; }
+#nav .nav-group { padding:10px 20px 4px; color:#94a3b8; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; }
+#nav a { display:block; padding:6px 20px 6px 28px; color:#cbd5e1; font-size:13px; text-decoration:none; transition:background .15s; }
+#nav a:hover, #nav a.active { background:#334155; color:#fff; }
+#main { margin-left:240px; padding:40px 48px; max-width:1100px; min-height:100vh; }
+.doc-header { background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 100%); color:#fff; border-radius:14px; padding:36px 40px; margin-bottom:40px; }
+.doc-header h1 { font-size:28px; margin:0 0 6px; }
+.doc-header .subtitle { color:#93c5fd; font-size:15px; margin:0 0 16px; }
+.doc-header .meta { display:flex; gap:16px; flex-wrap:wrap; }
+.doc-header .meta span { background:rgba(255,255,255,.1); padding:4px 12px; border-radius:6px; font-size:12px; }
+.chapter-title { background:linear-gradient(135deg,#1e40af,#3b82f6); color:#fff; border-radius:12px; padding:24px 32px; margin:48px 0 28px; }
+.chapter-title .ch-num { font-size:12px; opacity:.75; margin-bottom:4px; letter-spacing:.06em; text-transform:uppercase; }
+.chapter-title h2 { margin:0 0 8px; font-size:24px; border:none; }
+.chapter-title p { margin:0; opacity:.88; font-size:14px; }
+h2 { font-size:21px; color:#1e293b; margin:36px 0 14px; padding-bottom:8px; border-bottom:2px solid #e2e8f0; }
+h3 { font-size:16px; color:#1e40af; margin:28px 0 12px; }
+h4 { font-size:14px; color:#334155; margin:18px 0 8px; font-weight:600; }
+p { font-size:14px; line-height:1.75; color:#374151; margin:8px 0; }
+table { width:100%; border-collapse:collapse; margin:16px 0; font-size:13.5px; box-shadow:0 1px 3px rgba(0,0,0,.06); border-radius:8px; overflow:hidden; }
+th { background:#1e40af; color:#fff; padding:10px 16px; text-align:left; font-weight:600; font-size:13px; }
+td { padding:9px 16px; border-bottom:1px solid #e2e8f0; }
+tr:nth-child(even) td { background:#f8fafc; }
+tr:last-child td { border-bottom:none; }
+pre { background:#0f172a; color:#e2e8f0; padding:20px 24px; border-radius:10px; overflow-x:auto; font-size:12.5px; line-height:1.7; margin:16px 0; }
+code { font-family:"Courier New",Consolas,monospace; }
+.flow-wrap { display:flex; flex-direction:column; margin:28px 0; }
+.flow-item { display:flex; align-items:stretch; gap:0; }
+.flow-left { display:flex; flex-direction:column; align-items:center; width:52px; flex-shrink:0; }
+.flow-num { width:40px; height:40px; border-radius:50%; background:#1e40af; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; flex-shrink:0; margin-top:4px; }
+.flow-line { width:2px; background:#cbd5e1; flex:1; min-height:36px; }
+.flow-body { background:#fff; border:1px solid #e2e8f0; border-radius:10px; padding:14px 20px; margin:4px 0 4px 12px; flex:1; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+.flow-body h4 { margin:0 0 4px; color:#1e40af; font-size:14px; font-weight:700; }
+.flow-body p { margin:0; font-size:13px; color:#475569; line-height:1.6; }
+.compare { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:16px 0; }
+.compare-bad { background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:18px 20px; }
+.compare-good { background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:18px 20px; }
+.compare-bad h4 { color:#dc2626; margin:0 0 10px; font-size:14px; }
+.compare-good h4 { color:#16a34a; margin:0 0 10px; font-size:14px; }
+.compare-bad li, .compare-good li { font-size:13px; margin:6px 0; line-height:1.6; }
+.callout { background:#eff6ff; border-left:4px solid #3b82f6; border-radius:0 10px 10px 0; padding:14px 20px; margin:16px 0; font-size:14px; line-height:1.7; }
+.callout strong { display:block; margin-bottom:4px; color:#1e40af; }
+.callout-warn { background:#fffbeb; border-left:4px solid #f59e0b; border-radius:0 10px 10px 0; padding:14px 20px; margin:16px 0; font-size:14px; line-height:1.7; }
+.callout-warn strong { display:block; margin-bottom:4px; color:#92400e; }
+.badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:12px; font-weight:600; }
+.badge-blue { background:#dbeafe; color:#1e40af; }
+.badge-green { background:#dcfce7; color:#16a34a; }
+.badge-orange { background:#ffedd5; color:#c2410c; }
+.badge-red { background:#fee2e2; color:#dc2626; }
+.badge-gray { background:#f1f5f9; color:#475569; }
+.map-card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; margin:20px 0; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,.05); }
+.map-card-header { background:#1e40af; color:#fff; padding:12px 20px; font-weight:700; font-size:14px; display:flex; justify-content:space-between; align-items:center; }
+.map-fields { padding:14px 20px 10px; display:flex; flex-wrap:wrap; gap:8px; }
+.map-field { background:#eff6ff; border:1px solid #bfdbfe; border-radius:6px; padding:4px 11px; font-size:12.5px; color:#1e40af; }
+.map-method { background:#f8fafc; padding:10px 20px; font-size:12.5px; color:#64748b; border-top:1px solid #e2e8f0; }
+.map-writes { background:#f0fdf4; padding:8px 20px; font-size:12px; color:#166534; border-top:1px solid #dcfce7; }
+.pct-high { color:#16a34a; font-weight:700; }
+.pct-mid { color:#0284c7; font-weight:700; }
+.done { color:#16a34a; }
+.todo { color:#6366f1; }
+.warn { color:#f59e0b; }
+.checklist { list-style:none; padding:0; margin:0; }
+.checklist li { padding:7px 0 7px 28px; position:relative; font-size:13.5px; border-bottom:1px solid #f1f5f9; }
+.checklist li::before { content:"☐"; position:absolute; left:0; color:#94a3b8; }
+.checklist li.done::before { content:"✓"; color:#16a34a; }
+.filetree { background:#0f172a; color:#e2e8f0; padding:20px 24px; border-radius:10px; font-family:"Courier New",monospace; font-size:13px; line-height:1.9; margin:16px 0; }
+.filetree .dir { color:#60a5fa; }
+.filetree .file { color:#a3e635; }
+.filetree .comment { color:#475569; }
+.roadmap-item { display:flex; gap:14px; align-items:flex-start; padding:14px 16px; border:1px solid #e2e8f0; border-radius:8px; margin:8px 0; background:#fff; }
+.roadmap-item .phase { background:#1e40af; color:#fff; border-radius:6px; padding:4px 12px; font-size:12px; font-weight:700; white-space:nowrap; flex-shrink:0; }
+section { margin-bottom:48px; }
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div class="nav-logo">职称申报系统<small>开发文档 v3.0</small></div>
+
+  <div class="nav-group">概述</div>
+  <a href="#ch1">第一章 系统定位</a>
+  <a href="#ch2">第二章 核心流程</a>
+
+  <div class="nav-group">数据设计</div>
+  <a href="#ch3">第三章 数据模型</a>
+  <a href="#ch4">第四章 材料字段映射</a>
+
+  <div class="nav-group">功能模块</div>
+  <a href="#ch5">第五章 模块设计</a>
+  <a href="#ch6">第六章 材料清单规范</a>
+
+  <div class="nav-group">业务规则</div>
+  <a href="#ch7">第七章 工程规模引擎</a>
+  <a href="#ch8">第八章 OCR识别</a>
+
+  <div class="nav-group">自动化</div>
+  <a href="#ch9">第九章 自动填报</a>
+  <a href="#ch10">第十章 图像处理</a>
+
+  <div class="nav-group">AI辅助</div>
+  <a href="#ch11a">第十一章 AI写作</a>
+  <a href="#ch11b">第十一章 Prompt模板</a>
+
+  <div class="nav-group">业务管理</div>
+  <a href="#ch12">第十二章 批次管理</a>
+  <a href="#ch12b">截止预警</a>
+  <a href="#ch12c">费用管理</a>
+  <a href="#ch12d">结果跟踪</a>
+  <a href="#ch12e">统计报表</a>
+
+  <div class="nav-group">交付</div>
+  <a href="#ch13">第十三章 开发路线图</a>
+  <a href="#ch14">第十四章 待确认事项</a>
+  <a href="#ch15">第十五章 运行说明</a>
+</nav>
+
+<main id="main">
+
+  <div class="doc-header">
+    <h1>职称申报管理系统</h1>
+    <p class="subtitle">Professional Title Application Management System — 开发设计文档</p>
+    <div class="meta">
+      <span>版本: v3.0</span>
+      <span>日期: 2026-06-18</span>
+      <span>状态: 开发中</span>
+    </div>
+  </div>
+
+  <!-- ===== CHAPTER 1 ===== -->
+  <section id="ch1">
+    <div class="chapter-title">
+      <div class="ch-num">第一章 · CHAPTER 1</div>
+      <h2>系统定位与核心价值</h2>
+      <p>明确系统解决的核心痛点，建立正确的产品方向认知</p>
+    </div>
+
+    <h3>1.1 背景与痛点</h3>
+    <p>职称申报是工程技术人员职业发展的重要环节。每次申报涉及大量纸质材料收集、表格填写、扫描上传，代办机构面临以下典型问题：</p>
+    <ul style="font-size:14px;line-height:2;color:#374151;padding-left:20px;">
+      <li>重复录入数据：同一申报人每年申报都要重新填写基本信息</li>
+      <li>材料遗漏：清单管理依赖Excel，无法实时感知材料上传状态</li>
+      <li>进度追踪困难：客户材料分散在邮件、微信、U盘，无统一入口</li>
+      <li>OCR质量参差不齐：识别后需要大量人工逐字核对</li>
+      <li>网报填写耗时：每个申报人手工填写网报系统需要45分钟以上</li>
+    </ul>
+
+    <h3>1.2 核心原则</h3>
+    <div class="callout">
+      <strong>核心原则：减少录入，不是换个地方录入</strong>
+      系统的价值在于让申报人只填一次数据，后续申报、补充材料、历史复用均自动完成。任何需要操作员重复输入已有信息的设计，都是错误的设计。
+    </div>
+
+    <h3>1.3 方向对比：错误 vs 正确</h3>
+    <div class="compare">
+      <div class="compare-bad">
+        <h4>❌ 错误方向</h4>
+        <ul>
+          <li>每次申报重新录入基本信息</li>
+          <li>社保、学历信息反复让申报人提供</li>
+          <li>OCR识别后手动逐字核对所有字段</li>
+          <li>材料清单用Excel发送，无状态追踪</li>
+          <li>网报系统手动逐项填写，无留存记录</li>
+          <li>历史申报数据无法复用，每次从零开始</li>
+        </ul>
+      </div>
+      <div class="compare-good">
+        <h4>✓ 正确方向</h4>
+        <ul>
+          <li>申报人信息一次建档，永久复用</li>
+          <li>历史材料自动检测是否仍有效（如证书未过期）</li>
+          <li>OCR结果结构化存储，增量更新差异项</li>
+          <li>清单系统内实时追踪，可见上传进度百分比</li>
+          <li>自动填报留存截图，全程可审计</li>
+          <li>二次申报复用率超过70%的历史数据</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>1.4 工作量削减估算</h3>
+    <p>以下数据基于典型申报案例估算，实际效果因业务复杂度有所差异：</p>
+    <table>
+      <thead>
+        <tr>
+          <th>工作内容</th>
+          <th>传统方式</th>
+          <th>系统方式</th>
+          <th>削减比例</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>基本信息录入</td>
+          <td>每次手工填写，约 20 分钟</td>
+          <td>自动带入历史数据，确认约 1 分钟</td>
+          <td class="pct-high">~95%</td>
+        </tr>
+        <tr>
+          <td>学历 / 培训信息整理</td>
+          <td>每次重新整理，约 15 分钟</td>
+          <td>历史复用，仅补充当年新增</td>
+          <td class="pct-high">~80%</td>
+        </tr>
+        <tr>
+          <td>社保缴纳核实</td>
+          <td>对账单人工比对，约 30 分钟</td>
+          <td>自动解析对账单，结构化存储</td>
+          <td class="pct-high">~90%</td>
+        </tr>
+        <tr>
+          <td>业绩 / 项目材料整理</td>
+          <td>查找旧材料，约 60 分钟</td>
+          <td>历史累积，勾选复用即可</td>
+          <td class="pct-mid">~50%</td>
+        </tr>
+        <tr>
+          <td>网报表单填写</td>
+          <td>手动逐项填写，约 45 分钟</td>
+          <td>自动填写，人工确认截图</td>
+          <td class="pct-high">~85%</td>
+        </tr>
+        <tr style="background:#f0fdf4;">
+          <td><strong>合计（首次建档后）</strong></td>
+          <td><strong>约 170 分钟 / 人次</strong></td>
+          <td><strong>约 30 分钟 / 人次</strong></td>
+          <td class="pct-high"><strong>~75%</strong></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout-warn">
+      <strong>注意</strong>
+      首次建档时仍需完整录入申报人信息（约60分钟）。削减效果从第二次申报开始显现，且数据积累越多，后续效率提升越明显。
+    </div>
+  </section>
+
+  <!-- ===== CHAPTER 2 ===== -->
+  <section id="ch2">
+    <div class="chapter-title">
+      <div class="ch-num">第二章 · CHAPTER 2</div>
+      <h2>核心流程（10阶段工作流）</h2>
+      <p>从政策解析到提交后跟踪的完整业务闭环</p>
+    </div>
+
+    <p>系统将每次职称申报拆解为11个标准阶段（阶段0～10），各阶段有明确的输入、输出和负责角色。</p>
+
+    <div class="flow-wrap">
+
+      <div class="flow-item">
+        <div class="flow-left">
+          <div class="flow-num">0</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-body">
+          <h4>政策解析与清单生成</h4>
+          <p>从官方发布文件中提取职称类别、申报条件、材料要求、分值计算规则，生成本批次标准材料清单模板。支持人工录入和文档OCR两种方式。</p>
+        </div>
+      </div>
+
+      <div class="flow-item">
+        <div class="flow-left">
+          <div class="flow-num">1</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-body">
+          <h4>新建申报人 + 生成个性化清单</h4>
+          <p>建立或更新申报人档案（历史申报数据自动带入）。根据申报职称类别、学历、现职称等条件，从模板清单中生成个人差异化材料清单。</p>
+        </div>
+      </div>
+
+      <div class="flow-item">
+        <div class="flow-left">
+          <div class="flow-num">2</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-body">
+          <h4>本地目录创建</h4>
+          <p>在指定路径自动创建标准化文件夹结构，按材料类型分类。<br>
+          示例路径：<code>D:/申报材料/2026年批次/张三_高级工程师/01_身份证/</code></p>
+        </div>
+      </div>
+
+      <div class="flow-item">
+        <div class="flow-left">
+          <div class="flow-num">3</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-body">
+          <h4>清单发送客户</h4>
+          <p>生成带状态的材料清单（PDF格式或在线链接），明确标注每项材料的具体格式要求（分辨率、页数、颜色）和截止日期。支持微信/邮件发送。</p>
+        </div>
+      </div>
+
+      <div class="flow-item">
+        <div class="flow-left">
+          <div class="flow-num">4</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-body">
+          <h4>材料收集追踪（Watchdog 文件监听）</h4>
+          <p>对申报人文件夹启动文件系统监听（watchdog库），自动检测新上传/修改的文件。实时更新材料状态：<span class="badge badge-gray">未收</span> → <span class="badge badge-orange">已收待核</span> → <span class="badge badge-green">已核验</span>。触发进度通知。</p>
+        </div>
+      </div>
+
+      <div class="flow-item">
+        <div class="flow-left">
+          <div class="flow-num">5</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-body">
+          <h4>材料预检</h4>
+          <p>自动检查：文件格式（PDF/JPG/PNG）、图像分辨率（≥300dpi）、文件大小（&lt;20MB）、页数是否完整。输出预检报告，标注不合格项，通知客户重新提供。</p>
+        </div>
+      </div>
+
+      <div class="flow-item">
+        <div class="flow-left">
+          <div class="flow-num">6</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-body">
+          <h4>OCR识别 + 人工复核</h4>
+          <p>对收到的材料执行OCR识别，提取结构化字段并写入数据库。人工复核界面高亮显示低置信度字段和与历史数据冲突的项目，操作员确认后更新申报人档案。</p>
+        </div>
+      </div>
+
+      <div class="flow-item">
+        <div class="flow-left">
+          <div class="flow-num">7</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-body">
+          <h4>资格预审</h4>
+          <p>根据职称申报规则引擎，检查：工作年限、学历要求、现职称持有年限、继续教育学时、业绩分值是否达标。输出预审报告，标注风险点和差距项，供操作员与客户沟通。</p>
+        </div>
+      </div>
+
+      <div class="flow-item">
+        <div class="flow-left">
+          <div class="flow-num">8</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-body">
+          <h4>准备填报数据</h4>
+          <p>汇总所有字段，生成网报系统所需的结构化数据集。人工最终确认：逐字段预览，标记不确定项，冻结数据版本（此后修改需记录变更原因）。</p>
+        </div>
+      </div>
+
+      <div class="flow-item">
+        <div class="flow-left">
+          <div class="flow-num">9</div>
+          <div class="flow-line"></div>
+        </div>
+        <div class="flow-body">
+          <h4>自动填报</h4>
+          <p>使用 Playwright 驱动浏览器，自动登录网报系统，逐字段填写申报表单。每个页面截图存档，填写过程可回放。遇到验证码或异常情况自动暂停，等待人工介入。</p>
+        </div>
+      </div>
+
+      <div class="flow-item">
+        <div class="flow-left">
+          <div class="flow-num">10</div>
+        </div>
+        <div class="flow-body">
+          <h4>提交后跟踪</h4>
+          <p>记录受理号、初审/复审状态、公示时间、证书发放时间。定期（可配置）自动检查网报系统状态变化，触发微信/短信通知。结果存入contact_logs，支持历史查询。</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== CHAPTER 3 ===== -->
+  <section id="ch3">
+    <div class="chapter-title">
+      <div class="ch-num">第三章 · CHAPTER 3</div>
+      <h2>数据模型</h2>
+      <p>系统核心数据表结构设计，覆盖申报人全生命周期数据</p>
+    </div>
+
+    <h3>3.1 申报人主表 applicants</h3>
+    <p>存储申报人的完整档案信息，一人一档，跨批次复用。所有关联表均通过 <code>applicant_id</code> 外键引用。</p>
+    <pre><code>CREATE TABLE applicants (
+    -- 主键与时间戳
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    -- 基本信息
+    name             TEXT NOT NULL,          -- 姓名
+    id_card          TEXT UNIQUE,            -- 身份证号（加密存储）
+    gender           TEXT,                   -- 性别：男/女
+    birth_date       TEXT,                   -- 出生日期 YYYY-MM-DD
+    ethnicity        TEXT,                   -- 民族
+    political_status TEXT,                   -- 政治面貌
+    phone            TEXT,                   -- 手机号
+    email            TEXT,                   -- 邮箱
+    native_place     TEXT,                   -- 籍贯（省市）
+
+    -- 单位信息
+    company          TEXT,                   -- 工作单位全称
+    department       TEXT,                   -- 所在部门
+    position         TEXT,                   -- 担任职务/岗位名称
+    employment_type  TEXT,                   -- 用工类型：正式/劳务/其他
+    work_start_date  TEXT,                   -- 参加工作时间 YYYY-MM
+
+    -- 学历信息（最高学历）
+    highest_edu      TEXT,                   -- 学历层次：大专/本科/硕士/博士
+    highest_school   TEXT,                   -- 毕业院校
+    highest_major    TEXT,                   -- 所学专业
+    graduation_year  TEXT,                   -- 毕业年份 YYYY
+
+    -- 现职称信息
+    current_title    TEXT,                   -- 现有职称名称
+    title_level      TEXT,                   -- 职称级别：初级/中级/高级
+    title_cert_no    TEXT,                   -- 职称证书编号
+    title_date       TEXT,                   -- 获得职称时间 YYYY-MM
+    title_unit       TEXT,                   -- 评定单位
+
+    -- 本次申报信息
+    target_title     TEXT,                   -- 申报职称名称
+    target_level     TEXT,                   -- 申报级别
+    specialty_field  TEXT,                   -- 申报专业领域
+
+    -- 状态与备注
+    status           TEXT DEFAULT 'active',  -- active/inactive/archived
+    notes            TEXT                    -- 备注信息
+);</code></pre>
+
+    <h3>3.2 工作经历表 work_experiences</h3>
+    <p>记录申报人完整工作履历，支持多段经历，自动生成年限统计。</p>
+    <pre><code>CREATE TABLE work_experiences (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    applicant_id INTEGER NOT NULL REFERENCES applicants(id) ON DELETE CASCADE,
+    start_date   TEXT NOT NULL,              -- 开始时间 YYYY-MM
+    end_date     TEXT,                       -- 结束时间（NULL或"至今"表示当前）
+    company      TEXT NOT NULL,              -- 单位名称
+    position     TEXT,                       -- 职务/岗位
+    is_current   INTEGER DEFAULT 0,          -- 是否当前单位 0/1
+    notes        TEXT                        -- 备注
+);</code></pre>
+
+    <h3>3.3 社保记录表 social_insurance</h3>
+    <p>逐月存储社保缴纳记录，由对账单OCR自动解析写入，支持连续性验证。</p>
+    <pre><code>CREATE TABLE social_insurance (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    applicant_id    INTEGER NOT NULL REFERENCES applicants(id) ON DELETE CASCADE,
+    year_month      TEXT NOT NULL,           -- 年月 YYYY-MM
+    insured_company TEXT,                    -- 参保单位名称
+    insurance_type  TEXT,                    -- 险种：养老/医疗/工伤/失业/生育
+    amount          REAL,                    -- 缴费金额（元）
+    source_file     TEXT,                    -- 来源文件路径
+    parsed_at       DATETIME,               -- 解析时间
+    verified        INTEGER DEFAULT 0        -- 人工核验标志
+);</code></pre>
+
+    <h3>3.4 业绩成果表 achievements（扩展版）</h3>
+    <p>统一存储项目、奖项、论文、标准、专利等各类业绩，type字段区分类型，支持分值计算。</p>
+    <pre><code>CREATE TABLE achievements (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    applicant_id INTEGER NOT NULL REFERENCES applicants(id) ON DELETE CASCADE,
+    type         TEXT NOT NULL,              -- project/award/paper/standard/patent
+    title        TEXT NOT NULL,              -- 成果名称/项目名称
+    role         TEXT,                       -- 本人角色/排名
+    year         TEXT,                       -- 年份 YYYY
+    org          TEXT,                       -- 颁发/发布机构
+    level        TEXT,                       -- 级别：国家级/省级/市级/区级
+    score        REAL,                       -- 系统按规则计算的分值
+    cert_file    TEXT,                       -- 证书/证明文件路径
+    verified     INTEGER DEFAULT 0,          -- 是否已人工核验
+    batch_ids    TEXT,                       -- 关联批次ID列表（JSON数组）
+    notes        TEXT
+);</code></pre>
+
+    <h3>3.5 继续教育/培训表 edu_trainings</h3>
+    <p>记录年度继续教育和专业培训，自动汇总年度学时，校验是否满足申报要求。</p>
+    <pre><code>CREATE TABLE edu_trainings (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    applicant_id INTEGER NOT NULL REFERENCES applicants(id) ON DELETE CASCADE,
+    year         TEXT NOT NULL,              -- 年份 YYYY
+    course_name  TEXT NOT NULL,              -- 课程/培训名称
+    hours        REAL,                       -- 学时数
+    org          TEXT,                       -- 培训机构名称
+    cert_no      TEXT,                       -- 证书编号
+    cert_file    TEXT,                       -- 证书文件路径
+    notes        TEXT
+);</code></pre>
+
+    <h3>3.6 职业资格证书表 pro_certificates</h3>
+    <p>存储注册工程师、建造师等执业资格证书，自动检测有效期预警。</p>
+    <pre><code>CREATE TABLE pro_certificates (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    applicant_id INTEGER NOT NULL REFERENCES applicants(id) ON DELETE CASCADE,
+    cert_name    TEXT NOT NULL,              -- 证书名称（如：二级建造师）
+    cert_no      TEXT,                       -- 证书编号
+    issued_by    TEXT,                       -- 颁发机构
+    issued_date  TEXT,                       -- 颁发日期 YYYY-MM-DD
+    valid_until  TEXT,                       -- 有效期至 YYYY-MM-DD（NULL表示长期有效）
+    cert_file    TEXT,                       -- 扫描件文件路径
+    notes        TEXT
+);</code></pre>
+
+    <h3>3.7 材料文件表 materials</h3>
+    <p>追踪每个申报人每次批次的所有材料收集状态，是流程管控的核心表。</p>
+    <pre><code>CREATE TABLE materials (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    applicant_id  INTEGER NOT NULL REFERENCES applicants(id),
+    batch_id      INTEGER NOT NULL REFERENCES batches(id),
+    material_type TEXT NOT NULL,             -- 材料类型代码（见第四章映射）
+    material_name TEXT NOT NULL,             -- 材料显示名称
+    required      INTEGER DEFAULT 1,         -- 是否必须 0/1
+    file_path     TEXT,                      -- 文件存储路径
+    file_size     INTEGER,                   -- 文件大小（bytes）
+    page_count    INTEGER,                   -- 页数
+    status        TEXT DEFAULT 'pending',    -- pending/received/checking/verified/rejected
+    ocr_done      INTEGER DEFAULT 0,         -- 是否已完成OCR
+    ocr_result    TEXT,                      -- OCR提取结果（JSON格式）
+    check_result  TEXT,                      -- 预检结果（JSON格式）
+    reject_reason TEXT,                      -- 驳回原因
+    uploaded_at   DATETIME,                  -- 上传/接收时间
+    verified_at   DATETIME,                  -- 核验完成时间
+    notes         TEXT
+);</code></pre>
+
+    <h3>3.8 其他业务支撑表</h3>
+    <pre><code>-- 项目详情表（与achievements关联，存储工程项目具体信息）
+CREATE TABLE projects (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    applicant_id INTEGER REFERENCES applicants(id),
+    achievement_id INTEGER REFERENCES achievements(id),
+    project_name TEXT NOT NULL,              -- 项目名称
+    project_type TEXT,                       -- 项目类型（房建/市政/公路等）
+    role         TEXT,                       -- 本人角色（项目经理/技术负责人等）
+    start_date   TEXT,                       -- 开工日期
+    end_date     TEXT,                       -- 竣工日期
+    scale        TEXT,                       -- 建设规模描述
+    investment   REAL,                       -- 投资金额（万元）
+    area         REAL,                       -- 建筑面积（平方米）
+    location     TEXT,                       -- 项目地点
+    notes        TEXT
+);
+
+-- 奖项详情表
+CREATE TABLE awards (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    applicant_id INTEGER REFERENCES applicants(id),
+    award_name   TEXT NOT NULL,              -- 奖项名称
+    award_level  TEXT,                       -- 奖励等级（一等奖/二等奖等）
+    rank         TEXT,                       -- 本人排名/角色
+    issued_by    TEXT,                       -- 颁奖机构
+    year         TEXT,                       -- 获奖年份
+    cert_file    TEXT                        -- 获奖证书文件路径
+);
+
+-- 论文/著作表
+CREATE TABLE papers (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    applicant_id INTEGER REFERENCES applicants(id),
+    title        TEXT NOT NULL,              -- 论文/著作标题
+    journal      TEXT,                       -- 期刊/出版社名称
+    publish_date TEXT,                       -- 发表/出版日期
+    authors      TEXT,                       -- 全部作者（逗号分隔）
+    my_role      TEXT,                       -- 本人角色（第一作者/第二作者等）
+    doi          TEXT,                       -- DOI或ISSN
+    file_path    TEXT                        -- 论文首页扫描件路径
+);
+
+-- 批次管理表
+CREATE TABLE batches (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    batch_name     TEXT NOT NULL,            -- 批次名称（如：2026年工程系列高级职称申报）
+    year           TEXT,                     -- 申报年份
+    title_category TEXT,                     -- 职称系列（工程/经济/会计等）
+    submit_deadline DATETIME,               -- 材料提交截止时间
+    result_date    DATETIME,                 -- 预计结果公布时间
+    status         TEXT DEFAULT 'open',      -- open/collecting/reviewing/closed
+    policy_file    TEXT,                     -- 政策文件路径
+    notes          TEXT
+);
+
+-- 费用记录表
+CREATE TABLE fees (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    applicant_id INTEGER REFERENCES applicants(id),
+    batch_id     INTEGER REFERENCES batches(id),
+    fee_type     TEXT,                       -- 费用类型（代办费/评审费/材料费）
+    amount       REAL NOT NULL,              -- 金额（元）
+    paid_at      DATETIME,                   -- 缴费时间
+    receipt_no   TEXT,                       -- 收据编号
+    payment_method TEXT,                     -- 支付方式
+    notes        TEXT
+);
+
+-- 联系沟通记录表
+CREATE TABLE contact_logs (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    applicant_id INTEGER REFERENCES applicants(id),
+    log_time     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    channel      TEXT,                       -- 沟通渠道：微信/电话/邮件/面谈
+    direction    TEXT,                       -- 方向：outbound/inbound
+    content      TEXT,                       -- 沟通内容摘要
+    operator     TEXT,                       -- 操作员
+    next_action  TEXT                        -- 待跟进事项
+);</code></pre>
+
+  </section>
+
+  <!-- ===== CHAPTER 4 ===== -->
+  <section id="ch4">
+    <div class="chapter-title">
+      <div class="ch-num">第四章 · CHAPTER 4</div>
+      <h2>材料字段映射规范</h2>
+      <p>定义10类核心材料的OCR提取字段、写入目标及识别方式</p>
+    </div>
+
+    <p>本章为OCR模块的核心配置文档。每类材料定义：<strong>提取字段</strong>（从文件中识别的信息）、<strong>写入目标</strong>（存入哪张表的哪些字段）、<strong>识别方式</strong>（技术实现方法）。</p>
+
+    <div class="callout">
+      <strong>置信度阈值约定</strong>
+      OCR置信度 ≥ 0.92：自动写入数据库；0.75～0.92：写入并标记待确认；&lt; 0.75：写入原始文本，要求人工录入。
+    </div>
+
+    <!-- Map Card 1 -->
+    <div class="map-card">
+      <div class="map-card-header">
+        <span>① 居民身份证</span>
+        <span class="badge badge-blue">OCR + 正则匹配</span>
+      </div>
+      <div class="map-fields">
+        <span class="map-field">姓名</span>
+        <span class="map-field">性别</span>
+        <span class="map-field">民族</span>
+        <span class="map-field">出生日期</span>
+        <span class="map-field">身份证号码</span>
+        <span class="map-field">户籍地址</span>
+        <span class="map-field">签发机关</span>
+        <span class="map-field">有效期限</span>
+      </div>
+      <div class="map-method">识别方式：标准正面/背面模板匹配，身份证号用18位正则校验，出生日期从证号第7-14位提取并交叉核验</div>
+      <div class="map-writes">写入目标：applicants.name / id_card / gender / birth_date / ethnicity / native_place</div>
+    </div>
+
+    <!-- Map Card 2 -->
+    <div class="map-card">
+      <div class="map-card-header">
+        <span>② 学历 / 学位证书</span>
+        <span class="badge badge-blue">OCR + 关键词定位</span>
+      </div>
+      <div class="map-fields">
+        <span class="map-field">证书持有人姓名</span>
+        <span class="map-field">毕业院校名称</span>
+        <span class="map-field">所学专业</span>
+        <span class="map-field">学历层次</span>
+        <span class="map-field">学位类型</span>
+        <span class="map-field">毕业年月</span>
+        <span class="map-field">证书编号</span>
+      </div>
+      <div class="map-method">识别方式：以"学历证书"/"毕业证书"/"学位证书"关键词定位文档类型，按字段区域坐标提取，学历层次做枚举归一化处理</div>
+      <div class="map-writes">写入目标：applicants.highest_edu / highest_school / highest_major / graduation_year；同步检查是否覆盖现有记录</div>
+    </div>
+
+    <!-- Map Card 3 -->
+    <div class="map-card">
+      <div class="map-card-header">
+        <span>③ 现职称证书</span>
+        <span class="badge badge-orange">OCR + 模板匹配</span>
+      </div>
+      <div class="map-fields">
+        <span class="map-field">持证人姓名</span>
+        <span class="map-field">职称名称</span>
+        <span class="map-field">职称级别</span>
+        <span class="map-field">专业类别</span>
+        <span class="map-field">证书编号</span>
+        <span class="map-field">评定机构</span>
+        <span class="map-field">评定时间</span>
+      </div>
+      <div class="map-method">识别方式：职称证书格式因省市而异，使用多套区域模板匹配，优先提取红头文件顶部机构名和证书编号区域</div>
+      <div class="map-writes">写入目标：applicants.current_title / title_level / title_cert_no / title_date / title_unit</div>
+    </div>
+
+    <!-- Map Card 4 -->
+    <div class="map-card">
+      <div class="map-card-header">
+        <span>④ 社保缴费证明 / 对账单</span>
+        <span class="badge badge-orange">OCR + 表格结构解析</span>
+      </div>
+      <div class="map-fields">
+        <span class="map-field">参保人姓名</span>
+        <span class="map-field">身份证号</span>
+        <span class="map-field">参保单位</span>
+        <span class="map-field">险种名称</span>
+        <span class="map-field">缴费年月（逐行）</span>
+        <span class="map-field">缴费金额（逐行）</span>
+        <span class="map-field">缴费状态</span>
+      </div>
+      <div class="map-method">识别方式：使用表格线检测算法提取行列结构，逐行解析年月和金额，支持PDF文字层直接提取（优先），图像OCR为备选。自动识别连续缴纳月数</div>
+      <div class="map-writes">写入目标：social_insurance表（逐月逐险种插入），重复记录更新而非新增</div>
+    </div>
+
+    <!-- Map Card 5 -->
+    <div class="map-card">
+      <div class="map-card-header">
+        <span>⑤ 职业资格证书</span>
+        <span class="badge badge-blue">OCR + 正则匹配</span>
+      </div>
+      <div class="map-fields">
+        <span class="map-field">证书名称</span>
+        <span class="map-field">证书编号</span>
+        <span class="map-field">持证人姓名</span>
+        <span class="map-field">颁发机构</span>
+        <span class="map-field">颁发日期</span>
+        <span class="map-field">有效期限</span>
+        <span class="map-field">注册专业</span>
+      </div>
+      <div class="map-method">识别方式：证书名称关键词匹配（含"建造师"/"造价工程师"/"结构工程师"等），证书编号按各类别固定格式正则提取，交叉核验持证人姓名</div>
+      <div class="map-writes">写入目标：pro_certificates表（新增或按cert_no更新），自动计算有效期剩余天数</div>
+    </div>
+
+    <!-- Map Card 6 -->
+    <div class="map-card">
+      <div class="map-card-header">
+        <span>⑥ 继续教育 / 培训证书</span>
+        <span class="badge badge-blue">OCR + 关键词定位</span>
+      </div>
+      <div class="map-fields">
+        <span class="map-field">持证人姓名</span>
+        <span class="map-field">课程/培训名称</span>
+        <span class="map-field">培训学时数</span>
+        <span class="map-field">培训机构名称</span>
+        <span class="map-field">培训年份</span>
+        <span class="map-field">证书编号</span>
+      </div>
+      <div class="map-method">识别方式：以"继续教育"/"培训结业"/"学时证明"关键词定位，学时数用数字正则提取，培训机构做模糊匹配归一化（处理历史名称变更）</div>
+      <div class="map-writes">写入目标：edu_trainings表，按年份汇总学时自动计算是否满足当年最低要求（通常72学时）</div>
+    </div>
+
+    <!-- Map Card 7 -->
+    <div class="map-card">
+      <div class="map-card-header">
+        <span>⑦ 工程项目合同 / 竣工验收报告</span>
+        <span class="badge badge-red">OCR + NLP 信息抽取</span>
+      </div>
+      <div class="map-fields">
+        <span class="map-field">项目名称</span>
+        <span class="map-field">项目类型</span>
+        <span class="map-field">建设单位</span>
+        <span class="map-field">施工/设计单位</span>
+        <span class="map-field">本人角色</span>
+        <span class="map-field">开工日期</span>
+        <span class="map-field">竣工日期</span>
+        <span class="map-field">建设规模</span>
+        <span class="map-field">工程投资金额</span>
+        <span class="map-field">项目地点</span>
+      </div>
+      <div class="map-method">识别方式：工程文件结构复杂，使用NLP关键信息抽取（正则+规则引擎）。投资金额统一转换为万元，建筑面积统一转换为平方米。多文件关联同一项目时自动合并</div>
+      <div class="map-writes">写入目标：projects表（详细信息）+ achievements表（type='project'，含分值计算）</div>
+    </div>
+
+    <!-- Map Card 8 -->
+    <div class="map-card">
+      <div class="map-card-header">
+        <span>⑧ 获奖证书</span>
+        <span class="badge badge-orange">OCR + 模板匹配</span>
+      </div>
+      <div class="map-fields">
+        <span class="map-field">奖项名称</span>
+        <span class="map-field">奖励等级</span>
+        <span class="map-field">获奖单位/个人</span>
+        <span class="map-field">本人排名</span>
+        <span class="map-field">颁奖机构</span>
+        <span class="map-field">颁奖年份</span>
+      </div>
+      <div class="map-method">识别方式：奖项证书格式多样，优先提取文件顶部颁奖机构（用于判断级别）和奖项等级字样。等级做归一化：国优/省优/市优→国家级/省级/市级</div>
+      <div class="map-writes">写入目标：awards表 + achievements表（type='award'，按颁发机构级别和等级自动计算分值）</div>
+    </div>
+
+    <!-- Map Card 9 -->
+    <div class="map-card">
+      <div class="map-card-header">
+        <span>⑨ 论文 / 期刊首页</span>
+        <span class="badge badge-blue">OCR + 元数据解析</span>
+      </div>
+      <div class="map-fields">
+        <span class="map-field">论文标题</span>
+        <span class="map-field">期刊/出版社名称</span>
+        <span class="map-field">发表日期</span>
+        <span class="map-field">全部作者列表</span>
+        <span class="map-field">本人排名</span>
+        <span class="map-field">ISSN号</span>
+        <span class="map-field">DOI编号</span>
+      </div>
+      <div class="map-method">识别方式：PDF文件优先提取PDF元数据（标题/作者/DOI）；图像扫描件使用首页顶部区域OCR。根据ISSN自动查询期刊收录情况（北核/南核/EI/SCI）</div>
+      <div class="map-writes">写入目标：papers表 + achievements表（type='paper'，按期刊收录级别计算分值）</div>
+    </div>
+
+    <!-- Map Card 10 -->
+    <div class="map-card">
+      <div class="map-card-header">
+        <span>⑩ 在职证明 / 劳动合同</span>
+        <span class="badge badge-blue">OCR + 正则匹配</span>
+      </div>
+      <div class="map-fields">
+        <span class="map-field">员工姓名</span>
+        <span class="map-field">入职/用工起始日期</span>
+        <span class="map-field">用工单位全称</span>
+        <span class="map-field">职务/岗位名称</span>
+        <span class="map-field">用工类型</span>
+        <span class="map-field">合同期限</span>
+        <span class="map-field">签署日期</span>
+        <span class="map-field">盖章单位</span>
+      </div>
+      <div class="map-method">识别方式：区分在职证明（单页）和劳动合同（多页），提取关键条款。用工类型做归一化：全日制/劳务派遣/其他。单位名称与applicants.company交叉核验一致性</div>
+      <div class="map-writes">写入目标：applicants.company / employment_type / work_start_date（如与现有数据不符则提示确认）+ work_experiences表（新增或更新当前单位记录）</div>
+    </div>
+
+  </section>
+
+</main>
+
+<!-- ══════════════════════════ 第五章 ══════════════════════════ -->
+<section id="ch5">
+  <div class="chapter-title">
+    <div class="ch-num">第五章</div>
+    <h2>模块功能设计</h2>
+    <p>各功能模块的职责边界与交互关系（基于 Flask Blueprint 架构）</p>
+  </div>
+
+  <h2>5.1 工作台 Dashboard</h2>
+  <p>系统首页，路由 <code>/</code>，蓝图 <code>dashboard</code>。聚合展示全局状态：</p>
+  <ul>
+    <li>统计卡：申报人总数 / 进行中项目 / 待收款金额 / 本年通过数</li>
+    <li>截止日期预警：距截止 ≤7 天红色警告，7-30 天黄色提示</li>
+    <li>最近申报人列表（5条）/ 最近项目列表（5条）</li>
+    <li>跟进提醒：已逾期（红）/ 今天（橙）/ 未来（正常）</li>
+    <li>批次卡片（最多3个）：显示倒计时天数和未完成人数</li>
+  </ul>
+
+  <h2>5.2 申报人管理 Applicants</h2>
+  <p>路由前缀 <code>/applicants</code>，核心 CRUD 模块。</p>
+  <table>
+    <thead><tr><th>路由</th><th>功能</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>GET /applicants/</td><td>列表页</td><td>支持关键词搜索，显示进度状态</td></tr>
+      <tr><td>GET/POST /applicants/new</td><td>新增</td><td>表单提交，OCR弹窗可直接保存（new-json接口）</td></tr>
+      <tr><td>GET/POST /applicants/:id/edit</td><td>编辑</td><td>修改基本信息</td></tr>
+      <tr><td>POST /applicants/:id/delete</td><td>删除</td><td>级联删除所有子数据</td></tr>
+      <tr><td>GET /applicants/:id</td><td>详情</td><td>汇总业绩/获奖/论文/沟通记录，显示资历年限</td></tr>
+      <tr><td>GET /applicants/export/excel</td><td>Excel导出</td><td>openpyxl生成，含蓝色表头样式</td></tr>
+    </tbody>
+  </table>
+  <p>申报人详情页内嵌 4 个子模块的 CRUD：<strong>工程业绩（achievements）/ 获奖情况（awards）/ 论文著作（papers）/ 沟通记录（contact_logs）</strong>，均通过 URL 参数 <code>applicant_id</code> 关联。</p>
+  <p>资历年限自动计算逻辑：从取得现职称的<strong>次月起算</strong>，精确到月，在详情页实时显示。</p>
+
+  <h2>5.3 项目管理 Projects</h2>
+  <p>路由前缀 <code>/projects</code>，每个"项目"=一次职称申报。</p>
+  <ul>
+    <li>关联申报人（many-to-one）和批次（many-to-one）</li>
+    <li>记录：行业 / 评委会 / 申报级别 / 专业方向 / 本地文件夹路径</li>
+    <li>状态流转：准备中 → 材料齐全 → 待提交 → 已提交 → 已评审</li>
+    <li>完整性检查结果（JSON）存入 <code>check_result</code> 字段</li>
+    <li>评审结果跟踪：通过 / 不通过 / 公示中，可记录评委意见</li>
+  </ul>
+
+  <h2>5.4 批次管理 Batches</h2>
+  <p>路由前缀 <code>/batches</code>，管理每年度的申报批次。</p>
+  <ul>
+    <li>字段：年度 / 行业 / 评委会 / 级别 / 材料截止日 / 网填截止日 / 状态</li>
+    <li>支持<strong>双截止日期</strong>（网填截止通常早于材料提交截止）</li>
+    <li>首页实时倒计时预警（7天内红色，30天内黄色）</li>
+    <li>批次状态：进行中 / 已结束</li>
+  </ul>
+
+  <h2>5.5 费用管理 Fees</h2>
+  <p>路由前缀 <code>/fees</code>，记录中介服务费收款状态。</p>
+  <ul>
+    <li>字段：项目关联 / 合同总额 / 定金 / 已付款额 / 付款日期</li>
+    <li>状态：未付 / 已付定金 / 已结清（系统自动计算）</li>
+    <li>首页汇总：本年应收 / 已收 / 待收尾款金额</li>
+    <li>提交申报前检查尾款状态，未结清时弹出提示</li>
+  </ul>
+
+  <h2>5.6 OCR 识别 OCR</h2>
+  <p>路由前缀 <code>/ocr</code>，调用腾讯云 OCR API v3。</p>
+  <table>
+    <thead><tr><th>接口</th><th>功能</th><th>识别内容</th></tr></thead>
+    <tbody>
+      <tr><td>POST /ocr/id-card</td><td>身份证识别</td><td>姓名/身份证号/性别/出生日期/民族/地址（正面）；有效期（背面）</td></tr>
+      <tr><td>POST /ocr/degree</td><td>学历证书识别</td><td>院校/专业/学历层次/毕业年份</td></tr>
+    </tbody>
+  </table>
+  <div class="callout callout-blue">
+    <strong>腾讯云签名方式：</strong>TC3-HMAC-SHA256（API v3），在 <code>core/ocr_reader.py</code> 中实现完整签名逻辑，无需第三方SDK。
+    身份证使用专用接口（IDCardOCR），其他证件使用通用高精度接口（GeneralAccurateOCR）。
+    配置入口：系统设置页填写 SecretId / SecretKey，存入 config.json。
+  </div>
+  <p>OCR 识别结果通过 AJAX 返回前端，在"申报人新增弹窗"中自动填充字段，人工确认后写入数据库。置信度 &lt;0.8 的字段标黄色提示。</p>
+
+  <h2>5.7 AI 辅助写作 AI Writer</h2>
+  <p>路由前缀 <code>/ai</code>，接入 DeepSeek API（OpenAI 兼容格式），Server-Sent Events 流式输出。</p>
+  <table>
+    <thead><tr><th>文档类型</th><th>关键字</th><th>字数目标</th><th>输入信息</th></tr></thead>
+    <tbody>
+      <tr><td>个人工作总结</td><td>work_summary</td><td>1500-2000字</td><td>姓名/单位/学历/职称/申报级别/主要业绩</td></tr>
+      <tr><td>代表作说明书</td><td>masterwork_desc</td><td>1000-1500字</td><td>工程名称/规模/行业/申报人职务/工作内容</td></tr>
+      <tr><td>业绩描述</td><td>achievement_desc</td><td>150-300字</td><td>项目名称/规模/地点/起止时间/担任角色</td></tr>
+    </tbody>
+  </table>
+  <p>前端通过 <code>EventSource</code> 监听 SSE 流，文字逐字显示。生成完成后可导出为 <code>.docx</code>（python-docx）或纯文本。</p>
+
+  <h2>5.8 自动填报 Auto Fill</h2>
+  <p>路由前缀 <code>/auto-fill</code>，调用 Playwright 驱动 Chromium 浏览器，自动登录并填写广西职称网（<code>my.gxrczc.com</code>）。</p>
+  <ul>
+    <li>账号密码 Fernet 加密存储，填报前解密传入 Playwright</li>
+    <li>顺序：登录 → 选择行业/评委会 → 基本信息页 → 业绩页（循环插入）→ 获奖/论文页 → 确认弹窗 → 提交</li>
+    <li>支持断点续传（<code>progress_stage</code> 字段记录当前完成步骤）</li>
+    <li>每个关键步骤截图存档，记录受理号</li>
+    <li>短信验证码：弹窗暂停，等待人工输入，10分钟超时</li>
+  </ul>
+
+  <h2>5.9 图像处理 Img Proc</h2>
+  <p>路由前缀 <code>/img-proc</code>。优先使用本地 Pillow 处理（免费），第三方 API 可选启用。</p>
+  <ul>
+    <li><strong>本地处理</strong>（Pillow + OpenCV）：扫描件增强（亮度/对比度/锐化）、自动纠偏（歪斜修正）</li>
+    <li><strong>remove.bg</strong>：证件照抠图换底色（白底/蓝底），按张计费，每月50张免费</li>
+    <li><strong>Clipdrop</strong>：图片超分辨率提升，适合模糊扫描件</li>
+    <li>所有第三方 API Key 通过 Fernet 加密后存入 config.json</li>
+  </ul>
+
+  <h2>5.10 系统设置 Settings</h2>
+  <p>路由前缀 <code>/settings</code>，统一配置入口，写入 <code>config.json</code>。</p>
+  <table>
+    <thead><tr><th>配置项</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td>腾讯云 SecretId / SecretKey</td><td>OCR 识别</td></tr>
+      <tr><td>DeepSeek API Key / 模型 / Base URL</td><td>AI 写作</td></tr>
+      <tr><td>客户材料根目录路径</td><td>本地文件夹自动创建</td></tr>
+      <tr><td>remove.bg / Clipdrop API Key</td><td>图像处理（可选）</td></tr>
+      <tr><td>广西职称网账号（默认）</td><td>自动填报</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══════════════════════════ 第六章 ══════════════════════════ -->
+<section id="ch6">
+  <div class="chapter-title">
+    <div class="ch-num">第六章</div>
+    <h2>技术架构</h2>
+    <p>当前实际采用的技术栈与目录结构</p>
+  </div>
+
+  <h2>6.1 技术栈</h2>
+  <table>
+    <thead><tr><th>层次</th><th>技术选型</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>Web 框架</td><td>Python 3.x + Flask 3.x</td><td>Blueprint 架构，11 个蓝图，本地单机运行</td></tr>
+      <tr><td>数据库</td><td>SQLite（WAL 模式）</td><td><code>_migrate()</code> 自动向后兼容扩展字段，无需手动迁移</td></tr>
+      <tr><td>前端</td><td>Vanilla JS + 自定义 CSS</td><td>无外部框架，轻量快速，移动端响应式</td></tr>
+      <tr><td>OCR</td><td>腾讯云 OCR API v3</td><td>TC3-HMAC-SHA256 签名，身份证专用接口 + 通用高精度接口</td></tr>
+      <tr><td>AI 写作</td><td>DeepSeek API（OpenAI 兼容）</td><td>流式输出（SSE），模型 deepseek-chat</td></tr>
+      <tr><td>自动填报</td><td>Playwright（Python）</td><td>Chromium 驱动，支持断点续传，截图存档</td></tr>
+      <tr><td>密码加密</td><td>cryptography（Fernet）</td><td>对称加密，密钥与数据库分开存放</td></tr>
+      <tr><td>Word 导出</td><td>python-docx</td><td>AI 写作结果导出为 .docx</td></tr>
+      <tr><td>Excel 导出</td><td>openpyxl</td><td>申报人列表导出，含样式</td></tr>
+      <tr><td>图片处理</td><td>Pillow + OpenCV（本地）</td><td>扫描增强、纠偏；第三方 API 可选</td></tr>
+      <tr><td>HTTP 请求</td><td>requests</td><td>腾讯云 OCR、remove.bg 等 API 调用</td></tr>
+    </tbody>
+  </table>
+
+  <h2>6.2 运行方式</h2>
+  <ul>
+    <li>本地单机运行，浏览器访问 <code>http://localhost:5000</code></li>
+    <li>无需公网服务器，所有数据存储在本地</li>
+    <li>支持 Windows / macOS / Linux</li>
+  </ul>
+  <pre><code># 安装依赖
+pip install -r requirements.txt
+
+# 安装 Playwright 浏览器
+playwright install chromium
+
+# 启动系统
+python app.py</code></pre>
+
+  <h2>6.3 目录结构（当前实际）</h2>
+  <pre><code>职称申报系统/
+├── app.py                  # Flask 入口，注册 11 个蓝图
+├── config.py               # 配置加载（config.json）
+├── config.json             # 运行时配置（API Key、路径等）
+├── data.db                 # SQLite 数据库
+├── requirements.txt
+│
+├── database/
+│   ├── db.py               # 连接 + init_db() + _migrate()
+│   └── models.py           # 所有 SQL 查询函数
+│
+├── routes/                 # Flask Blueprint（每模块一文件）
+│   ├── dashboard.py        # / 工作台
+│   ├── applicants.py       # /applicants 申报人 + 子数据 CRUD
+│   ├── projects.py         # /projects 项目管理
+│   ├── batches.py          # /batches 批次管理
+│   ├── fees.py             # /fees 费用报表
+│   ├── docs.py             # /docs 材料目录
+│   ├── ocr.py              # /ocr 腾讯云OCR
+│   ├── ai_writer.py        # /ai AI写作（SSE流式）
+│   ├── img_proc.py         # /img-proc 图像处理
+│   ├── auto_fill.py        # /auto-fill Playwright自动填报
+│   └── settings.py         # /settings 系统设置
+│
+├── core/                   # 业务逻辑（纯 Python，不依赖 Flask）
+│   ├── ocr_reader.py       # 腾讯云OCR签名 + 字段解析
+│   ├── ai_writer.py        # DeepSeek 流式写作 + Prompt模板
+│   ├── crypto.py           # Fernet 加/解密
+│   ├── scale_engine.py     # 工程规模判断引擎（5专业）
+│   ├── folder_builder.py   # 本地目录自动创建
+│   ├── img_processor.py    # 图像处理（本地 + 第三方API）
+│   └── industries/
+│       ├── __init__.py
+│       └── construction.py # 住建行业材料规则
+│
+├── automation/
+│   ├── browser.py          # Playwright 登录 + 行业选择
+│   └── form_filler.py      # 各表单页自动填写逻辑
+│
+├── static/
+│   ├── css/style.css       # 全局样式（含移动端响应式）
+│   └── js/                 # 各页面 JS
+│
+└── templates/              # Jinja2 模板
+    ├── base.html           # 主框架（侧边栏 + 顶栏 + 汉堡菜单）
+    ├── dashboard.html
+    ├── applicants/         # list / form / detail
+    ├── projects/
+    ├── batches/
+    ├── fees/
+    ├── ocr/
+    ├── ai/
+    ├── docs/
+    ├── img/
+    └── settings/</code></pre>
+
+  <div class="callout callout-warn">
+    <strong>注：</strong>仓库中保留了旧版 <code>gui/</code> 目录（PyQt5 桌面界面），已不再使用，仅供参考。Flask Web 版已完全替代桌面版，是当前唯一的运行方式。
+  </div>
+</section>
+
+<!-- ══════════════════════════ 第七章 ══════════════════════════ -->
+<section id="ch7">
+  <div class="chapter-title">
+    <div class="ch-num">第七章</div>
+    <h2>工程规模判断引擎</h2>
+    <p>根据项目指标自动判断大型/中型/小型，用于资格预审和完整性检查</p>
+  </div>
+
+  <div class="callout callout-blue">
+    录入工程业绩时，系统根据专业类型和填写的指标（面积/层数/合同额等）自动判断项目规模，
+    并与申报级别的业绩要求对比，得出"是否满足申报条件"的结论。规则来源：《注册建造师执业工程规模标准（试行）》。
+  </div>
+
+  <h2>7.1 各专业规模标准</h2>
+
+  <h3>🏠 房屋建筑工程</h3>
+  <table>
+    <thead><tr><th>指标</th><th>单位</th><th>大型</th><th>中型</th><th>小型</th></tr></thead>
+    <tbody>
+      <tr><td>建筑物层数</td><td>层</td><td>≥25</td><td>5～25</td><td>&lt;5</td></tr>
+      <tr><td>建筑物高度</td><td>米</td><td>≥100</td><td>15～100</td><td>&lt;15</td></tr>
+      <tr><td>单跨跨度</td><td>米</td><td>≥30</td><td>15～30</td><td>&lt;15</td></tr>
+      <tr><td>单体建筑面积</td><td>㎡</td><td>≥30000</td><td>3000～30000</td><td>&lt;3000</td></tr>
+      <tr><td>住宅群总面积</td><td>㎡</td><td>≥100000</td><td>3000～100000</td><td>&lt;3000</td></tr>
+      <tr><td>单项合同额</td><td>万元</td><td>≥3000</td><td>300～3000</td><td>&lt;300</td></tr>
+    </tbody>
+  </table>
+  <p><small>✅ 满足任一指标即可认定为该规模（取最高级别）</small></p>
+
+  <h3>🛣️ 市政公用工程</h3>
+  <table>
+    <thead><tr><th>指标</th><th>单位</th><th>大型</th><th>中型</th><th>小型</th></tr></thead>
+    <tbody>
+      <tr><td>城市道路路基长度</td><td>km</td><td>≥5</td><td>2～5</td><td>&lt;2</td></tr>
+      <tr><td>城市桥梁单跨</td><td>米</td><td>≥40</td><td>20～40</td><td>&lt;20</td></tr>
+      <tr><td>供排水管径</td><td>mm</td><td>≥1500</td><td>800～1500</td><td>&lt;800</td></tr>
+      <tr><td>污水处理厂日处理量</td><td>万吨/日</td><td>≥5</td><td>3～5</td><td>&lt;3</td></tr>
+      <tr><td>合同额</td><td>万元</td><td>≥3000</td><td>1000～3000</td><td>&lt;1000</td></tr>
+    </tbody>
+  </table>
+
+  <h3>⚙️ 机电安装 / 🎨 装饰装修 / 🛤️ 公路工程</h3>
+  <table>
+    <thead><tr><th>专业</th><th>指标</th><th>单位</th><th>大型</th><th>中型</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="2">机电安装</td><td>一般机电造价</td><td>万元</td><td>&gt;1500</td><td>200～1500</td></tr>
+      <tr><td>建筑智能化合同额</td><td>万元</td><td>&gt;500</td><td>200～500</td></tr>
+      <tr><td>装饰装修</td><td>单项合同额</td><td>万元</td><td>≥1000</td><td>100～1000</td></tr>
+      <tr><td rowspan="2">公路工程</td><td>高速公路</td><td>—</td><td>全部大型</td><td>—</td></tr>
+      <tr><td>单项合同额</td><td>万元</td><td>&gt;3000</td><td>500～3000</td></tr>
+    </tbody>
+  </table>
+
+  <h2>7.2 业绩要求规则（按职称级别）</h2>
+  <table>
+    <thead><tr><th>职称级别</th><th>业绩要求（设计/施工/监理类）</th></tr></thead>
+    <tbody>
+      <tr><td>工程师（中级）</td><td>2项中型，或 1中+2小，或 4小（其中1-12条至少1条）</td></tr>
+      <tr><td>高级工程师</td><td>2项大型，或 1大+2中，或 4项中型</td></tr>
+      <tr><td>正高级工程师</td><td>在高级基础上还需满足获奖/论文/代表作等综合条件</td></tr>
+    </tbody>
+  </table>
+  <div class="callout callout-warn">
+    不同工作类型（设计类/施工监理类/咨询检测类/工程造价类）规模要求数量不同，系统按工作类型分组统计后分别校验。
+  </div>
+</section>
+
+<!-- ══════════════════════════ 第八章 ══════════════════════════ -->
+<section id="ch8">
+  <div class="chapter-title">
+    <div class="ch-num">第八章</div>
+    <h2>材料清单规范</h2>
+    <p>各职称级别必要材料清单——完整性检查的依据</p>
+  </div>
+
+  <h2>8.1 通用必备材料（所有级别）</h2>
+  <ul class="checklist">
+    <li class="req">身份证正反面（PDF或高清图片）</li>
+    <li class="req">最高学历毕业证书</li>
+    <li class="req">社保缴纳记录（近3个月内打印，广西本地参保）</li>
+    <li class="req">继续教育完成证明</li>
+    <li class="req">近3年年度考核证明</li>
+    <li class="req">工程业绩材料（数量按级别要求）</li>
+  </ul>
+
+  <h2>8.2 工程师（中级）额外要求</h2>
+  <ul class="checklist">
+    <li class="req">现有职称证书（助理工程师）</li>
+    <li class="req">工程业绩 ≥ 2项（满足规模要求）</li>
+    <li class="opt">论文/著作（非强制，有足够业绩可免）</li>
+    <li class="opt">专利证书</li>
+  </ul>
+
+  <h2>8.3 高级工程师额外要求</h2>
+  <ul class="checklist">
+    <li class="req">现有职称证书（工程师）</li>
+    <li class="req">工程业绩：满足规模组合要求（见第七章）</li>
+    <li class="req">获奖证书 ≥ 1项（省部级/市厅级）</li>
+    <li class="req">论文/著作 ≥ 1篇</li>
+    <li class="req">代表作说明书（指定1项标志性成果）</li>
+    <li class="opt">专利证书 / 科研项目证明</li>
+  </ul>
+
+  <h2>8.4 正高级工程师额外要求</h2>
+  <ul class="checklist">
+    <li class="req">现有职称证书（高级工程师）</li>
+    <li class="req">获奖类条件（1-6条）≥ 1项</li>
+    <li class="req">工程业绩类条件（7-15条）≥ 1项</li>
+    <li class="req">论文著作类条件（16-19条）≥ 1项（须含核心期刊）</li>
+    <li class="req">代表作说明书</li>
+  </ul>
+
+  <h2>8.5 资历年限要求（2026年广西住建行业）</h2>
+  <table>
+    <thead><tr><th>申报级别</th><th>学历要求</th><th>任现职最短年限</th><th>起算规则</th></tr></thead>
+    <tbody>
+      <tr><td>工程师（中级）</td><td>本科</td><td>1年</td><td>从取得助理工程师职称次月起算</td></tr>
+      <tr><td>工程师（中级）</td><td>大专</td><td>3年</td><td>同上</td></tr>
+      <tr><td>高级工程师</td><td>本科</td><td>5年</td><td>从取得工程师职称次月起算</td></tr>
+      <tr><td>高级工程师</td><td>大专</td><td>7年</td><td>同上</td></tr>
+      <tr><td>正高级工程师</td><td>本科及以上</td><td>5年</td><td>从取得高级工程师职称次月起算</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══════════════════════════ 第九章 ══════════════════════════ -->
+<section id="ch9">
+  <div class="chapter-title">
+    <div class="ch-num">第九章</div>
+    <h2>AI 辅助写作</h2>
+    <p>DeepSeek API 接入设计与 Prompt 模板</p>
+  </div>
+
+  <h2>9.1 Prompt 模板</h2>
+
+  <h3>① 个人工作总结（work_summary）</h3>
+  <pre><code>你是一位专业的广西职称申报材料撰写专家。请根据以下信息，为申报人撰写一份
+专业、严谨、符合广西职称申报要求的工作总结。
+工作总结应包含：个人基本情况、专业技术工作经历、主要业绩成果、今后工作展望，
+字数约1500-2000字。
+
+申报人信息：
+{info}
+
+请直接输出工作总结正文，不要加多余的说明。</code></pre>
+
+  <h3>② 代表作说明书（masterwork_desc）</h3>
+  <pre><code>你是一位专业的广西职称申报材料撰写专家。请根据以下工程项目信息，撰写一份
+符合广西职称申报要求的代表作说明书。
+代表作说明书应包含：工程概况、申报人承担的工作内容及职责、技术难点及解决方案、
+取得的技术成果及社会效益，字数约1000-1500字。
+
+项目信息：
+{info}
+
+请直接输出代表作说明书正文，不要加多余的说明。</code></pre>
+
+  <h3>③ 业绩描述（achievement_desc）</h3>
+  <pre><code>你是一位专业的广西职称申报材料撰写专家。请根据以下业绩信息，撰写一段
+简洁、专业的业绩描述，用于职称申报业绩栏填写，字数150-300字。
+
+业绩信息：
+{info}
+
+请直接输出业绩描述正文，不要加标题和多余的说明。</code></pre>
+
+  <h2>9.2 流式输出实现</h2>
+  <pre><code># routes/ai_writer.py  关键片段
+@bp.route("/generate", methods=["POST"])
+def generate():
+    data = request.json or {}
+    doc_type = data.get("doc_type", "work_summary")
+    fields   = data.get("info") or data.get("fields") or {}
+
+    def stream():
+        from core.ai_writer import stream_write
+        for chunk in stream_write(doc_type, fields):
+            yield f"data: {json.dumps({'text': chunk}, ensure_ascii=False)}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return Response(stream(), mimetype="text/event-stream",
+                    headers={"X-Accel-Buffering": "no", "Cache-Control": "no-cache"})</code></pre>
+  <div class="callout callout-blue">
+    AI 生成内容为草稿，界面顶部显示醒目提示：「以下内容由 AI 辅助生成，请仔细核对所有数据后再使用」。生成完成后可导出为 .docx 或 .txt 文件。
+  </div>
+</section>
+
+<!-- ══════════════════════════ 第十章 ══════════════════════════ -->
+<section id="ch10">
+  <div class="chapter-title">
+    <div class="ch-num">第十章</div>
+    <h2>密码加密与安全</h2>
+    <p>Fernet 对称加密保护敏感凭证</p>
+  </div>
+
+  <p>申报人在 gxrczc.com 的登录密码、各平台 API Key 均属于敏感信息，不能明文存入 SQLite。系统使用 <code>cryptography</code> 库的 Fernet 对称加密方案。</p>
+
+  <div class="callout callout-blue">
+    <strong>安全原则：</strong>密钥文件与数据库文件分开存放。即使数据库被复制走，没有密钥文件也无法解密。
+    如需迁移，必须同时复制密钥文件。
+  </div>
+
+  <pre><code># core/crypto.py
+from cryptography.fernet import Fernet
+from config import KEY_PATH
+
+def _load_or_create_key() -> bytes:
+    if KEY_PATH.exists():
+        return KEY_PATH.read_bytes()
+    key = Fernet.generate_key()
+    KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    KEY_PATH.write_bytes(key)
+    return key
+
+def encrypt(plain_text: str) -> str:
+    return Fernet(_load_or_create_key()).encrypt(plain_text.encode()).decode()
+
+def decrypt(cipher_text: str) -> str:
+    try:
+        return Fernet(_load_or_create_key()).decrypt(cipher_text.encode()).decode()
+    except Exception:
+        return ""</code></pre>
+
+  <table>
+    <thead><tr><th>场景</th><th>操作</th></tr></thead>
+    <tbody>
+      <tr><td>保存密码/API Key</td><td>调用 <code>encrypt()</code>，将密文存入数据库或 config.json</td></tr>
+      <tr><td>启动自动填报前</td><td>调用 <code>decrypt()</code> 取出明文，传给 Playwright</td></tr>
+      <tr><td>界面展示</td><td>密码框始终显示 ••••••，不在任何位置显示明文</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══════════════════════════ 第十一章 ══════════════════════════ -->
+<section id="ch11">
+  <div class="chapter-title">
+    <div class="ch-num">第十一章</div>
+    <h2>自动填报</h2>
+    <p>Playwright 驱动浏览器自动完成广西职称网填报</p>
+  </div>
+
+  <h2>11.1 填报流程</h2>
+  <ol>
+    <li>从数据库读取申报人账号，Fernet 解密密码</li>
+    <li>Playwright 打开 <code>https://my.gxrczc.com/Login</code>，自动填写账号密码登录</li>
+    <li>登录后选择行业下拉 + 评委会下拉（从 projects 表读取）</li>
+    <li>导航到「个人申报 → 新建申报」</li>
+    <li>填写基本信息页（姓名/身份证/性别/出生日期/民族/学历/工作单位等）</li>
+    <li>循环插入工程业绩（每条点击「新增业绩」，填写并保存）</li>
+    <li>填写获奖信息、论文信息</li>
+    <li>上传材料文件（<code>set_input_files</code> 上传本地 PDF）</li>
+    <li>弹出确认对话框，<strong>用户手动确认</strong>后提交（防误操作）</li>
+    <li>截图存档，记录受理号到数据库</li>
+  </ol>
+
+  <h2>11.2 表单字段映射</h2>
+  <table>
+    <thead><tr><th>页面</th><th>填写字段</th><th>数据来源（数据库字段）</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="7">基本信息</td><td>姓名</td><td>applicants.name</td></tr>
+      <tr><td>身份证号</td><td>applicants.id_card</td></tr>
+      <tr><td>性别 / 民族</td><td>applicants.gender / ethnicity</td></tr>
+      <tr><td>出生年月</td><td>applicants.birth_date</td></tr>
+      <tr><td>最高学历</td><td>applicants.education</td></tr>
+      <tr><td>工作单位</td><td>applicants.work_unit</td></tr>
+      <tr><td>联系电话</td><td>applicants.phone</td></tr>
+      <tr><td rowspan="4">工程业绩</td><td>项目名称</td><td>achievements.project_name</td></tr>
+      <tr><td>项目规模</td><td>achievements.scale</td></tr>
+      <tr><td>本人角色</td><td>achievements.role</td></tr>
+      <tr><td>工作内容</td><td>achievements.description</td></tr>
+      <tr><td rowspan="3">获奖信息</td><td>奖项名称</td><td>awards.award_name</td></tr>
+      <tr><td>奖项级别</td><td>awards.award_level</td></tr>
+      <tr><td>获奖年份</td><td>awards.award_year</td></tr>
+      <tr><td rowspan="3">论文信息</td><td>论文题目</td><td>papers.title</td></tr>
+      <tr><td>发表期刊</td><td>papers.journal</td></tr>
+      <tr><td>发表时间</td><td>papers.pub_date</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-warn">
+    ⚠️ 以上字段映射为预设计版本。实际开发时需登录 gxrczc.com 逐页查看表单元素的 name/id/selector，
+    再更新到 <code>automation/form_filler.py</code>。建议使用 Playwright codegen 自动录制操作路径。
+  </div>
+</section>
+
+<!-- ══════════════════════════ 第十二章 ══════════════════════════ -->
+<section id="ch12">
+  <div class="chapter-title">
+    <div class="ch-num">第十二章</div>
+    <h2>中介业务管理</h2>
+    <p>批次管理 / 截止预警 / 费用跟踪 / 结果归档 / 统计报表</p>
+  </div>
+
+  <h2>12.1 年度批次管理</h2>
+  <p>每年职称申报为一个独立批次，按"行业 + 评委会 + 年度"三维度组织。同一客户可连续多年申报（未过下年再来），历史记录完整保留。</p>
+  <table>
+    <thead><tr><th>字段</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>年度</td><td>如"2026"</td></tr>
+      <tr><td>行业</td><td>住房城乡建设 / 教育 / 卫生健康（可扩展）</td></tr>
+      <tr><td>评委会</td><td>高级职称评委会 / 中级职称评委会 / 正高级评委会</td></tr>
+      <tr><td>材料截止</td><td>向评委会提交材料的截止日</td></tr>
+      <tr><td>网填截止</td><td>gxrczc.com 网上填报截止日（通常早于材料截止）</td></tr>
+      <tr><td>状态</td><td>进行中 / 已结束</td></tr>
+    </tbody>
+  </table>
+
+  <h2>12.2 截止日期预警</h2>
+  <table>
+    <thead><tr><th>预警级别</th><th>触发条件</th><th>界面表现</th></tr></thead>
+    <tbody>
+      <tr><td>🟢 正常</td><td>距截止 &gt;30 天</td><td>绿色，正常显示</td></tr>
+      <tr><td>🟡 注意</td><td>距截止 7-30 天</td><td>黄色警告</td></tr>
+      <tr><td>🔴 紧急</td><td>距截止 ≤7 天</td><td>红色闪烁，首页置顶</td></tr>
+      <tr><td>⚫ 已逾期</td><td>超过截止日期</td><td>灰色，显示"已逾期N天"</td></tr>
+    </tbody>
+  </table>
+
+  <h2>12.3 服务费用管理</h2>
+  <p>中介服务费通常分两期收取：签约时收定金，提交申报后收尾款。系统做辅助记录，不涉及在线支付。</p>
+  <ul>
+    <li>字段：合同总额 / 定金 / 已付额 / 付款日期</li>
+    <li>状态自动计算：未付 / 已付定金 / 已结清</li>
+    <li>首页汇总：本年应收总额 / 已收总额 / 待收尾款</li>
+    <li>提交申报前：检查尾款是否结清，未结清弹出提示</li>
+  </ul>
+
+  <h2>12.4 评审结果跟踪</h2>
+  <p>状态流转：已提交 → 评审中 → 公示中 → 通过 / 不通过</p>
+  <ul>
+    <li>记录结果公布日期、评委意见（未通过时填写，指导下次申报改进）</li>
+    <li>历史未通过记录自动携带到下一年项目，提示需要补强哪些材料</li>
+  </ul>
+
+  <h2>12.5 业务统计报表</h2>
+  <table>
+    <thead><tr><th>报表</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td>年度汇总</td><td>申报总人数 / 通过人数 / 通过率</td></tr>
+      <tr><td>收入统计</td><td>各月收款额 / 年度总收入</td></tr>
+      <tr><td>职称级别分布</td><td>各级别申报人数占比</td></tr>
+      <tr><td>未通过原因分析</td><td>常见被拒原因汇总，提高申报质量</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══════════════════════════ 第十三章 ══════════════════════════ -->
+<section id="ch13">
+  <div class="chapter-title">
+    <div class="ch-num">第十三章</div>
+    <h2>开发路线图</h2>
+    <p>已完成功能与待开发功能规划</p>
+  </div>
+
+  <h2>Phase 1：基础数据层（已完成约 65%）</h2>
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:16px">
+    <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">申报人 CRUD（列表/新增/编辑/删除/详情）</span></div>
+    <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">工程业绩 / 获奖 / 论文 / 沟通记录 CRUD</span></div>
+    <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">批次管理 + 双截止日期预警</span></div>
+    <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">费用报表（收款状态跟踪）</span></div>
+    <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">工作台进度看板 + 跟进提醒</span></div>
+    <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">资历年限自动计算（从次月起算）</span></div>
+    <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">身份证 OCR（腾讯云，结果自动填入新建弹窗）</span></div>
+    <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">学历证书 OCR（通用接口 + 规则解析）</span></div>
+    <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">AI 辅助写作（DeepSeek 流式 SSE 输出）</span></div>
+    <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">Excel 申报人导出（openpyxl 带样式）</span></div>
+    <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">移动端适配（汉堡菜单 + 响应式布局）</span></div>
+    <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">Fernet 密码加密存储</span></div>
+    <div class="roadmap-item"><span class="ri-status done">✅</span><span class="ri-name">图像处理（本地增强 + remove.bg / Clipdrop 接口预留）</span></div>
+  </div>
+
+  <h2>Phase 2：字段扩展（对标广西职称网）— 下一步</h2>
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:16px">
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">申报人表新增字段：政治面貌 / 单位详情 / 学位 / 学习形式</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">职称信息新增字段：证书编号 / 发证单位 / 职称专业</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">工作经历模块（独立表 + CRUD）</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">社保信息模块（月数自动计算 + ≥36个月达标验证）</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">继续教育模块（学时统计 + 年度达标 ≥90学时检查）</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">执业资格证书模块（注册建造师等，含临期提醒）</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">证件照片上传 + 显示</span></div>
+  </div>
+
+  <h2>Phase 3：资料上传中心（核心减负模块）</h2>
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:16px">
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">多类型证件上传入口（按文件类型分类上传）</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">职称证 / 社保单 / 注册证等 OCR 识别</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">人工复核界面（左图右字段 + 置信度标色）</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">一键确认导入（字段自动写入数据库）</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">材料文件表（materials）CRUD</span></div>
+  </div>
+
+  <h2>Phase 4：智能材料清单 + 目录管理</h2>
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:16px">
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">本地客户目录自动创建（标准子目录结构）</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">文件监听（watchdog 自动感知材料入库）</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">个性化材料清单生成（按学历/级别/行业定制）</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">清单导出：PDF打印版 + 微信文字版</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">材料收集状态看板（已收/未收/已催）</span></div>
+  </div>
+
+  <h2>Phase 5：资格预审引擎</h2>
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:16px">
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">社保月数自动验证（≥36个月，近3年连续参保）</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">多条件联合预审（学历+资历+社保+论文+业绩）</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">预审报告生成（可导出 PDF 发给客户确认）</span></div>
+  </div>
+
+  <h2>Phase 6：填报数据准备 + 完整自动填报</h2>
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:16px">
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">广西职称网表单结构分析（实际字段名 selector 采集）</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">填报预览页面（仿官网样式确认内容）</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">Playwright 完整自动填报脚本（含文件上传）</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">断点续传机制（进度记录到数据库）</span></div>
+    <div class="roadmap-item"><span class="ri-status todo">🔲</span><span class="ri-name">截图存档 + 受理号自动记录</span></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════ 第十四章 ══════════════════════════ -->
+<section id="ch14">
+  <div class="chapter-title">
+    <div class="ch-num">第十四章</div>
+    <h2>待确认事项</h2>
+    <p>需要业务方确认后才能确定技术方案的问题</p>
+  </div>
+
+  <table>
+    <thead><tr><th>#</th><th>问题</th><th>影响模块</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>广西职称网登录是否有验证码？图形验证码还是短信验证码？</td><td>自动填报</td><td><span class="badge badge-orange">待确认</span></td></tr>
+      <tr><td>2</td><td>广西职称网是否有 API 接口文档，还是只能页面操作？</td><td>自动填报</td><td><span class="badge badge-orange">待确认</span></td></tr>
+      <tr><td>3</td><td>广西社保记录打印单格式是否固定？是否有电子版 PDF 可导出？</td><td>社保OCR解析</td><td><span class="badge badge-orange">待确认</span></td></tr>
+      <tr><td>4</td><td>材料清单是否随每年新政策文件更新？由谁负责上传新政策？</td><td>清单生成</td><td><span class="badge badge-orange">待确认</span></td></tr>
+      <tr><td>5</td><td>客户材料主要通过哪种方式传送？微信/邮件/现场扫描？</td><td>文件监听、上传流程</td><td><span class="badge badge-orange">待确认</span></td></tr>
+      <tr><td>6</td><td>系统是否只有一位中介使用（单用户）？还是多人共用？</td><td>认证权限</td><td><span class="badge badge-orange">待确认</span></td></tr>
+      <tr><td>7</td><td>自动填报时是否需要人工在旁监督（处理验证码）还是完全无人值守？</td><td>填报体验设计</td><td><span class="badge badge-orange">待确认</span></td></tr>
+      <tr><td>8</td><td>广西职称网是否有申报进度公示页面可以查询审核状态？</td><td>后续跟踪</td><td><span class="badge badge-orange">待确认</span></td></tr>
+      <tr><td>9</td><td>工程业绩材料（合同/竣工单）格式是否统一？是原件扫描还是电子版？</td><td>业绩OCR</td><td><span class="badge badge-orange">待确认</span></td></tr>
+      <tr><td>10</td><td>本地客户材料目录放在哪里？D盘？NAS？移动硬盘？</td><td>目录管理</td><td><span class="badge badge-orange">待确认</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══════════════════════════ 第十五章 ══════════════════════════ -->
+<section id="ch15">
+  <div class="chapter-title">
+    <div class="ch-num">第十五章</div>
+    <h2>运行说明</h2>
+    <p>安装、启动与首次配置</p>
+  </div>
+
+  <h2>15.1 安装依赖</h2>
+  <pre><code># 安装 Python 依赖
+pip install -r requirements.txt
+
+# 安装 Playwright 浏览器（自动填报需要）
+playwright install chromium</code></pre>
+
+  <h2>15.2 启动系统</h2>
+  <pre><code>cd 职称申报系统
+python app.py
+# 浏览器访问 http://localhost:5000</code></pre>
+
+  <h2>15.3 首次使用步骤</h2>
+  <ol>
+    <li>访问「系统设置」，填写腾讯云 SecretId/SecretKey（OCR 必填）</li>
+    <li>填写 DeepSeek API Key（AI 写作必填）</li>
+    <li>配置客户材料根目录路径（如 <code>D:\职称材料</code>）</li>
+    <li>点击「新建申报批次」，录入本年度批次信息和截止日期</li>
+    <li>点击「新建申报人」，录入客户基本信息（可用 OCR 上传身份证自动填充）</li>
+    <li>在申报人详情页录入工程业绩、获奖、论文等数据</li>
+    <li>使用 AI 辅助写作生成工作总结或代表作说明书</li>
+    <li>启动自动填报，确认内容后提交</li>
+  </ol>
+
+  <h2>15.4 requirements.txt</h2>
+  <pre><code>flask>=3.0.0
+cryptography>=41.0.0
+openai>=1.0.0
+Pillow>=10.0.0
+python-docx>=1.0.0
+requests>=2.31.0
+playwright>=1.40.0
+openpyxl>=3.1.0
+
+# 可选（按需安装）：
+# paddlepaddle paddleocr   — 本地离线OCR（备用方案）
+# opencv-python numpy      — 图片自动纠偏</code></pre>
+</section>
+
+<footer style="margin-top:60px;padding:24px 0;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:12px;text-align:center">
+  职称申报管理系统 · 开发文档 v3.0 · 2026-06-18 · 广西住建行业职称申报专用<br>
+  <span style="margin-top:4px;display:block">草稿版本 — 对照实际 Flask 代码更新，待业务确认后转为正式基线</span>
+</footer>
+
+</main>
+
+<script>
+const links = document.querySelectorAll('#nav a[href^="#"]');
+const sections = document.querySelectorAll('section[id]');
+window.addEventListener('scroll', () => {
+  let cur = '';
+  sections.forEach(s => { if (s.offsetTop - 80 <= window.scrollY) cur = s.id; });
+  links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + cur));
+}, {passive: true});
+</script>
+</body>
+</html>
