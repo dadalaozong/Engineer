@@ -299,6 +299,8 @@ def _migrate(conn):
         # Tab7-1·专业技术工作经历新增字段
         ("achievements", "criteria_item", "TEXT"),
         ("achievements", "ach_work_unit", "TEXT"),
+        # Tab8-1·业绩成果新增字段
+        ("achievements", "rank_in_project", "TEXT"),
     ]
     for table, col, col_type in migrations:
         try:

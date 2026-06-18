@@ -77,15 +77,16 @@
 <!-- Tab导航 -->
 <div style="display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:16px;flex-wrap:wrap">
   {% for tab_id, tab_label, count in [
-    ('achievements', '工程业绩', achievements|length),
-    ('awards',       '获奖情况', awards|length),
-    ('papers',       '论文著作', papers|length),
-    ('logs',         '沟通记录', logs|length),
-    ('work_exps',    '工作经历', work_exps|length),
-    ('insurances',   '社保记录', insurances|length),
-    ('edu_trainings','继续教育', edu_trainings|length),
-    ('pro_certs',    '执业资格', pro_certs|length),
-    ('academic_roles','学术兼职', academic_roles|length),
+    ('achievements',    '工程业绩(Tab7-1)', achievements|length),
+    ('ach_results',     '业绩成果(Tab8-1)', achievements|length),
+    ('awards',          '获奖情况', awards|length),
+    ('papers',          '论文著作', papers|length),
+    ('logs',            '沟通记录', logs|length),
+    ('work_exps',       '工作经历', work_exps|length),
+    ('insurances',      '社保记录', insurances|length),
+    ('edu_trainings',   '继续教育', edu_trainings|length),
+    ('pro_certs',       '执业资格', pro_certs|length),
+    ('academic_roles',  '学术兼职', academic_roles|length),
   ] %}
   <button class="tab-btn" data-tab="{{ tab_id }}"
     style="padding:10px 16px;border:none;background:none;cursor:pointer;
@@ -147,13 +148,89 @@
                 '{{ a.location or '' }}','{{ a.owner or '' }}','{{ a.contractor or '' }}',
                 '{{ a.investment or '' }}','{{ a.area or '' }}','{{ a.description|e or '' }}',
                 {{ 1 if a.is_representative else 0 }},
-                '{{ a.criteria_item or '' }}','{{ a.ach_work_unit|e or '' }}')">编辑</button>
+                '{{ a.criteria_item or '' }}','{{ a.ach_work_unit|e or '' }}',
+                '{{ a.rank_in_project|e or '' }}')">编辑</button>
             <button class="btn btn-sm btn-danger"
               onclick="confirmDelete('{{ url_for('applicants.achievement_delete', aid=aid, rid=a.id) }}','工作经历')">删除</button>
           </td>
         </tr>
         {% else %}
         <tr><td colspan="8" class="text-muted" style="text-align:center;padding:20px">暂无专业技术工作经历，请点击【添加工作经历】</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ Tab: 业绩成果（Tab8-1） ══ -->
+<div id="tab-ach_results" class="tab-panel hidden">
+  <div class="toolbar">
+    <div class="section-title" style="margin:0">业绩成果 Tab8-1</div>
+    <div class="toolbar-right">
+      <button class="btn btn-primary btn-sm" onclick="openModal('ach-add-modal')">➕ 添加业绩</button>
+    </div>
+  </div>
+  <div style="font-size:12px;color:#64748b;margin-bottom:8px">
+    对应网站8-1业绩成果，需提供项目合同、验收报告等扫描件放入<code>08-1_业绩成果</code>目录。"个人排名"填写本人在项目中的排名（如：第一）。
+  </div>
+  <div class="table-card" style="overflow-x:auto">
+    <table style="min-width:900px">
+      <thead>
+        <tr>
+          <th style="width:36px">序号</th>
+          <th style="width:80px">符合评审<br>条件项</th>
+          <th style="width:60px">是否代表<br>性成果</th>
+          <th>开始时间</th>
+          <th>截止时间</th>
+          <th>业绩成果</th>
+          <th style="width:70px">项目级别</th>
+          <th style="width:70px">个人排名</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in achievements %}
+        <tr>
+          <td style="text-align:center;color:#94a3b8">{{ loop.index }}</td>
+          <td style="text-align:center">
+            <span class="badge badge-blue" style="font-size:11px">{{ a.criteria_item or '—' }}</span>
+          </td>
+          <td style="text-align:center">
+            {% if a.is_representative %}
+            <span class="badge badge-green" style="font-size:11px">是</span>
+            {% else %}
+            <span class="badge badge-gray" style="font-size:11px">否</span>
+            {% endif %}
+          </td>
+          <td>{{ a.start_date or '—' }}</td>
+          <td>{{ a.end_date or '—' }}</td>
+          <td>
+            <strong style="font-size:13px">{{ a.project_name }}</strong>
+            {% if a.description %}
+            <div style="font-size:11px;color:#64748b;margin-top:2px">{{ a.description[:80] }}{% if a.description|length > 80 %}…{% endif %}</div>
+            {% endif %}
+          </td>
+          <td style="text-align:center">
+            {% if a.scale %}
+            <span class="badge {{ 'badge-red' if a.scale == '大型' else ('badge-orange' if a.scale == '中型' else 'badge-gray') }}" style="font-size:11px">{{ a.scale }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td style="text-align:center">{{ a.rank_in_project or '—' }}</td>
+          <td>
+            <button class="btn btn-sm btn-outline"
+              onclick="openAchEdit({{ a.id }},'{{ a.project_name|e }}','{{ a.project_type or '' }}',
+                '{{ a.scale or '' }}','{{ a.role or '' }}','{{ a.start_date or '' }}','{{ a.end_date or '' }}',
+                '{{ a.location or '' }}','{{ a.owner or '' }}','{{ a.contractor or '' }}',
+                '{{ a.investment or '' }}','{{ a.area or '' }}','{{ a.description|e or '' }}',
+                {{ 1 if a.is_representative else 0 }},
+                '{{ a.criteria_item or '' }}','{{ a.ach_work_unit|e or '' }}',
+                '{{ a.rank_in_project|e or '' }}')">编辑</button>
+            <button class="btn btn-sm btn-danger"
+              onclick="confirmDelete('{{ url_for('applicants.achievement_delete', aid=aid, rid=a.id) }}','业绩成果')">删除</button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="text-muted" style="text-align:center;padding:20px">暂无业绩成果，请点击【添加业绩】</td></tr>
         {% endfor %}
       </tbody>
     </table>
@@ -602,12 +679,17 @@
   <div class="form-group"><label class="form-label">工作单位</label>
     <input class="form-control" name="ach_work_unit" id="ach-work-unit" placeholder="填报时的工作单位"></div>
 </div>
-<div class="form-group"><label class="form-label">工程简介</label>
+<div class="form-row">
+  <div class="form-group"><label class="form-label">个人排名（Tab8-1）</label>
+    <input class="form-control" name="rank_in_project" id="ach-rank-in-project" placeholder="如：第一、排名第2"></div>
+  <div class="form-group"></div>
+</div>
+<div class="form-group"><label class="form-label">工程简介 / 业绩成果描述</label>
   <textarea class="form-control" name="description" id="ach-desc"></textarea></div>
 <div class="form-group">
   <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
     <input type="checkbox" name="is_representative" id="ach-rep" value="1">
-    标记为代表性工程
+    标记为代表性成果
   </label>
 </div>
 {% endmacro %}

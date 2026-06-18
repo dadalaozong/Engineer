@@ -194,13 +194,15 @@ def insert_achievement(**kw) -> int:
     cur = conn.execute(
         """INSERT INTO achievements
            (applicant_id,project_name,project_type,scale,role,start_date,end_date,
-            location,owner,contractor,investment,area,description,is_representative)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            location,owner,contractor,investment,area,description,is_representative,
+            criteria_item,ach_work_unit,rank_in_project)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (kw.get("applicant_id"), kw.get("project_name"), kw.get("project_type"),
          kw.get("scale"), kw.get("role"), kw.get("start_date"), kw.get("end_date"),
          kw.get("location"), kw.get("owner"), kw.get("contractor"),
          kw.get("investment") or None, kw.get("area") or None,
-         kw.get("description"), 1 if kw.get("is_representative") else 0)
+         kw.get("description"), 1 if kw.get("is_representative") else 0,
+         kw.get("criteria_item"), kw.get("ach_work_unit"), kw.get("rank_in_project"))
     )
     conn.commit(); conn.close()
     return cur.lastrowid
@@ -210,13 +212,15 @@ def update_achievement(rid, **kw):
     conn.execute(
         """UPDATE achievements SET
            project_name=?,project_type=?,scale=?,role=?,start_date=?,end_date=?,
-           location=?,owner=?,contractor=?,investment=?,area=?,description=?,is_representative=?
+           location=?,owner=?,contractor=?,investment=?,area=?,description=?,is_representative=?,
+           criteria_item=?,ach_work_unit=?,rank_in_project=?
            WHERE id=?""",
         (kw.get("project_name"), kw.get("project_type"), kw.get("scale"),
          kw.get("role"), kw.get("start_date"), kw.get("end_date"),
          kw.get("location"), kw.get("owner"), kw.get("contractor"),
          kw.get("investment") or None, kw.get("area") or None,
-         kw.get("description"), 1 if kw.get("is_representative") else 0, rid)
+         kw.get("description"), 1 if kw.get("is_representative") else 0,
+         kw.get("criteria_item"), kw.get("ach_work_unit"), kw.get("rank_in_project"), rid)
     )
     conn.commit(); conn.close()
 
