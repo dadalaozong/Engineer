@@ -389,10 +389,20 @@ _TAB_MATERIALS = [
         "tab_name": "个人社保缴纳记录",
         "folder": "06-2_社保记录",
         "items": [
-            {"name": "社保缴纳证明/截图",         "fill": "file", "required_for": [],
-             "note": "需体现参保单位和起止时间，OCR自动解析时段"},
-            {"name": "社保记录（逐行）",          "fill": "auto", "required_for": [],
-             "note": "从系统数据自动填写"},
+            # ── 扫描件 ──
+            {"name": "社保缴纳证明截图/打印件",   "fill": "file", "required_for": [],
+             "note": "从社保网站导出，体现缴纳单位和月份，OCR识别后自动录入"},
+            # ── 系统自动填写字段（对应网站列表各列）──
+            {"name": "数据来源",                  "fill": "auto", "required_for": [],
+             "note": "系统自动标记【数据获取】或手工录入时标记【自增】"},
+            {"name": "缴纳开始时间",              "fill": "auto", "required_for": [],
+             "note": "格式 YYYY-MM，每行按月记录"},
+            {"name": "缴纳结束时间",              "fill": "auto", "required_for": [],
+             "note": "格式 YYYY-MM，通常与开始时间同月"},
+            {"name": "缴纳社保机构",              "fill": "auto", "required_for": [],
+             "note": "如：南宁市本级(职工基本养老保险)，OCR识别后自动填写"},
+            {"name": "缴纳单位",                  "fill": "auto", "required_for": [],
+             "note": "如：广西鑫豪建筑工程有限公司(已实缴)，OCR识别后自动填写"},
         ],
     },
     {
@@ -712,6 +722,14 @@ def fill_preview_page(pid):
             {"label": "最近工作单位",
              "value": (list_work_experiences(aid) or [{}])[0].get("work_unit","—") if aid else "—",
              "status": "ok"},
+        ]},
+        {"section": "Tab6-2·个人社保缴纳记录", "items": [
+            {"label": "社保记录月数",
+             "value": f"{len(list_social_insurance(aid))} 条" if aid else "—",
+             "status": "ok" if aid and len(list_social_insurance(aid)) >= 6 else "missing"},
+            {"label": "连续6个月要求",
+             "value": f"已录入 {len(list_social_insurance(aid))} 月" if aid else "—",
+             "status": "ok" if aid and len(list_social_insurance(aid)) >= 6 else "missing"},
         ]},
     ]
 

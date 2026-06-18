@@ -440,27 +440,39 @@ def _calc_months(start: str, end: str) -> int:
 
 def insert_social_insurance(**kw) -> int:
     months = kw.get("insure_months") or _calc_months(
-        kw.get("insure_start",""), kw.get("insure_end","")
-    )
+        kw.get("insure_start",""), kw.get("insure_end","") or kw.get("insure_start","")
+    ) or 1
     conn = get_conn()
     cur = conn.execute(
-        "INSERT INTO social_insurance (applicant_id,insure_location,insure_unit,insure_start,insure_end,insure_months) VALUES (?,?,?,?,?,?)",
+        """INSERT INTO social_insurance
+           (applicant_id, insure_location, insure_unit,
+            insure_start, insure_end, insure_months, data_source)
+           VALUES (?,?,?,?,?,?,?)""",
         (kw.get("applicant_id"), kw.get("insure_location"), kw.get("insure_unit"),
-         kw.get("insure_start"), kw.get("insure_end"), int(months) if months else None)
+         kw.get("insure_start"),
+         kw.get("insure_end") or kw.get("insure_start"),
+         int(months) if months else 1,
+         kw.get("data_source") or "数据获取")
     )
     conn.commit(); conn.close()
     return cur.lastrowid
 
 def update_social_insurance(sid, **kw):
     months = kw.get("insure_months") or _calc_months(
-        kw.get("insure_start",""), kw.get("insure_end","")
-    )
+        kw.get("insure_start",""), kw.get("insure_end","") or kw.get("insure_start","")
+    ) or 1
     conn = get_conn()
     conn.execute(
-        "UPDATE social_insurance SET insure_location=?,insure_unit=?,insure_start=?,insure_end=?,insure_months=? WHERE id=?",
+        """UPDATE social_insurance SET
+           insure_location=?, insure_unit=?,
+           insure_start=?, insure_end=?, insure_months=?, data_source=?
+           WHERE id=?""",
         (kw.get("insure_location"), kw.get("insure_unit"),
-         kw.get("insure_start"), kw.get("insure_end"),
-         int(months) if months else None, sid)
+         kw.get("insure_start"),
+         kw.get("insure_end") or kw.get("insure_start"),
+         int(months) if months else 1,
+         kw.get("data_source") or "数据获取",
+         sid)
     )
     conn.commit(); conn.close()
 

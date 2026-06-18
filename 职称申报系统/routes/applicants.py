@@ -238,7 +238,7 @@ def work_exp_delete(aid, wid):
 
 # ── 社保记录 CRUD ─────────────────────────────────────────────────
 
-_INS_COLS = ["insure_location","insure_unit","insure_start","insure_end","insure_months"]
+_INS_COLS = ["insure_location","insure_unit","insure_start","insure_end","insure_months","data_source"]
 
 @bp.route("/<int:aid>/insurances/new", methods=["POST"])
 def insurance_create(aid):

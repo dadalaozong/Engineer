@@ -272,6 +272,8 @@ def _migrate(conn):
         ("projects",     "discipline",          "TEXT"),
         ("projects",     "apply_method",        "TEXT"),
         ("projects",     "batch_year",          "TEXT"),
+        # Tab6-2·社保记录新增字段
+        ("social_insurance", "data_source", "TEXT DEFAULT '数据获取'"),
         # Tab5·继续教育 edu_trainings表新增字段（对应网站实际列）
         ("edu_trainings", "mandatory_public_hours",  "REAL DEFAULT 0"),
         ("edu_trainings", "elective_public_hours",   "REAL DEFAULT 0"),
