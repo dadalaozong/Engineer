@@ -490,22 +490,68 @@ def edu_hours_by_year(applicant_id):
     conn.close()
     return {r["year"]: r["total"] for r in rows}
 
+def _edu_total(kw):
+    """计算总学时：公需必修 + 公需选修 + 行业共享学时 + 专业学时"""
+    try:
+        return (float(kw.get("mandatory_public_hours") or 0) +
+                float(kw.get("elective_public_hours") or 0) +
+                float(kw.get("industry_shared_hours") or 0) +
+                float(kw.get("professional_hours") or 0))
+    except Exception:
+        return float(kw.get("hours") or 0)
+
 def insert_edu_training(**kw) -> int:
     conn = get_conn()
+    total = kw.get("total_hours") or _edu_total(kw) or kw.get("hours") or 0
     cur = conn.execute(
-        "INSERT INTO edu_trainings (applicant_id,year,hours,institution,course_name) VALUES (?,?,?,?,?)",
-        (kw.get("applicant_id"), kw.get("year") or None, kw.get("hours") or None,
-         kw.get("institution"), kw.get("course_name"))
+        """INSERT INTO edu_trainings
+           (applicant_id, year, hours, institution, course_name,
+            mandatory_public_hours, elective_public_hours,
+            industry_shared_credits, industry_shared_hours,
+            professional_hours, total_hours, data_source,
+            train_start, train_end, issuer)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+        (kw.get("applicant_id"), kw.get("year") or None,
+         kw.get("hours") or total or None,
+         kw.get("institution") or kw.get("issuer"),
+         kw.get("course_name"),
+         kw.get("mandatory_public_hours") or 0,
+         kw.get("elective_public_hours") or 0,
+         kw.get("industry_shared_credits") or 0,
+         kw.get("industry_shared_hours") or 0,
+         kw.get("professional_hours") or 0,
+         total,
+         kw.get("data_source") or "数据获取",
+         kw.get("train_start"), kw.get("train_end"),
+         kw.get("issuer") or kw.get("institution"))
     )
     conn.commit(); conn.close()
     return cur.lastrowid
 
 def update_edu_training(eid, **kw):
+    total = kw.get("total_hours") or _edu_total(kw) or kw.get("hours") or 0
     conn = get_conn()
     conn.execute(
-        "UPDATE edu_trainings SET year=?,hours=?,institution=?,course_name=? WHERE id=?",
-        (kw.get("year") or None, kw.get("hours") or None,
-         kw.get("institution"), kw.get("course_name"), eid)
+        """UPDATE edu_trainings SET
+           year=?, hours=?, institution=?, course_name=?,
+           mandatory_public_hours=?, elective_public_hours=?,
+           industry_shared_credits=?, industry_shared_hours=?,
+           professional_hours=?, total_hours=?,
+           train_start=?, train_end=?, issuer=?
+           WHERE id=?""",
+        (kw.get("year") or None,
+         kw.get("hours") or total or None,
+         kw.get("institution") or kw.get("issuer"),
+         kw.get("course_name"),
+         kw.get("mandatory_public_hours") or 0,
+         kw.get("elective_public_hours") or 0,
+         kw.get("industry_shared_credits") or 0,
+         kw.get("industry_shared_hours") or 0,
+         kw.get("professional_hours") or 0,
+         total,
+         kw.get("train_start"), kw.get("train_end"),
+         kw.get("issuer") or kw.get("institution"),
+         eid)
     )
     conn.commit(); conn.close()
 

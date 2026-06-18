@@ -272,6 +272,17 @@ def _migrate(conn):
         ("projects",     "discipline",          "TEXT"),
         ("projects",     "apply_method",        "TEXT"),
         ("projects",     "batch_year",          "TEXT"),
+        # Tab5·继续教育 edu_trainings表新增字段（对应网站实际列）
+        ("edu_trainings", "mandatory_public_hours",  "REAL DEFAULT 0"),
+        ("edu_trainings", "elective_public_hours",   "REAL DEFAULT 0"),
+        ("edu_trainings", "industry_shared_credits", "REAL DEFAULT 0"),
+        ("edu_trainings", "industry_shared_hours",   "REAL DEFAULT 0"),
+        ("edu_trainings", "professional_hours",      "REAL DEFAULT 0"),
+        ("edu_trainings", "total_hours",             "REAL DEFAULT 0"),
+        ("edu_trainings", "data_source",             "TEXT DEFAULT '数据获取'"),
+        ("edu_trainings", "train_start",             "TEXT"),
+        ("edu_trainings", "train_end",               "TEXT"),
+        ("edu_trainings", "issuer",                  "TEXT"),
     ]
     for table, col, col_type in migrations:
         try:

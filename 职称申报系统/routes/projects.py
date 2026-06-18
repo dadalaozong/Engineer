@@ -343,13 +343,29 @@ _TAB_MATERIALS = [
     },
     {
         "tab": "5",
-        "tab_name": "继续教育学习完成情况",
+        "tab_name": "继续教育学时、学分完成情况",
         "folder": "05_继续教育",
         "items": [
-            {"name": "继续教育/培训证书",         "fill": "file", "required_for": [],
-             "note": "近3年每年≥90学时，OCR识别课程名/学时/机构"},
-            {"name": "继续教育记录（逐行）",      "fill": "auto", "required_for": [],
-             "note": "从系统数据自动填写"},
+            # ── 扫描件（放入05_继续教育目录）──
+            {"name": "继续教育学时证明/培训证书",  "fill": "file", "required_for": [],
+             "note": "近年度继续教育凭证，OCR识别年度/学时/机构，每年度放一份"},
+            # ── 系统按年度逐行自动填写（对应网站列表各列）──
+            {"name": "数据来源",                  "fill": "auto", "required_for": [],
+             "note": "固定为【数据获取】，系统自动标记"},
+            {"name": "年度",                      "fill": "auto", "required_for": [],
+             "note": "如：2024、2025，每行对应一个年度"},
+            {"name": "公需必修学时",              "fill": "auto", "required_for": [],
+             "note": "从继续教育记录自动填写"},
+            {"name": "公需选修学时",              "fill": "auto", "required_for": [],
+             "note": "从继续教育记录自动填写"},
+            {"name": "行业内数据共享学分",        "fill": "auto", "required_for": [],
+             "note": "从继续教育记录自动填写，无则填0"},
+            {"name": "行业内数据共享学时",        "fill": "auto", "required_for": [],
+             "note": "从继续教育记录自动填写（含住建厅共享数据）"},
+            {"name": "专业学时",                  "fill": "auto", "required_for": [],
+             "note": "从继续教育记录自动填写"},
+            {"name": "总学时（合计）",            "fill": "auto", "required_for": [],
+             "note": "系统自动计算各学时之和，需≥90学时/年"},
         ],
     },
     {
@@ -662,6 +678,22 @@ def fill_preview_page(pid):
             {"label": "计算机考试合格情况",   "value": a.get("comp_exam_result","不作要求"),    "status": "ok"},
             {"label": "外语和计算机成绩核查结果", "value": a.get("lang_comp_check","不作要求"), "status": "ok"},
             {"label": "参加外省考试情况说明", "value": a.get("lang_comp_other_prov","不作要求"),"status": "ok"},
+        ]},
+        {"section": "Tab5·继续教育学时、学分完成情况", "items": [
+            {"label": "继续教育记录行数",
+             "value": f"{len(list_edu_trainings(aid))} 条年度记录" if aid else "—",
+             "status": "ok" if aid and list_edu_trainings(aid) else "warn"},
+            {"label": "总学时合计",
+             "value": str(sum((r.get("total_hours") or
+                               (r.get("mandatory_public_hours",0) or 0) +
+                               (r.get("elective_public_hours",0) or 0) +
+                               (r.get("industry_shared_hours",0) or 0) +
+                               (r.get("professional_hours",0) or 0))
+                              for r in list_edu_trainings(aid)) if aid else 0) + " 学时",
+             "status": "ok"},
+            {"label": "每年度≥90学时",
+             "value": "请在继续教育记录中逐年核对",
+             "status": "warn"},
         ]},
     ]
 
