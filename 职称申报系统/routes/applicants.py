@@ -515,8 +515,6 @@ def generate_summary(aid):
     papers         = list_papers(aid)
     work_exps      = list_work_experiences(aid)
     try:
-        from core.ai_writer import stream_write
-        from config import CONFIG
         # Build info string
         lines = []
         lines.append(f"姓名：{applicant.get('name','')}，性别：{applicant.get('gender','')}")
