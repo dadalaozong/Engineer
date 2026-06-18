@@ -305,6 +305,9 @@ def _migrate(conn):
         ("papers", "criteria_item", "TEXT"),
         ("papers", "is_representative_paper", "INTEGER DEFAULT 0"),
         ("papers", "is_masterpiece", "TEXT DEFAULT '否'"),
+        # Tab10·专业技术工作总结 (AI生成)
+        ("applicants", "work_summary",              "TEXT"),
+        ("applicants", "work_summary_generated_at", "TEXT"),
     ]
     for table, col, col_type in migrations:
         try:

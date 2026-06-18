@@ -503,6 +503,102 @@ def batch_apply(aid):
     flash("OCR识别结果已写入档案", "success")
     return redirect(url_for("applicants.detail", aid=aid))
 
+# ── Tab10·专业技术工作总结 AI生成 & 保存 ──────────────────────────
+
+@bp.route("/<int:aid>/generate-summary", methods=["POST"])
+def generate_summary(aid):
+    applicant = get_applicant(aid)
+    if not applicant:
+        return jsonify({"ok": False, "error": "申报人不存在"}), 404
+    achievements   = list_achievements(aid)
+    awards         = list_awards(aid)
+    papers         = list_papers(aid)
+    work_exps      = list_work_experiences(aid)
+    try:
+        from core.ai_writer import stream_write
+        from config import CONFIG
+        # Build info string
+        lines = []
+        lines.append(f"姓名：{applicant.get('name','')}，性别：{applicant.get('gender','')}")
+        lines.append(f"工作单位：{applicant.get('work_unit','')}")
+        lines.append(f"现任职称：{applicant.get('title_level','')}，取得时间：{applicant.get('title_year','')}{applicant.get('title_month','')}")
+        lines.append(f"学历：{applicant.get('education','')}，专业：{applicant.get('major','')}，毕业院校：{applicant.get('school','')}")
+        lines.append(f"参加工作时间：{applicant.get('work_start_year','')}")
+        lines.append(f"现任职务：{applicant.get('current_position','')}")
+        if achievements:
+            lines.append("\n代表性工程业绩：")
+            for a in achievements[:6]:
+                lines.append(f"- {a.get('project_name','')}（{a.get('start_date','')}至{a.get('end_date','')}，{a.get('role','')}）{a.get('description','')[:80] if a.get('description') else ''}")
+        if awards:
+            lines.append("\n获奖情况：")
+            for aw in awards[:5]:
+                lines.append(f"- {aw.get('award_name','')}（{aw.get('award_level','')}，{aw.get('award_org','')}，{aw.get('award_year','')}，排名：{aw.get('rank','')}）")
+        if papers:
+            lines.append("\n学术成果：")
+            for p in papers[:5]:
+                lines.append(f"- 《{p.get('title','')}》（{p.get('paper_type','')}，{p.get('pub_date','')}，{p.get('author_rank','')}）")
+        if work_exps:
+            lines.append("\n工作经历：")
+            for we in work_exps[:5]:
+                lines.append(f"- {we.get('start_date','')}至{we.get('end_date','至今')} {we.get('work_unit','')} {we.get('position','')}")
+        info = "\n".join(lines)
+
+        from config import CONFIG as _CFG
+        api_key  = _CFG.get("ai_api_key", "")
+        model    = _CFG.get("ai_model", "deepseek-chat")
+        base_url = _CFG.get("ai_base_url", "https://api.deepseek.com")
+        if not api_key:
+            return jsonify({"ok": False, "error": "AI API Key 未配置，请在系统设置中填写"}), 400
+
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key, base_url=base_url)
+        prompt = f"""你是一位专业的广西职称申报材料撰写专家。请根据以下申报人信息，生成一篇规范的"任现职以来专业技术工作总结"。
+
+要求：
+1. 字数1500-2500字
+2. 结构清晰，分段落叙述
+3. 重点突出技术能力和业绩成果
+4. 语言专业、正式
+5. 包含以下部分：基本情况介绍、专业技术工作经历、主要业绩成果、获奖情况、学术成果、工作展望
+
+申报人信息：
+{info}
+
+请生成专业技术工作总结正文，不要加多余的说明："""
+
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=3000,
+        )
+        summary = resp.choices[0].message.content or ""
+
+        # Save to DB
+        from database.db import get_conn
+        import datetime
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        conn = get_conn()
+        conn.execute("UPDATE applicants SET work_summary=?, work_summary_generated_at=? WHERE id=?",
+                     (summary, now, aid))
+        conn.commit()
+        conn.close()
+        return jsonify({"ok": True, "summary": summary})
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
+@bp.route("/<int:aid>/save-summary", methods=["POST"])
+def save_summary(aid):
+    summary = request.form.get("work_summary", "")
+    from database.db import get_conn
+    conn = get_conn()
+    conn.execute("UPDATE applicants SET work_summary=? WHERE id=?", (summary, aid))
+    conn.commit()
+    conn.close()
+    return jsonify({"ok": True})
+
+
 # ── Excel 导出 ─────────────────────────────────────────────────────
 
 @bp.route("/export/excel")
