@@ -248,11 +248,13 @@
   <div class="table-card">
     <table>
       <thead>
-        <tr><th>奖项名称</th><th>级别</th><th>年份</th><th>颁奖单位</th><th>本人排名</th><th>证书编号</th><th>操作</th></tr>
+        <tr><th>序号</th><th>授奖时间</th><th>名称与内容提要</th><th>奖励等级</th><th>授奖机关</th><th>个人排名</th><th>操作</th></tr>
       </thead>
       <tbody>
         {% for w in awards %}
         <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ w.award_year or '—' }}</td>
           <td><strong>{{ w.award_name }}</strong></td>
           <td>
             {% if w.award_level in ['国家级','省部级'] %}
@@ -261,10 +263,8 @@
             <span class="badge badge-gray">{{ w.award_level or '—' }}</span>
             {% endif %}
           </td>
-          <td>{{ w.award_year or '—' }}</td>
           <td>{{ w.award_org or '—' }}</td>
           <td>{{ w.rank or '—' }}</td>
-          <td class="text-muted">{{ w.certificate_no or '—' }}</td>
           <td>
             <button class="btn btn-sm btn-outline"
               onclick="openAwardEdit({{ w.id }},'{{ w.award_name|e }}','{{ w.award_level or '' }}',
@@ -726,29 +726,33 @@
     <div class="modal-title">添加获奖记录</div>
     <form method="post" action="{{ url_for('applicants.award_create', aid=aid) }}">
       {% include "applicants/_award_fields.html" ignore missing %}
+      <div class="form-group"><label class="form-label">名称与内容提要 *</label>
+        <textarea class="form-control" name="award_name" id="aw-name" rows="2" required></textarea></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">奖项名称 *</label>
-          <input class="form-control" name="award_name" id="aw-name" required></div>
-        <div class="form-group"><label class="form-label">奖励级别</label>
+        <div class="form-group"><label class="form-label">授奖时间</label>
+          <input class="form-control" name="award_year" id="aw-year" placeholder="YYYY-MM"></div>
+        <div class="form-group"><label class="form-label">奖励等级</label>
           <select class="form-control" name="award_level" id="aw-level">
             <option value="">—</option>
-            <option>国家级</option><option>省部级</option><option>市厅级</option><option>县局级</option>
+            <option>国家级</option><option>省部级</option><option>市厅级</option><option>县区级</option>
           </select></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">获奖年份</label>
-          <input class="form-control" name="award_year" id="aw-year"></div>
-        <div class="form-group"><label class="form-label">颁奖单位</label>
+        <div class="form-group"><label class="form-label">授奖机关</label>
           <input class="form-control" name="award_org" id="aw-org"></div>
+        <div class="form-group"><label class="form-label">个人排名</label>
+          <select class="form-control" name="rank" id="aw-rank">
+            <option value="">—</option>
+            <option>第一</option><option>第二</option><option>第三</option>
+            <option>第四</option><option>第五</option><option>其他</option>
+          </select></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">本人排名</label>
-          <input class="form-control" name="rank" id="aw-rank" placeholder="如：第一"></div>
         <div class="form-group"><label class="form-label">证书编号</label>
           <input class="form-control" name="certificate_no" id="aw-cert"></div>
+        <div class="form-group"><label class="form-label">备注</label>
+          <input class="form-control" name="notes" id="aw-notes"></div>
       </div>
-      <div class="form-group"><label class="form-label">备注</label>
-        <input class="form-control" name="notes" id="aw-notes"></div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('award-add-modal')">取消</button>
         <button class="btn btn-primary" type="submit">保存</button>
@@ -761,29 +765,33 @@
   <div class="modal-box" style="width:540px">
     <div class="modal-title">编辑获奖记录</div>
     <form id="award-edit-form" method="post">
+      <div class="form-group"><label class="form-label">名称与内容提要 *</label>
+        <textarea class="form-control" name="award_name" id="awe-name" rows="2" required></textarea></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">奖项名称 *</label>
-          <input class="form-control" name="award_name" id="awe-name" required></div>
-        <div class="form-group"><label class="form-label">奖励级别</label>
+        <div class="form-group"><label class="form-label">授奖时间</label>
+          <input class="form-control" name="award_year" id="awe-year" placeholder="YYYY-MM"></div>
+        <div class="form-group"><label class="form-label">奖励等级</label>
           <select class="form-control" name="award_level" id="awe-level">
             <option value="">—</option>
-            <option>国家级</option><option>省部级</option><option>市厅级</option><option>县局级</option>
+            <option>国家级</option><option>省部级</option><option>市厅级</option><option>县区级</option>
           </select></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">获奖年份</label>
-          <input class="form-control" name="award_year" id="awe-year"></div>
-        <div class="form-group"><label class="form-label">颁奖单位</label>
+        <div class="form-group"><label class="form-label">授奖机关</label>
           <input class="form-control" name="award_org" id="awe-org"></div>
+        <div class="form-group"><label class="form-label">个人排名</label>
+          <select class="form-control" name="rank" id="awe-rank">
+            <option value="">—</option>
+            <option>第一</option><option>第二</option><option>第三</option>
+            <option>第四</option><option>第五</option><option>其他</option>
+          </select></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">本人排名</label>
-          <input class="form-control" name="rank" id="awe-rank"></div>
         <div class="form-group"><label class="form-label">证书编号</label>
           <input class="form-control" name="certificate_no" id="awe-cert"></div>
+        <div class="form-group"><label class="form-label">备注</label>
+          <input class="form-control" name="notes" id="awe-notes"></div>
       </div>
-      <div class="form-group"><label class="form-label">备注</label>
-        <input class="form-control" name="notes" id="awe-notes"></div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeModal('award-edit-modal')">取消</button>
         <button class="btn btn-primary" type="submit">保存</button>
